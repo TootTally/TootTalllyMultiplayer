@@ -28,13 +28,16 @@ namespace TootTallyMultiplayer
             _currentInstance = __instance;
             _multiController = new MultiplayerController(__instance);
 
+            _isSceneActive = true;
+
             if (_state == MultiplayerController.MultiplayerState.SelectSong)
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
             else
+            {
                 _previousState = MultiplayerController.MultiplayerState.None;
+                UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
+            }
 
-            _isSceneActive = true;
-            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
         }
 
         [HarmonyPatch(typeof(Plugin), nameof(Plugin.Update))]
@@ -223,14 +226,14 @@ namespace TootTallyMultiplayer
         [HarmonyPostfix]
         public static void HideBackButton(LevelSelectController __instance)
         {
-            __instance.backbutton.gameObject.SetActive(_multiController == null);
+            __instance.backbutton.gameObject.SetActive(_multiController == null || !_multiController.IsConnected);
         }
 
         [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.clickPlay))]
         [HarmonyPrefix]
         public static bool ClickPlayButtonMultiplayerSelectSong(LevelSelectController __instance)
         {
-            if (_multiController == null) return true;
+            if (_multiController == null || !_multiController.IsConnected) return true;
 
             GlobalVariables.levelselect_index = __instance.songindex;
             __instance.back_clicked = true;

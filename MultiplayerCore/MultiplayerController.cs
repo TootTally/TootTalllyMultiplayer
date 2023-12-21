@@ -119,13 +119,13 @@ namespace TootTallyMultiplayer
             {
                 IsConnectionPending = false;
                 TootTallyNotifManager.DisplayNotif("Connected to " + _multiConnection.GetServerID);
+                MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
                 OnLobbyConnectionSuccess();
             }
         }
 
         public void OnLobbyConnectionSuccess()
         {
-            MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
             MoveToLobby();
             //_multLobbyPanel.DisplayAllUserInfo(lobby.users);
         }
