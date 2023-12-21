@@ -29,12 +29,12 @@ namespace TootTallyMultiplayer
             _multiController = new MultiplayerController(__instance);
 
             if (_state == MultiplayerController.MultiplayerState.SelectSong)
-                UpdateMultiplayerState(MultiplayerController.MultiplayerState.Hosting);
+                UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
             else
                 _previousState = MultiplayerController.MultiplayerState.None;
 
             _isSceneActive = true;
-            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Enter);
+            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
         }
 
         [HarmonyPatch(typeof(Plugin), nameof(Plugin.Update))]
@@ -45,10 +45,15 @@ namespace TootTallyMultiplayer
 
             if (Input.GetKeyDown(KeyCode.Escape) && _state != MultiplayerController.MultiplayerState.ExitScene)
             {
-                if (_state == MultiplayerController.MultiplayerState.CreatingLobby)
-                    UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
-                else if (_state == MultiplayerController.MultiplayerState.Home)
+                if (_state == MultiplayerController.MultiplayerState.Home)
                     UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
+                else if (_state == MultiplayerController.MultiplayerState.Lobby)
+                    _multiController.DisconnectFromLobby();
+                else
+                {
+                    _multiController.ReturnToLastPanel();
+                    RollbackMultiplayerState();
+                }
             }
 
             if (_multiController != null && _multiController.IsConnectionPending)
@@ -240,8 +245,6 @@ namespace TootTallyMultiplayer
             Plugin.LogInfo($"Multiplayer state changed from {_previousState} to {_state}");
             switch (_state)
             {
-                case MultiplayerController.MultiplayerState.Enter:
-                    break;
                 case MultiplayerController.MultiplayerState.FirstTimePopUp:
                     break;
                 case MultiplayerController.MultiplayerState.Home:
@@ -249,15 +252,15 @@ namespace TootTallyMultiplayer
                 case MultiplayerController.MultiplayerState.CreatingLobby:
                     break;
                 case MultiplayerController.MultiplayerState.Lobby:
-                    break;
-                case MultiplayerController.MultiplayerState.Hosting:
+                    _multiController.OnLobbyConnectionSuccess();
                     break;
                 case MultiplayerController.MultiplayerState.SelectSong:
                     SceneManager.LoadScene("levelselect");
                     break;
                 case MultiplayerController.MultiplayerState.ExitScene:
                     _currentInstance.clickedOK();
-                    _multiController = null;
+                    _multiController.Dispose();
+                    _state = MultiplayerController.MultiplayerState.None;
                     break;
             }
         }
@@ -268,6 +271,14 @@ namespace TootTallyMultiplayer
         {
             _previousState = _state;
             _state = newState;
+            ResolveMultiplayerState();
+        }
+
+        public static void RollbackMultiplayerState()
+        {
+            var lastState = _state;
+            _state = _previousState;
+            _previousState = lastState;
             ResolveMultiplayerState();
         }
 

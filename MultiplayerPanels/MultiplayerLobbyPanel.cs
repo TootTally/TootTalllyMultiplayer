@@ -91,7 +91,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnBackButtonClick()
         {
             ClearAllUserRows();
-            controller.ReturnToLastPanel();
+            controller.DisconnectFromLobby();
         }
 
         public void OnSelectSongButtonClick()

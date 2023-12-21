@@ -181,6 +181,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnCreateLobbyButtonClick()
         {
             _scrollingHandler.enabled = false;
+            MultiplayerManager.UpdateMultiplayerState(MultiplayerController.MultiplayerState.CreatingLobby);
             controller.MoveToCreate();
         }
 

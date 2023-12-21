@@ -17,6 +17,8 @@ namespace TootTallyMultiplayer
 
         private static List<MultiplayerLobbyInfo> _lobbyInfoList;
 
+        private static MultiplayerSystem _multiConnection;
+
         private MultiplayerPanelBase _currentActivePanel, _lastPanel;
         private bool _isTransitioning;
 
@@ -24,7 +26,6 @@ namespace TootTallyMultiplayer
         private MultiplayerLobbyPanel _multLobbyPanel;
         private MultiplayerCreatePanel _multCreatePanel;
 
-        private MultiplayerSystem _multiConnection;
 
         public bool IsUpdating;
         public bool IsConnectionPending, IsConnected;
@@ -67,7 +68,7 @@ namespace TootTallyMultiplayer
             _lobbyInfoList ??= new List<MultiplayerLobbyInfo>();
             _currentActivePanel = _multMainPanel;
 
-            TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, 1f, GetSecondDegreeAnimation(1.5f), (sender) => UpdateLobbyInfo(true));
+            TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, 1f, GetSecondDegreeAnimation(1.5f), sender => UpdateLobbyInfo(true));
         }
 
         public void OnSliderValueChangeScrollContainer(GameObject container, float value)
@@ -104,18 +105,26 @@ namespace TootTallyMultiplayer
             _multiConnection = new MultiplayerSystem(code, false) { OnWebSocketOpenCallback = delegate { IsConnected = true; } };
         }
 
+        public void DisconnectFromLobby()
+        {
+            if (_multiConnection.IsConnected)
+                _multiConnection.Disconnect();
+            MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Home);
+            MoveToMain();
+        }
+
         public void UpdateConnection()
         {
             if (IsConnected && IsConnectionPending && _multiConnection != null)
             {
                 IsConnectionPending = false;
+                TootTallyNotifManager.DisplayNotif("Connected to " + _multiConnection.GetServerID);
                 OnLobbyConnectionSuccess();
             }
         }
 
         public void OnLobbyConnectionSuccess()
         {
-            TootTallyNotifManager.DisplayNotif("Connected to " + _multiConnection.GetServerID);
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
             MoveToLobby();
             //_multLobbyPanel.DisplayAllUserInfo(lobby.users);
@@ -171,12 +180,7 @@ namespace TootTallyMultiplayer
             TootTallyAnimationManager.AddNewPositionAnimation(_currentActivePanel.panel, positionOut, 0.9f, new SecondDegreeDynamicsAnimation(1.5f, 0.89f, 1.1f), delegate { _lastPanel.panel.SetActive(false); _lastPanel.panel.GetComponent<RectTransform>().anchoredPosition = positionOut; });
             nextPanel.panel.SetActive(true);
             _currentActivePanel = nextPanel;
-            TootTallyAnimationManager.AddNewPositionAnimation(nextPanel.panel, Vector2.zero, 0.9f, new SecondDegreeDynamicsAnimation(1.5f, 0.89f, 1.1f), (sender) => _isTransitioning = false);
-        }
-
-        public void OnDeclineButtonClick()
-        {
-            MultiplayerManager.UpdateMultiplayerState(MultiplayerState.ExitScene);
+            TootTallyAnimationManager.AddNewPositionAnimation(nextPanel.panel, Vector2.zero, 0.9f, new SecondDegreeDynamicsAnimation(1.5f, 0.89f, 1.1f), sender => _isTransitioning = false);
         }
 
         public void TransitionToSongSelection()
@@ -185,6 +189,13 @@ namespace TootTallyMultiplayer
         }
 
         public static SecondDegreeDynamicsAnimation GetSecondDegreeAnimation(float speedMult = 1f) => new SecondDegreeDynamicsAnimation(speedMult, 0.75f, 1.15f);
+
+        public void Dispose()
+        {
+            CurrentInstance = null;
+            _lobbyInfoList?.Clear();
+            _multiConnection?.Disconnect();
+        }
 
         public enum MultiplayerState
         {
