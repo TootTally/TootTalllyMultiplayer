@@ -59,8 +59,7 @@ namespace TootTallyMultiplayer
                 }
             }
 
-            if (_multiController != null && _multiController.IsConnectionPending)
-                _multiController.UpdateConnection();
+            _multiController?.Update();
         }
 
         [HarmonyPatch(typeof(PlaytestAnims), nameof(PlaytestAnims.nextScene))]

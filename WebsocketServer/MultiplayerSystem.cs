@@ -29,6 +29,12 @@ namespace TootTallyMultiplayer
             ConnectToWebSocketServer(_url + serverID, TootTallyAccounts.Plugin.GetAPIKey, isHost);
         }
 
+        public void SendSongInfo(SocketSongInfo songInfo)
+        {
+            songInfo.dataType = DataType.SongInfo.ToString();
+            SendToSocket(JsonConvert.SerializeObject(songInfo));
+        }
+
         public void UpdateStacks()
         {
             if (OnSocketSongInfoReceived != null && _receivedSongInfo.TryDequeue(out SocketSongInfo songInfo))
@@ -48,8 +54,8 @@ namespace TootTallyMultiplayer
                 }
                 catch (Exception) { return; }
 
-                if (message is SocketSongInfo)
-                    _receivedSongInfo.Enqueue(message as  SocketSongInfo);
+                if (message is SocketSongInfo && !IsHost)
+                    _receivedSongInfo.Enqueue(message as SocketSongInfo);
                 else if (message is SocketOptionInfo)
                     _receivedSocketOptionInfo.Enqueue(message as SocketOptionInfo);
             }
@@ -64,10 +70,11 @@ namespace TootTallyMultiplayer
 
         public void Disconnect()
         {
-            if (!IsHost)
-                TootTallyNotifManager.DisplayNotif($"Disconnected from multiplayer server.");
             if (IsConnected)
+            {
+                TootTallyNotifManager.DisplayNotif($"Disconnected from multiplayer server.");
                 CloseWebsocket();
+            }
         }
 
         public enum DataType

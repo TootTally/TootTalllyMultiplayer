@@ -55,7 +55,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 {
                     Plugin.LogInfo(serverCode);
                     controller.ConnectToLobby(serverCode);
-                    controller.RefreshAllLobbyInfo();
                 }
                 _requestPending = false;
             });

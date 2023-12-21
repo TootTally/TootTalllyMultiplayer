@@ -16,6 +16,7 @@ namespace TootTallyMultiplayer
         public static PlaytestAnims CurrentInstance { get; private set; }
 
         private static List<MultiplayerLobbyInfo> _lobbyInfoList;
+        private static MultiplayerLobbyInfo _currentLobby;
 
         private static MultiplayerSystem _multiConnection;
 
@@ -109,25 +110,35 @@ namespace TootTallyMultiplayer
         {
             if (_multiConnection.IsConnected)
                 _multiConnection.Disconnect();
+            _currentLobby = null;
+            IsConnected = IsConnectionPending = false;
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Home);
             MoveToMain();
         }
 
+        public void Update()
+        {
+            if (IsConnected && _multiConnection != null)
+            {
+                if (IsConnectionPending)
+                    UpdateConnection();
+                else
+                    _multiConnection.UpdateStacks();
+            }
+        }
+
         public void UpdateConnection()
         {
-            if (IsConnected && IsConnectionPending && _multiConnection != null)
-            {
-                IsConnectionPending = false;
-                TootTallyNotifManager.DisplayNotif("Connected to " + _multiConnection.GetServerID);
-                MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
-                OnLobbyConnectionSuccess();
-            }
+            IsConnectionPending = false;
+            TootTallyNotifManager.DisplayNotif("Connected to " + _multiConnection.GetServerID);
+            MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
+            OnLobbyConnectionSuccess();
         }
 
         public void OnLobbyConnectionSuccess()
         {
             MoveToLobby();
-            //_multLobbyPanel.DisplayAllUserInfo(lobby.users);
+            RefreshAllLobbyInfo();
         }
 
         public void MoveToCreate()
@@ -152,13 +163,21 @@ namespace TootTallyMultiplayer
 
         public void RefreshAllLobbyInfo()
         {
+            if (IsUpdating) return;
+
             _multMainPanel.ClearAllLobby();
             IsUpdating = true;
-            Plugin.Instance.StartCoroutine(MultiplayerAPIService.GetServerList(serverList =>
+            Plugin.Instance.StartCoroutine(MultiplayerAPIService.GetLobbyList(lobbyList =>
             {
-                _lobbyInfoList = serverList;
+                _lobbyInfoList = lobbyList;
                 UpdateLobbyInfo(true);
                 IsUpdating = false;
+                if (IsConnected && _multiConnection != null)
+                {
+                    _currentLobby = _lobbyInfoList.Find(l => l.id == _multiConnection.GetServerID);
+                    _multLobbyPanel.DisplayAllUserInfo(_currentLobby.players);
+                }
+                _multMainPanel.ShowRefreshLobbyButton();
             }));
         }
 

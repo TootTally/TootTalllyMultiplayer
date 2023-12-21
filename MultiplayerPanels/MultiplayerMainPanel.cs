@@ -22,7 +22,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private TMP_Text _lobbyPlayerListText;
 
-        private static CustomButton _connectButton, _createLobbyButton;
+        private static CustomButton _connectButton, _createLobbyButton, _refreshLobbyButton;
         private static TootTallyAnimation _connectButtonScaleAnimation;
 
         private static MultiplayerLobbyInfo _selectedLobby;
@@ -67,7 +67,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _pointerExitLobbyContainerEvent.callback.AddListener((data) => OnMouseExitClearLobbyDetails());
 
             _createLobbyButton = GameObjectFactory.CreateCustomButton(lobbyConnectContainer.transform, Vector2.zero, new Vector2(150, 75), "Create", "LobbyCreateButton", OnCreateLobbyButtonClick);
-            GameObjectFactory.CreateCustomButton(lobbyConnectContainer.transform, Vector2.zero, new Vector2(150, 75), "Refresh", "RefreshLobbyButton", OnRefreshLobbyButtonClick);
+            _refreshLobbyButton = GameObjectFactory.CreateCustomButton(lobbyConnectContainer.transform, Vector2.zero, new Vector2(150, 75), "Refresh", "RefreshLobbyButton", OnRefreshLobbyButtonClick);
 
             _connectButton = GameObjectFactory.CreateCustomButton(lobbyConnectContainer.transform, Vector2.zero, new Vector2(150, 75), "Connect", "LobbyConnectButton", OnConnectButtonClick);
             _connectButton.gameObject.SetActive(false);
@@ -194,7 +194,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnRefreshLobbyButtonClick()
         {
+            _refreshLobbyButton.gameObject.SetActive(false);
             controller.RefreshAllLobbyInfo();
         }
+
+        public void ShowRefreshLobbyButton() => _refreshLobbyButton.gameObject.SetActive(true);
     }
 }

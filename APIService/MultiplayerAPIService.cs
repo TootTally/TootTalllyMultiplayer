@@ -12,7 +12,7 @@ namespace TootTallyMultiplayer.APIService
         public const string MULTURL = "https://spec.toottally.com/mp";
 
 
-        public static IEnumerator<UnityWebRequestAsyncOperation> GetServerList(Action<List<MultiplayerLobbyInfo>> callback)
+        public static IEnumerator<UnityWebRequestAsyncOperation> GetLobbyList(Action<List<MultiplayerLobbyInfo>> callback)
         {
             string query = $"{MULTURL}/list";
 
@@ -22,8 +22,8 @@ namespace TootTallyMultiplayer.APIService
 
             if (!HasError(webRequest, query))
             {
-                var songData = JsonConvert.DeserializeObject<APIMultiplayerInfo>(webRequest.downloadHandler.text).lobbies;
-                callback(songData);
+                var lobbies = JsonConvert.DeserializeObject<APIMultiplayerInfo>(webRequest.downloadHandler.text).lobbies;
+                callback(lobbies);
             }
             else
                 callback(null);
