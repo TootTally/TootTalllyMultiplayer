@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
-using System.Security.Cryptography.X509Certificates;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyMultiplayer.APIService;
 using TootTallyWebsocketLibs;
@@ -29,10 +28,14 @@ namespace TootTallyMultiplayer
             ConnectToWebSocketServer(_url + serverID, TootTallyAccounts.Plugin.GetAPIKey, isHost);
         }
 
-        public void SendSongInfo(SocketSongInfo songInfo)
+        public void SendSongHash(string filehash)
         {
-            songInfo.dataType = DataType.SongInfo.ToString();
-            SendToSocket(JsonConvert.SerializeObject(songInfo));
+            SocketSetSongByHash socketSetSongByHash = new SocketSetSongByHash()
+            {
+                dataType = DataType.SetSong.ToString(),
+                filehash = filehash
+            };
+            SendToSocket(JsonConvert.SerializeObject(socketSetSongByHash));
         }
 
         public void UpdateStacks()
@@ -79,13 +82,14 @@ namespace TootTallyMultiplayer
 
         public enum DataType
         {
-            UserInfo,
             SongInfo,
-            LobbyInfo,
+            OptionInfo,
+            SetSong
         }
 
         public enum LobbyOptionType
         {
+            LobbyInfoChanged,
             TitleChanged,
             PasswordChanged,
             ModifierChanged,
@@ -95,6 +99,11 @@ namespace TootTallyMultiplayer
         public class SocketMessage
         {
             public string dataType { get; set; }
+        }
+
+        public class SocketSetSongByHash : SocketMessage
+        {
+            public string filehash { get; set; }
         }
 
         public class SocketOptionInfo : SocketMessage
@@ -119,7 +128,7 @@ namespace TootTallyMultiplayer
                 return Enum.Parse(typeof(DataType), jo["dataType"].Value<string>()) switch
                 {
                     DataType.SongInfo => jo.ToObject<SocketSongInfo>(serializer),
-                    DataType.LobbyInfo => jo.ToObject<SocketOptionInfo>(serializer),
+                    DataType.OptionInfo => jo.ToObject<SocketOptionInfo>(serializer),
                     _ => null,
                 };
             }

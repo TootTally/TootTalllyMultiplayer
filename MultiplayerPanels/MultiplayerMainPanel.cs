@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
@@ -107,6 +108,19 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             t3.alignment = t4.alignment = TextAlignmentOptions.Right;
             lobbyContainer.transform.eulerAngles = new Vector3(270, 25, 0);
             TootTallyAnimationManager.AddNewEulerAngleAnimation(lobbyContainer, new Vector3(25, 25, 0), 2f, new SecondDegreeDynamicsAnimation(1.25f, 1f, 1f));
+
+            Plugin.Instance.StartCoroutine(SendPing("68.183.206.69", ping => t4.text = $"{ping}ms"));
+        }
+
+        private static IEnumerator<WaitForSeconds> SendPing(string address, Action<int> callback)
+        {
+            WaitForSeconds waitTime = new WaitForSeconds(.01f);
+            Ping pingSender = new Ping(address);
+            while (!pingSender.isDone)
+            {
+                yield return waitTime;
+            }
+            callback(pingSender.time);
         }
 
         public void UpdateScrolling(int lobbyCount)
@@ -139,7 +153,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 _lobbyPlayerListText.text = "";
 
             if (_hoveredLobbyContainer != null)
-                Object.DestroyImmediate(_hoveredLobbyContainer.GetComponent<Outline>());
+                GameObject.DestroyImmediate(_hoveredLobbyContainer.GetComponent<Outline>());
             _hoveredLobbyContainer = null;
         }
 
@@ -148,7 +162,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_selectedLobby == lobbyInfo) return;
 
             if (_selectedLobbyContainer != null)
-                Object.DestroyImmediate(_selectedLobbyContainer.GetComponent<Outline>());
+                GameObject.DestroyImmediate(_selectedLobbyContainer.GetComponent<Outline>());
 
             _selectedLobby = lobbyInfo;
             _selectedLobbyContainer = _hoveredLobbyContainer;
@@ -174,7 +188,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void ClearAllLobby()
         {
             _selectedLobby = null; _selectedLobbyContainer = null; _hoveredLobbyContainer = null;
-            _lobbyInfoRowsList.ForEach(Object.DestroyImmediate);
+            _lobbyInfoRowsList.ForEach(GameObject.DestroyImmediate);
             _lobbyInfoRowsList.Clear();
         }
 

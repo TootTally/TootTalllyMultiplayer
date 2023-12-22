@@ -69,6 +69,8 @@ namespace TootTallyMultiplayer
             _lobbyInfoList ??= new List<MultiplayerLobbyInfo>();
             _currentActivePanel = _multMainPanel;
 
+            IsConnected = _multiConnection != null && _multiConnection.IsConnected;
+
             TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, 1f, GetSecondDegreeAnimation(1.5f), sender => UpdateLobbyInfo(true));
         }
 
@@ -115,6 +117,8 @@ namespace TootTallyMultiplayer
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Home);
             MoveToMain();
         }
+
+        public void SendSongHashToLobby(string songHash) => _multiConnection?.SendSongHash(songHash);
 
         public void Update()
         {

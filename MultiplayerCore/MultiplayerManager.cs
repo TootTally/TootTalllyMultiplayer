@@ -1,7 +1,9 @@
-﻿using HarmonyLib;
+﻿using BaboonAPI.Hooks.Tracks;
+using HarmonyLib;
 using TootTallyAccounts;
 using TootTallyCore;
 using TootTallyCore.Graphics.Animations;
+using TootTallyCore.Utils.Helpers;
 using TootTallyCore.Utils.TootTallyNotifs;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -234,7 +236,12 @@ namespace TootTallyMultiplayer
         {
             if (_multiController == null || !_multiController.IsConnected) return true;
 
-            GlobalVariables.levelselect_index = __instance.songindex;
+            var trackRef = __instance.alltrackslist[__instance.songindex].trackref;
+            var track = TrackLookup.lookup(trackRef);
+            var songHash = SongDataHelper.GetSongHash(track);
+
+            _multiController.SendSongHashToLobby(songHash);
+
             __instance.back_clicked = true;
             __instance.bgmus.Stop();
             __instance.doSfx(__instance.sfx_slidedown);
@@ -247,8 +254,6 @@ namespace TootTallyMultiplayer
             Plugin.LogInfo($"Multiplayer state changed from {_previousState} to {_state}");
             switch (_state)
             {
-                case MultiplayerController.MultiplayerState.FirstTimePopUp:
-                    break;
                 case MultiplayerController.MultiplayerState.Home:
                     break;
                 case MultiplayerController.MultiplayerState.CreatingLobby:
