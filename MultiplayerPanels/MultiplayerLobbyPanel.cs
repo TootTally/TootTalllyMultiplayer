@@ -102,14 +102,15 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _userRowsList.Add(lobbyInfoContainer);
             lobbyInfoContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 75);
 
-            var t1 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
-            t1.alignment = TextAlignmentOptions.Left;
 
             if (_isHost && user.id != TootTallyAccounts.TootTallyUser.userInfo.id)
             {
                 GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 32f, AssetManager.GetSprite("Close64.png"), $"Kick{user.username}", delegate { OnKickUserButtonClick(user.id); });
-                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 32f, AssetManager.GetSprite("UserAdd64.png"), $"Promote{user.username}", delegate { OnKickUserButtonClick(user.id); });
+                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 32f, AssetManager.GetSprite("UserAdd64.png"), $"Promote{user.username}", delegate { OnPromoteButtonClick(user.id); });
             }
+
+            var t1 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
+            t1.alignment = TextAlignmentOptions.Left;
 
             var t2 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Rank", $"#{user.rank}", Color.white);
             t2.alignment = TextAlignmentOptions.Right;
@@ -140,6 +141,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnKickUserButtonClick(int userID)
         {
             controller.KickUserFromLobby(userID);
+        }
+
+        public void OnPromoteButtonClick(int userID)
+        {
+            DisplayAllUserInfo();
+            controller.PromoteUser(userID);
         }
 
         public void OnSongInfoChanged(string songName, float gamespeed, string modifiers)
