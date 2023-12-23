@@ -6,6 +6,16 @@ namespace TootTallyMultiplayer.APIService
     public static class MultSerializableClasses
     {
         [Serializable]
+        public class APICreateSubmission
+        {
+            public string apiKey;
+            public string name;
+            public string description;
+            public string password;
+            public int maxPlayer;
+        }
+
+        [Serializable]
         public class APIMultiplayerInfo
         {
             public int count { get; set; }
@@ -29,8 +39,10 @@ namespace TootTallyMultiplayer.APIService
         public class MultiplayerSongInfo
         {
             public string difficulty;
+            public string download;
             public string fileHash;
             public float gameSpeed;
+            public string modifiers;
             public int songID;
             public string songName;
             public string songShortName;

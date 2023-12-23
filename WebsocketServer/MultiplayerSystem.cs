@@ -6,6 +6,7 @@ using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyMultiplayer.APIService;
 using TootTallyWebsocketLibs;
 using WebSocketSharp;
+using static TootTallyMultiplayer.MultiplayerSystem;
 
 namespace TootTallyMultiplayer
 {
@@ -25,17 +26,38 @@ namespace TootTallyMultiplayer
         public MultiplayerSystem(string serverID, bool isHost) : base(serverID, "wss://spec.toottally.com/mp/join/", "1.0.0")
         {
             ConnectionPending = true;
+
+            _receivedSongInfo = new ConcurrentQueue<SocketSongInfo>();
+            _receivedSocketOptionInfo = new ConcurrentQueue<SocketOptionInfo>();
+
             ConnectToWebSocketServer(_url + serverID, TootTallyAccounts.Plugin.GetAPIKey, isHost);
         }
 
-        public void SendSongHash(string filehash)
+        public void SendSongHash(string filehash, float gamespeed, string modifiers)
         {
             SocketSetSongByHash socketSetSongByHash = new SocketSetSongByHash()
             {
                 dataType = DataType.SetSong.ToString(),
-                filehash = filehash
+                filehash = filehash,
+                gamespeed = gamespeed,
+                modifiers = modifiers
             };
-            SendToSocket(JsonConvert.SerializeObject(socketSetSongByHash));
+            var json = JsonConvert.SerializeObject(socketSetSongByHash);
+            Plugin.LogInfo("Sending: " + json);
+            SendToSocket(json);
+        }
+
+        public void SendOptionInfo(OptionInfoType optionType, dynamic[] values = null)
+        {
+            SocketOptionInfo socketOptionInfo = new SocketOptionInfo()
+            {
+                dataType = DataType.OptionInfo.ToString(),
+                optionType = optionType.ToString(),
+                values = values
+            };
+            var json = JsonConvert.SerializeObject(socketOptionInfo);
+            Plugin.LogInfo("Sending: " + json);
+            SendToSocket(json);
         }
 
         public void UpdateStacks()
@@ -50,6 +72,7 @@ namespace TootTallyMultiplayer
         {
             if (e.IsText)
             {
+                Plugin.LogInfo("Receiving: " + e.Data);
                 SocketMessage message;
                 try
                 {
@@ -87,9 +110,19 @@ namespace TootTallyMultiplayer
             SetSong
         }
 
-        public enum LobbyOptionType
+        public enum OptionInfoType
         {
+            //Events
+            Refresh,
+
+            //Host Commands
+            GiveHost,
+            KickFromLobby,
+            StartGame,
+
+            //Lobby Updates
             LobbyInfoChanged,
+            SelectedSongChanged,
             TitleChanged,
             PasswordChanged,
             ModifierChanged,
@@ -104,12 +137,14 @@ namespace TootTallyMultiplayer
         public class SocketSetSongByHash : SocketMessage
         {
             public string filehash { get; set; }
+            public float gamespeed { get; set; }
+            public string modifiers { get; set; }
         }
 
         public class SocketOptionInfo : SocketMessage
         {
-            public LobbyOptionType optionType { get; set; }
-            public object[] values { get; set; }
+            public string optionType { get; set; }
+            public dynamic[] values { get; set; }
         }
 
         public class SocketSongInfo : SocketMessage

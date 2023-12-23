@@ -1,12 +1,21 @@
-﻿using System;
+﻿using BaboonAPI.Hooks.Tracks;
+using Microsoft.FSharp.Core;
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyNotifs;
+using TootTallyGameModifiers;
+using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
+using UnityEngine.Analytics;
+using UnityEngine.SceneManagement;
+using static Rewired.UI.ControlMapper.ControlMapper;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
+using static TootTallyMultiplayer.MultiplayerSystem;
 
 namespace TootTallyMultiplayer
 {
@@ -30,6 +39,7 @@ namespace TootTallyMultiplayer
 
         public bool IsUpdating;
         public bool IsConnectionPending, IsConnected;
+        private bool _hasSong;
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -71,7 +81,7 @@ namespace TootTallyMultiplayer
 
             IsConnected = _multiConnection != null && _multiConnection.IsConnected;
 
-            TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, 1f, GetSecondDegreeAnimation(1.5f), sender => UpdateLobbyInfo(true));
+            TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, 1f, GetSecondDegreeAnimation(1.5f), sender => RefreshAllLobbyInfo());
         }
 
         public void OnSliderValueChangeScrollContainer(GameObject container, float value)
@@ -105,7 +115,15 @@ namespace TootTallyMultiplayer
             _multiConnection?.Disconnect();
             Plugin.LogInfo("Connecting to " + code);
             IsConnectionPending = true;
-            _multiConnection = new MultiplayerSystem(code, false) { OnWebSocketOpenCallback = delegate { IsConnected = true; } };
+            _multiConnection = new MultiplayerSystem(code, false)
+            {
+                OnWebSocketOpenCallback = delegate
+                {
+                    IsConnected = true;
+                    _multiConnection.OnSocketSongInfoReceived = OnSongInfoReceived;
+                    _multiConnection.OnSocketOptionReceived = OnOptionInfoReceived;
+                }
+            };
         }
 
         public void DisconnectFromLobby()
@@ -118,7 +136,7 @@ namespace TootTallyMultiplayer
             MoveToMain();
         }
 
-        public void SendSongHashToLobby(string songHash) => _multiConnection?.SendSongHash(songHash);
+        public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers) => _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
 
         public void Update()
         {
@@ -206,9 +224,83 @@ namespace TootTallyMultiplayer
             TootTallyAnimationManager.AddNewPositionAnimation(nextPanel.panel, Vector2.zero, 0.9f, new SecondDegreeDynamicsAnimation(1.5f, 0.89f, 1.1f), sender => _isTransitioning = false);
         }
 
+        public void OnSongInfoReceived(SocketSongInfo socketSongInfo)
+        {
+            var songInfo = socketSongInfo.songInfo;
+            ReplaySystemManager.gameSpeedMultiplier = socketSongInfo.songInfo.gameSpeed;
+            GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
+            UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers);
+
+            var optionalTrack = TrackLookup.tryLookup(songInfo.trackRef);
+            _hasSong = OptionModule.IsSome(optionalTrack);
+
+            if (_hasSong)
+            {
+                var trackData = TrackLookup.toTrackData(optionalTrack.Value);
+                UpdateLobbySongDetails(trackData);
+                GlobalVariables.levelselect_index = trackData.trackindex;
+                GlobalVariables.chosen_track = trackData.trackref;
+                GlobalVariables.chosen_track_data = trackData;
+                Plugin.LogInfo("Selected: " + trackData.trackref);
+            }
+            else
+            {
+                //TODO: Offer option to download song
+            }
+        }
+
+        public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers) => _multLobbyPanel.OnSongInfoChanged(songName, gamespeed, modifiers);
+
+        public void UpdateLobbySongDetails(SingleTrackData trackData) => _multLobbyPanel.SetTrackDataDetails(trackData);
+
+        public void StartLobbyGame()
+        {
+            _multiConnection.SendOptionInfo(OptionInfoType.StartGame);
+            StartGame();
+        }
+
+        public void StartGame()
+        {
+            if (_hasSong)
+            {
+                Plugin.LogInfo("Starting Multiplayer for " + GlobalVariables.chosen_track_data.trackname_short + " - " + GlobalVariables.chosen_track_data.trackref);
+                CurrentInstance.fadepanel.gameObject.SetActive(true);
+                LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
+            }
+            else
+            {
+                TootTallyNotifManager.DisplayNotif("Chart not owned. Cannot start the game.");
+            }
+        }
+
+        public void KickUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.KickFromLobby, new dynamic[] {userID});
+
+        public void PromoteUser(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.GiveHost, new dynamic[] { userID });
+
+        public void LoadLoaderScene()
+        {
+            SceneManager.LoadScene("loader");
+        }
+
         public void TransitionToSongSelection()
         {
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.SelectSong);
+        }
+
+        public void OnOptionInfoReceived(SocketOptionInfo optionInfo)
+        {
+            switch (Enum.Parse(typeof(OptionInfoType), optionInfo.optionType))
+            {
+                case OptionInfoType.StartGame:
+                    StartGame(); break;
+                case OptionInfoType.KickFromLobby:
+                    if (TootTallyAccounts.TootTallyUser.userInfo.id == (int)optionInfo.values[0])
+                        DisconnectFromLobby();
+                    break;
+                case OptionInfoType.Refresh:
+                    RefreshAllLobbyInfo();
+                    break;
+            }
         }
 
         public static SecondDegreeDynamicsAnimation GetSecondDegreeAnimation(float speedMult = 1f) => new SecondDegreeDynamicsAnimation(speedMult, 0.75f, 1.15f);

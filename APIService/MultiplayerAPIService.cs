@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using TootTallyCore.APIServices;
 using UnityEngine.Networking;
+using static TootTallyCore.APIServices.SerializableClass;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.APIService
@@ -29,9 +30,27 @@ namespace TootTallyMultiplayer.APIService
                 callback(null);
         }
 
-        public static void CreateServer(string name, string description, string password, int maxPlayer, Action<string> callback)
+        public static IEnumerator<UnityWebRequestAsyncOperation> CreateMultiplayerServerRequest(string name, string description, string password, int maxPlayer, Action<string> callback)
         {
-            Plugin.Instance.StartCoroutine(TootTallyAPIService.CreateMultiplayerServerRequest(TootTallyAccounts.Plugin.GetAPIKey, name, description, password, maxPlayer, callback)); //Have to go through TootTallyAPI for security reasons - not exposing APIKey
+            string query = $"{MULTURL}/create";
+
+            APICreateSubmission apiSubmission = new APICreateSubmission()
+            {
+                apiKey = TootTallyAccounts.Plugin.GetAPIKey,
+                name = name,
+                description = description,
+                password = password,
+                maxPlayer = maxPlayer
+            };
+            var data = System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(apiSubmission));
+            UnityWebRequest webRequest = PostUploadRequestWithHeader(query, data, new List<string[]> { new string[] { "Authorization", "APIKey " + TootTallyAccounts.Plugin.GetAPIKey } });
+
+            yield return webRequest.SendWebRequest();
+
+            if (!HasError(webRequest, query))
+                callback(webRequest.downloadHandler.text);
+            else
+                callback(null);
         }
 
         private static UnityWebRequest PostUploadRequest(string query, byte[] data, string contentType = "application/json")
@@ -42,6 +61,19 @@ namespace TootTallyMultiplayer.APIService
 
 
             UnityWebRequest webRequest = new UnityWebRequest(query, "POST", dlHandler, ulHandler);
+            return webRequest;
+        }
+
+        private static UnityWebRequest PostUploadRequestWithHeader(string query, byte[] data, List<string[]> headers, string contentType = "application/json")
+        {
+            DownloadHandler dlHandler = new DownloadHandlerBuffer();
+            UploadHandler ulHandler = new UploadHandlerRaw(data);
+            ulHandler.contentType = contentType;
+
+
+            UnityWebRequest webRequest = new UnityWebRequest(query, "POST", dlHandler, ulHandler);
+            foreach (string[] s in headers)
+                webRequest.SetRequestHeader(s[0], s[1]);
             return webRequest;
         }
 

@@ -5,6 +5,8 @@ using TootTallyCore;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Helpers;
 using TootTallyCore.Utils.TootTallyNotifs;
+using TootTallyGameModifiers;
+using TootTallyLeaderboard.Replays;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -33,7 +35,11 @@ namespace TootTallyMultiplayer
             _isSceneActive = true;
 
             if (_state == MultiplayerController.MultiplayerState.SelectSong)
+            {
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
+                _multiController.UpdateLobbySongInfo(GlobalVariables.chosen_track_data.trackname_short, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
+                _multiController.UpdateLobbySongDetails(_savedTrackData);
+            }
             else
             {
                 _previousState = MultiplayerController.MultiplayerState.None;
@@ -230,17 +236,24 @@ namespace TootTallyMultiplayer
             __instance.backbutton.gameObject.SetActive(_multiController == null || !_multiController.IsConnected);
         }
 
+        private static SingleTrackData _savedTrackData;
+
         [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.clickPlay))]
         [HarmonyPrefix]
         public static bool ClickPlayButtonMultiplayerSelectSong(LevelSelectController __instance)
         {
             if (_multiController == null || !_multiController.IsConnected) return true;
 
-            var trackRef = __instance.alltrackslist[__instance.songindex].trackref;
+            _savedTrackData = __instance.alltrackslist[__instance.songindex];
+            var trackRef = _savedTrackData.trackref;
             var track = TrackLookup.lookup(trackRef);
             var songHash = SongDataHelper.GetSongHash(track);
 
-            _multiController.SendSongHashToLobby(songHash);
+            GlobalVariables.levelselect_index = _savedTrackData.trackindex;
+            GlobalVariables.chosen_track = _savedTrackData.trackref;
+            GlobalVariables.chosen_track_data = _savedTrackData;
+
+            _multiController.SendSongHashToLobby(songHash, ReplaySystemManager.gameSpeedMultiplier ,GameModifierManager.GetModifiersString());
 
             __instance.back_clicked = true;
             __instance.bgmus.Stop();

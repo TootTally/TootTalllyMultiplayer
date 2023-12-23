@@ -42,6 +42,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private void OnBackButtonClick()
         {
             controller.MoveToMain();
+            MultiplayerManager.UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
         }
 
         private void OnCreateButtonClick()
@@ -49,7 +50,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_requestPending) return;
 
             _requestPending = true;
-            MultiplayerAPIService.CreateServer(_lobbyName.text, _lobbyDescription.text, _lobbyPassword.text, int.Parse(_lobbyMaxPlayer.text), serverCode =>
+            MultiplayerAPIService.CreateMultiplayerServerRequest(_lobbyName.text, _lobbyDescription.text, _lobbyPassword.text, int.Parse(_lobbyMaxPlayer.text), serverCode =>
             {
                 if (serverCode != null)
                 {
