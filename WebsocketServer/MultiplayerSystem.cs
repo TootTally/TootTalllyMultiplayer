@@ -6,7 +6,6 @@ using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyMultiplayer.APIService;
 using TootTallyWebsocketLibs;
 using WebSocketSharp;
-using static TootTallyMultiplayer.MultiplayerSystem;
 
 namespace TootTallyMultiplayer
 {

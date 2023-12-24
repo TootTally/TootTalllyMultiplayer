@@ -6,7 +6,6 @@ using System.IO;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyModules;
 using TootTallySettings;
-using UnityEngine;
 
 namespace TootTallyMultiplayer
 {

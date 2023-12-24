@@ -2,7 +2,6 @@
 using Microsoft.FSharp.Core;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyNotifs;
@@ -11,9 +10,7 @@ using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
-using UnityEngine.Analytics;
 using UnityEngine.SceneManagement;
-using static Rewired.UI.ControlMapper.ControlMapper;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
 

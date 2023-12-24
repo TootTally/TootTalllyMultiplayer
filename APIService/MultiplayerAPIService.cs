@@ -1,9 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using TootTallyCore.APIServices;
 using UnityEngine.Networking;
-using static TootTallyCore.APIServices.SerializableClass;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.APIService
