@@ -34,11 +34,11 @@ namespace TootTallyMultiplayer
 
             _isSceneActive = true;
 
-            if (_state == MultiplayerController.MultiplayerState.SelectSong)
+            if (_state == MultiplayerController.MultiplayerState.SelectSong || _state == MultiplayerController.MultiplayerState.PointScene)
             {
-                UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
+                _multiController.UpdateLobbySongDetails();
                 _multiController.UpdateLobbySongInfo(GlobalVariables.chosen_track_data.trackname_short, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
-                _multiController.UpdateLobbySongDetails(_savedTrackData);
+                UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
             }
             else
             {
@@ -236,7 +236,6 @@ namespace TootTallyMultiplayer
             __instance.backbutton.gameObject.SetActive(_multiController == null || !_multiController.IsConnected);
         }
 
-        private static SingleTrackData _savedTrackData;
 
         [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.clickPlay))]
         [HarmonyPrefix]
@@ -244,16 +243,17 @@ namespace TootTallyMultiplayer
         {
             if (_multiController == null || !_multiController.IsConnected) return true;
 
-            _savedTrackData = __instance.alltrackslist[__instance.songindex];
-            var trackRef = _savedTrackData.trackref;
+            var trackData = __instance.alltrackslist[__instance.songindex];
+            MultiplayerController.savedTrackData = trackData;
+            var trackRef = trackData.trackref;
             var track = TrackLookup.lookup(trackRef);
             var songHash = SongDataHelper.GetSongHash(track);
 
-            GlobalVariables.levelselect_index = _savedTrackData.trackindex;
-            GlobalVariables.chosen_track = _savedTrackData.trackref;
-            GlobalVariables.chosen_track_data = _savedTrackData;
+            GlobalVariables.levelselect_index = trackData.trackindex;
+            GlobalVariables.chosen_track = trackData.trackref;
+            GlobalVariables.chosen_track_data = trackData;
 
-            _multiController.SendSongHashToLobby(songHash, ReplaySystemManager.gameSpeedMultiplier ,GameModifierManager.GetModifiersString());
+            _multiController.SendSongHashToLobby(songHash, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
 
             __instance.back_clicked = true;
             __instance.bgmus.Stop();
@@ -261,6 +261,41 @@ namespace TootTallyMultiplayer
             __instance.fadeOut("zzz_playtest", 0.35f);
             return false;
         }
+
+        [HarmonyPatch(typeof(PointSceneController), nameof(PointSceneController.Start))]
+        [HarmonyPostfix]
+        private static void OnPointSceneControllerStart(PointSceneController __instance)
+        {
+            if (_state == MultiplayerController.MultiplayerState.Playing)
+            {
+                UpdateMultiplayerState(MultiplayerController.MultiplayerState.PointScene);
+                __instance.btn_retry_obj.SetActive(false);
+                __instance.btn_nav_cards.SetActive(false);
+                __instance.btn_nav_baboon.SetActive(false);
+                __instance.btn_leaderboard.SetActive(false);
+            }
+        }
+
+        [HarmonyPatch(typeof(PointSceneController), nameof(PointSceneController.clickCont))]
+        [HarmonyPostfix]
+        private static void OnClickContReturnToMulti(PointSceneController __instance)
+        {
+            if (_state == MultiplayerController.MultiplayerState.PointScene)
+                __instance.scenetarget = "zzz_playtest";
+        }
+
+        [HarmonyPatch(typeof(PointSceneController), nameof(PointSceneController.clickRetry))]
+        [HarmonyPrefix]
+        private static bool OnRetryClickPreventRetry()
+        {
+            if (_state == MultiplayerController.MultiplayerState.PointScene)
+            {
+                TootTallyNotifManager.DisplayNotif("Can't retry in multiplayer.");
+                return false;
+            }
+            return true;
+        }
+
 
         private static void ResolveMultiplayerState()
         {
@@ -281,6 +316,8 @@ namespace TootTallyMultiplayer
                     _currentInstance.clickedOK();
                     _multiController.Dispose();
                     _state = MultiplayerController.MultiplayerState.None;
+                    break;
+                case MultiplayerController.MultiplayerState.Playing:
                     break;
             }
         }

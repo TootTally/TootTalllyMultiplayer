@@ -36,7 +36,6 @@ namespace TootTallyMultiplayer.APIService
 
             APICreateSubmission apiSubmission = new APICreateSubmission()
             {
-                apiKey = TootTallyAccounts.Plugin.GetAPIKey,
                 name = name,
                 description = description,
                 password = password,

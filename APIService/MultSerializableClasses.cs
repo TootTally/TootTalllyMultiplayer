@@ -8,7 +8,6 @@ namespace TootTallyMultiplayer.APIService
         [Serializable]
         public class APICreateSubmission
         {
-            public string apiKey;
             public string name;
             public string description;
             public string password;

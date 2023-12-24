@@ -1,5 +1,6 @@
 ﻿using TMPro;
 using TootTallyCore.Graphics;
+using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyMultiplayer.APIService;
 using UnityEngine;
 using UnityEngine.UI;
@@ -50,7 +51,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_requestPending) return;
 
             _requestPending = true;
-            MultiplayerAPIService.CreateMultiplayerServerRequest(_lobbyName.text, _lobbyDescription.text, _lobbyPassword.text, int.Parse(_lobbyMaxPlayer.text), serverCode =>
+            TootTallyNotifManager.DisplayNotif("Creating lobby...");
+            Plugin.Instance.StartCoroutine(MultiplayerAPIService.CreateMultiplayerServerRequest(_lobbyName.text, _lobbyDescription.text, _lobbyPassword.text, int.Parse(_lobbyMaxPlayer.text), serverCode =>
             {
                 if (serverCode != null)
                 {
@@ -58,7 +60,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     controller.ConnectToLobby(serverCode);
                 }
                 _requestPending = false;
-            });
+            }));
         }
     }
 }

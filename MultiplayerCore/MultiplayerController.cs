@@ -81,6 +81,12 @@ namespace TootTallyMultiplayer
 
             IsConnected = _multiConnection != null && _multiConnection.IsConnected;
 
+            if (IsConnected)
+            {
+                _multiConnection.OnSocketOptionReceived = OnOptionInfoReceived;
+                _multiConnection.OnSocketSongInfoReceived = OnSongInfoReceived;
+            }
+
             TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, 1f, GetSecondDegreeAnimation(1.5f), sender => RefreshAllLobbyInfo());
         }
 
@@ -136,7 +142,10 @@ namespace TootTallyMultiplayer
             MoveToMain();
         }
 
-        public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers) => _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
+        public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers)
+        {
+            _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
+        }
 
         public void Update()
         {
@@ -224,6 +233,8 @@ namespace TootTallyMultiplayer
             TootTallyAnimationManager.AddNewPositionAnimation(nextPanel.panel, Vector2.zero, 0.9f, new SecondDegreeDynamicsAnimation(1.5f, 0.89f, 1.1f), sender => _isTransitioning = false);
         }
 
+        public static SingleTrackData savedTrackData;
+
         public void OnSongInfoReceived(SocketSongInfo socketSongInfo)
         {
             var songInfo = socketSongInfo.songInfo;
@@ -236,12 +247,12 @@ namespace TootTallyMultiplayer
 
             if (_hasSong)
             {
-                var trackData = TrackLookup.toTrackData(optionalTrack.Value);
-                UpdateLobbySongDetails(trackData);
-                GlobalVariables.levelselect_index = trackData.trackindex;
-                GlobalVariables.chosen_track = trackData.trackref;
-                GlobalVariables.chosen_track_data = trackData;
-                Plugin.LogInfo("Selected: " + trackData.trackref);
+                savedTrackData = TrackLookup.toTrackData(optionalTrack.Value);
+                UpdateLobbySongDetails();
+                GlobalVariables.levelselect_index = savedTrackData.trackindex;
+                GlobalVariables.chosen_track = savedTrackData.trackref;
+                GlobalVariables.chosen_track_data = savedTrackData;
+                Plugin.LogInfo("Selected: " + savedTrackData.trackref);
             }
             else
             {
@@ -249,9 +260,14 @@ namespace TootTallyMultiplayer
             }
         }
 
-        public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers) => _multLobbyPanel.OnSongInfoChanged(songName, gamespeed, modifiers);
+        public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers) => _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers);
 
-        public void UpdateLobbySongDetails(SingleTrackData trackData) => _multLobbyPanel.SetTrackDataDetails(trackData);
+
+        public void UpdateLobbySongDetails()
+        {
+            if (savedTrackData != null)
+                _multLobbyPanel?.SetTrackDataDetails(savedTrackData);
+        }
 
         public void StartLobbyGame()
         {
@@ -263,6 +279,7 @@ namespace TootTallyMultiplayer
         {
             if (_hasSong)
             {
+                MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Playing);
                 Plugin.LogInfo("Starting Multiplayer for " + GlobalVariables.chosen_track_data.trackname_short + " - " + GlobalVariables.chosen_track_data.trackref);
                 CurrentInstance.fadepanel.gameObject.SetActive(true);
                 LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
@@ -273,7 +290,7 @@ namespace TootTallyMultiplayer
             }
         }
 
-        public void KickUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.KickFromLobby, new dynamic[] {userID});
+        public void KickUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.KickFromLobby, new dynamic[] { userID });
 
         public void PromoteUser(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.GiveHost, new dynamic[] { userID });
 
@@ -298,6 +315,7 @@ namespace TootTallyMultiplayer
                         DisconnectFromLobby();
                     break;
                 case OptionInfoType.Refresh:
+                case OptionInfoType.GiveHost:
                     RefreshAllLobbyInfo();
                     break;
             }
@@ -315,15 +333,14 @@ namespace TootTallyMultiplayer
         public enum MultiplayerState
         {
             None,
-            Enter,
-            FirstTimePopUp,
-            LoadPanels,
             Home,
             CreatingLobby,
             Lobby,
             Hosting,
             SelectSong,
             ExitScene,
+            Playing,
+            PointScene,
         }
 
         public enum MultiplayerUserState

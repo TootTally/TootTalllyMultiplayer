@@ -4,6 +4,7 @@ using TMPro;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.Assets;
 using UnityEngine;
+using UnityEngine.UI;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
 
@@ -80,7 +81,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void DisplayAllUserInfo(List<MultiplayerUserInfo> users)
         {
             ClearAllUserRows();
-            users.ForEach(DisplayUserInfo);
 
             var host = users.First();
             _isHost = host.id == TootTallyAccounts.TootTallyUser.userInfo.id;
@@ -94,19 +94,22 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _hostText.text = $"Current Host: {host.username}";
 
+            users.ForEach(DisplayUserInfo);
         }
 
         public void DisplayUserInfo(MultiplayerUserInfo user)
         {
             var lobbyInfoContainer = GameObject.Instantiate(AssetBundleManager.GetPrefab("containerboxhorizontal"), lobbyUserContainer.transform);
             _userRowsList.Add(lobbyInfoContainer);
-            lobbyInfoContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 75);
-
+            lobbyInfoContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(705, 75);
+            var horizontalLayout = lobbyInfoContainer.GetComponent<HorizontalLayoutGroup>();
+            horizontalLayout.childForceExpandHeight = horizontalLayout.childForceExpandWidth = false;
+            horizontalLayout.childControlWidth = horizontalLayout.childControlHeight = false;
 
             if (_isHost && user.id != TootTallyAccounts.TootTallyUser.userInfo.id)
             {
-                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 32f, AssetManager.GetSprite("Close64.png"), $"Kick{user.username}", delegate { OnKickUserButtonClick(user.id); });
-                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 32f, AssetManager.GetSprite("UserAdd64.png"), $"Promote{user.username}", delegate { OnPromoteButtonClick(user.id); });
+                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("Close64.png"), $"Kick{user.username}", delegate { OnKickUserButtonClick(user.id); });
+                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("UserAdd64.png"), $"Promote{user.username}", delegate { OnPromoteButtonClick(user.id); });
             }
 
             var t1 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
@@ -141,12 +144,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnKickUserButtonClick(int userID)
         {
             controller.KickUserFromLobby(userID);
+            controller.RefreshAllLobbyInfo();
         }
 
         public void OnPromoteButtonClick(int userID)
         {
-            DisplayAllUserInfo();
             controller.PromoteUser(userID);
+            controller.RefreshAllLobbyInfo();
         }
 
         public void OnSongInfoChanged(string songName, float gamespeed, string modifiers)

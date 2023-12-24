@@ -42,6 +42,11 @@ namespace TootTallyMultiplayer
                 gamespeed = gamespeed,
                 modifiers = modifiers
             };
+            SendSongHash(socketSetSongByHash);
+        }
+
+        public void SendSongHash(SocketSetSongByHash socketSetSongByHash)
+        {
             var json = JsonConvert.SerializeObject(socketSetSongByHash);
             Plugin.LogInfo("Sending: " + json);
             SendToSocket(json);
