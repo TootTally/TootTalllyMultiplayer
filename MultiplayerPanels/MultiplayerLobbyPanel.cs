@@ -32,6 +32,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private bool _isHost;
         private int _maxPlayerCount;
+        private float _savedGameSpeed;
 
         private UserState _userState;
 
@@ -337,6 +338,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnSongInfoChanged(string songName, float gamespeed, string modifiers, float difficulty)
         {
+            _savedGameSpeed = gamespeed;
+
             _songNameText.text = songName;
             _gameSpeedText.text = $"Game Speed: <b>{gamespeed:0.00}x</b>";
             _modifiersText.text = $"Mods: <b>{modifiers}</b>";
@@ -351,9 +354,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _songDescText.text = $"{trackData.desc}";
             _genreText.text = $"Genre: <b>{trackData.genre}</b>";
             _yearText.text = $"Year: <b>{trackData.year}</b>";
-            _bpmText.text = $"BPM: <b>{trackData.tempo}</b>";
+            _bpmText.text = $"BPM: <b>{trackData.tempo * _savedGameSpeed}</b>";
             //What the fuck am I doing??
-            var time = TimeSpan.FromSeconds(trackData.length);
+            var time = TimeSpan.FromSeconds(trackData.length / _savedGameSpeed);
             var stringTime = $"{(time.Hours != 0 ? (time.Hours + ":") : "")}{(time.Minutes != 0 ? time.Minutes : "0")}:{(time.Seconds != 0 ? time.Seconds : "00"):00}";
             _timeText.text = $"Time: <b>{stringTime}</b>";
         }
