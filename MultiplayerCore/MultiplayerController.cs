@@ -39,7 +39,7 @@ namespace TootTallyMultiplayer
 
         public bool IsUpdating;
         public bool IsConnectionPending, IsConnected;
-        
+
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -85,6 +85,8 @@ namespace TootTallyMultiplayer
             {
                 _multiConnection.OnSocketOptionReceived = OnOptionInfoReceived;
                 _multiConnection.OnSocketSongInfoReceived = OnSongInfoReceived;
+                _multiConnection.OnSocketLobbyInfoReceived = OnLobbyInfoReceived;
+                OnLobbyInfoReceived(_currentLobby);
             }
 
             TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, 1f, GetSecondDegreeAnimation(1.5f), sender => RefreshAllLobbyInfo());
@@ -128,6 +130,7 @@ namespace TootTallyMultiplayer
                     IsConnected = true;
                     _multiConnection.OnSocketSongInfoReceived = OnSongInfoReceived;
                     _multiConnection.OnSocketOptionReceived = OnOptionInfoReceived;
+                    _multiConnection.OnSocketLobbyInfoReceived = OnLobbyInfoReceived;
                 }
             };
         }
@@ -194,7 +197,7 @@ namespace TootTallyMultiplayer
 
         public void RefreshAllLobbyInfo()
         {
-            if (IsUpdating) return;
+            if (IsUpdating || CurrentInstance == null) return;
 
             _multMainPanel.ClearAllLobby();
             IsUpdating = true;
@@ -203,22 +206,21 @@ namespace TootTallyMultiplayer
                 _lobbyInfoList = lobbyList;
                 UpdateLobbyInfo(true);
                 IsUpdating = false;
-                if (IsConnected && _multiConnection != null)
-                {
-                    _currentLobby = _lobbyInfoList.Find(l => l.id == _multiConnection.GetServerID);
-                    _multLobbyPanel.DisplayAllUserInfo(_currentLobby.players);
-                }
                 _multMainPanel.ShowRefreshLobbyButton();
             }));
         }
 
-        public void CreateNewLobby(MultiplayerLobbyInfo lobbyInfo)
-        {
-            if (lobbyInfo == null) return;
 
-            _lobbyInfoList.Add(lobbyInfo);
-            _multiConnection = new MultiplayerSystem(lobbyInfo.id, true);
+        public void OnLobbyInfoReceived(MultiplayerLobbyInfo lobbyInfo)
+        {
+            _currentLobby = lobbyInfo;
+            if (CurrentInstance != null)
+            {
+                _multLobbyPanel.DisplayAllUserInfo(_currentLobby.players);
+                OnSongInfoReceived(_currentLobby.songInfo);
+            }
         }
+        public void OnLobbyInfoReceived(SocketLobbyInfo socketLobbyInfo) => OnLobbyInfoReceived(socketLobbyInfo.lobbyInfo);
 
         public void TransitionToPanel(MultiplayerPanelBase nextPanel)
         {
@@ -235,10 +237,10 @@ namespace TootTallyMultiplayer
 
         public static SingleTrackData savedTrackData;
 
-        public void OnSongInfoReceived(SocketSongInfo socketSongInfo)
+        public void OnSongInfoReceived(SocketSongInfo socketSongInfo) => OnSongInfoReceived(socketSongInfo.songInfo);
+        public void OnSongInfoReceived(MultiplayerSongInfo songInfo)
         {
-            var songInfo = socketSongInfo.songInfo;
-            ReplaySystemManager.gameSpeedMultiplier = socketSongInfo.songInfo.gameSpeed;
+            ReplaySystemManager.gameSpeedMultiplier = songInfo.gameSpeed;
             GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
             UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers);
 
@@ -254,6 +256,8 @@ namespace TootTallyMultiplayer
                 GlobalVariables.chosen_track = savedTrackData.trackref;
                 GlobalVariables.chosen_track_data = savedTrackData;
                 Plugin.LogInfo("Selected: " + savedTrackData.trackref);
+                if (_currentUserState == UserState.NoSong)
+                    SendUserState(UserState.NotReady);
             }
             else
             {
@@ -334,18 +338,16 @@ namespace TootTallyMultiplayer
                     break;
                 case OptionInfoType.Refresh:
                 case OptionInfoType.GiveHost:
+                case OptionInfoType.UpdateUserState:
                     RefreshAllLobbyInfo();
                     break;
                 case OptionInfoType.UpdateScore:
-                    break;
-                case OptionInfoType.UpdateUserState:
-                    _currentLobby.players.Find(x => x.id == optionInfo.values[0]).state = Enum.Parse(typeof(UserState), optionInfo.values[1]);
-                    RefreshAllLobbyInfo();
                     break;
             }
         }
 
         #region MultiConnectionRequests
+        public void SendSongFinishedToLobby() => _multiConnection?.SendOptionInfo(OptionInfoType.SongFinished);
         public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers) => _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
         public void SendScoreDataToLobby(int score, int combo, int health, int tally) => _multiConnection?.SendUpdateScore(score, combo, health, tally);
         public void SendUserState(UserState state)

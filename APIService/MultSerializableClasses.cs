@@ -30,7 +30,7 @@ namespace TootTallyMultiplayer.APIService
             public int maxPlayerCount;
             public string title;
             //public string password;
-            public int state;
+            public string state;
             public List<MultiplayerUserInfo> players;
             public MultiplayerSongInfo songInfo;
         }
@@ -65,7 +65,6 @@ namespace TootTallyMultiplayer.APIService
             Ready,
             NotReady,
             NoSong,
-            Hosting,
             SelectingSong,
         }
     }

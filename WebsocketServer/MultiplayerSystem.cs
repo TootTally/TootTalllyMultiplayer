@@ -16,11 +16,11 @@ namespace TootTallyMultiplayer
         public static JsonConverter[] _dataConverter = new JsonConverter[] { new SocketDataConverter() };
 
         public ConcurrentQueue<SocketSongInfo> _receivedSongInfo;
-        public ConcurrentQueue<SocketScoreInfo> _receivedScoreInfo;
+        public ConcurrentQueue<SocketLobbyInfo> _receivedLobbyInfo;
         public ConcurrentQueue<SocketOptionInfo> _receivedSocketOptionInfo;
 
         public Action<SocketSongInfo> OnSocketSongInfoReceived;
-        public Action<SocketScoreInfo> OnSocketScoreInfoReceived;
+        public Action<SocketLobbyInfo> OnSocketLobbyInfoReceived;
         public Action<SocketOptionInfo> OnSocketOptionReceived;
 
         public string GetServerID => _id;
@@ -30,7 +30,7 @@ namespace TootTallyMultiplayer
             ConnectionPending = true;
 
             _receivedSongInfo = new ConcurrentQueue<SocketSongInfo>();
-            _receivedScoreInfo = new ConcurrentQueue<SocketScoreInfo>();
+            _receivedLobbyInfo = new ConcurrentQueue<SocketLobbyInfo>();
             _receivedSocketOptionInfo = new ConcurrentQueue<SocketOptionInfo>();
 
 
@@ -79,8 +79,8 @@ namespace TootTallyMultiplayer
         {
             if (OnSocketSongInfoReceived != null && _receivedSongInfo.TryDequeue(out SocketSongInfo songInfo))
                 OnSocketSongInfoReceived.Invoke(songInfo);
-            if (OnSocketScoreInfoReceived != null && _receivedScoreInfo.TryDequeue(out SocketScoreInfo scoreInfo))
-                OnSocketScoreInfoReceived.Invoke(scoreInfo);
+            if (OnSocketLobbyInfoReceived != null && _receivedLobbyInfo.TryDequeue(out SocketLobbyInfo lobbyInfo))
+                OnSocketLobbyInfoReceived.Invoke(lobbyInfo);
             if (OnSocketOptionReceived != null && _receivedSocketOptionInfo.TryDequeue(out SocketOptionInfo option))
                 OnSocketOptionReceived.Invoke(option);
         }
@@ -101,6 +101,8 @@ namespace TootTallyMultiplayer
                     _receivedSongInfo.Enqueue(message as SocketSongInfo);
                 else if (message is SocketOptionInfo)
                     _receivedSocketOptionInfo.Enqueue(message as SocketOptionInfo);
+                else if (message is SocketLobbyInfo)
+                    _receivedLobbyInfo.Enqueue(message as SocketLobbyInfo);
             }
         }
 
@@ -123,7 +125,7 @@ namespace TootTallyMultiplayer
         public enum DataType
         {
             SongInfo,
-            ScoreInfo,
+            LobbyInfo,
             OptionInfo,
             SetSong
         }
@@ -170,17 +172,14 @@ namespace TootTallyMultiplayer
             public dynamic[] values { get; set; }
         }
 
-        public class SocketScoreInfo : SocketMessage
+        public class SocketLobbyInfo : SocketMessage
         {
-            public int id { get; set; }
-            public int maxCombo { get; set; }
-            public float percent { get; set; }
-            public int[] noteTally { get; set; }
+            public MultiplayerLobbyInfo lobbyInfo { get; set; }
         }
 
         public class SocketSongInfo : SocketMessage
         {
-            public MultSerializableClasses.MultiplayerSongInfo songInfo { get; set; }
+            public MultiplayerSongInfo songInfo { get; set; }
         }
 
 
@@ -194,7 +193,7 @@ namespace TootTallyMultiplayer
                 return Enum.Parse(typeof(DataType), jo["dataType"].Value<string>()) switch
                 {
                     DataType.SongInfo => jo.ToObject<SocketSongInfo>(serializer),
-                    DataType.ScoreInfo => jo.ToObject<SocketScoreInfo>(serializer),
+                    DataType.LobbyInfo => jo.ToObject<SocketLobbyInfo>(serializer),
                     DataType.OptionInfo => jo.ToObject<SocketOptionInfo>(serializer),
                     _ => null,
                 };

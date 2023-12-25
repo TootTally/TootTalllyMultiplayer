@@ -15,6 +15,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject lobbyUserContainer, rightPanelContainer, rightPanelContainerBox;
         public GameObject bottomPanelContainer;
 
+        private GameObject _dropdownMenu, _dropdownMenuContainer;
+
         private List<GameObject> _userRowsList;
 
         private CustomButton _selectSongButton, _lobbySettingsButton, _startGameButton, _readyUpButton;
@@ -28,9 +30,18 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public MultiplayerLobbyPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "LobbyPanel")
         {
             lobbyUserContainer = panelFG.transform.Find("TopMain/LeftPanel/LeftPanelContainer").gameObject;
+            
             rightPanelContainer = panelFG.transform.Find("TopMain/RightPanel/RightPanelContainer").gameObject;
             rightPanelContainerBox = rightPanelContainer.transform.Find("ContainerBoxVertical").gameObject;
             bottomPanelContainer = panelFG.transform.Find("BottomMain/BottomMainContainer").gameObject;
+
+            _dropdownMenu = GameObject.Instantiate(rightPanelContainer.transform.parent.gameObject);
+            _dropdownMenuContainer = _dropdownMenu.transform.Find("RightPanelContainer").gameObject;
+            _dropdownMenu.SetActive(false);
+
+            lobbyUserContainer.transform.parent.GetComponent<Image>().color = Color.black;
+
+            
 
             _userRowsList = new List<GameObject>();
 
@@ -81,17 +92,19 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _userState = UserState.NotReady;
         }
 
+        private MultiplayerUserInfo _hostInfo;
+
         public void DisplayAllUserInfo(List<MultiplayerUserInfo> users)
         {
             ClearAllUserRows();
 
-            var host = users.First();
-            _isHost = host.id == TootTallyAccounts.TootTallyUser.userInfo.id;
+            _hostInfo = users.First();
+            _isHost = _hostInfo.id == TootTallyAccounts.TootTallyUser.userInfo.id;
             _lobbySettingsButton.gameObject.SetActive(_isHost);
             _startGameButton.gameObject.SetActive(_isHost);
             _selectSongButton.gameObject.SetActive(_isHost);
             _readyUpButton.gameObject.SetActive(!_isHost);
-            _hostText.text = $"Current Host: {host.username}";
+            _hostText.text = $"Current Host: {_hostInfo.username}";
 
             users.ForEach(DisplayUserInfo);
         }
@@ -99,39 +112,57 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void DisplayUserInfo(MultiplayerUserInfo user)
         {
             var lobbyInfoContainer = GameObject.Instantiate(AssetBundleManager.GetPrefab("containerboxhorizontal"), lobbyUserContainer.transform);
+            var horizontalLayout = lobbyInfoContainer.GetComponent<HorizontalLayoutGroup>();
+            horizontalLayout.childAlignment = TextAnchor.MiddleLeft;
+            horizontalLayout.childControlHeight = horizontalLayout.childControlWidth = false;
+            horizontalLayout.childForceExpandHeight = horizontalLayout.childForceExpandWidth = false;
+
             _userRowsList.Add(lobbyInfoContainer);
             lobbyInfoContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(705, 75);
-
+            
             if (_isHost && user.id != TootTallyAccounts.TootTallyUser.userInfo.id)
             {
-                /*lobbyInfoContainer.GetComponent<HorizontalLayoutGroup>().padding.left = 125;
-                var image = GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 58f, "V", "ShowActionsButton");
-                image.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-                var rectTransform = image.GetComponent<RectTransform>();
-                rectTransform.anchorMin = rectTransform.anchorMax = new Vector2(.05f, .5f);
-                rectTransform.pivot = Vector2.one / 2f;*/
-                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("Kick.png"), $"Kick{user.username}", delegate { OnKickUserButtonClick(user.id); });
-                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("GiveHost.png"), $"Promote{user.username}", delegate { OnPromoteButtonClick(user.id); });
-                controller.SendUserState(UserState.Hosting);
+                //GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("Kick.png"), $"Kick{user.username}", delegate { OnKickUserButtonClick(user.id); });
+                //GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("GiveHost.png"), $"Promote{user.username}", delegate { OnPromoteButtonClick(user.id); });
             }
 
+            var image = GameObjectFactory.CreateClickableImageHolder(lobbyInfoContainer.transform, Vector2.zero, new Vector2(90,64), AssetManager.GetSprite("icon.png"), $"{user.username}PFP", delegate { _dropdownMenu.SetActive(true); });
+            image.transform.localPosition = new Vector3(-305,0,0);
+            AssetManager.GetProfilePictureByID(user.id, sprite => image.GetComponent<Image>().sprite = sprite);
+
             var t1 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
+            t1.rectTransform.sizeDelta = new Vector2(275, 75);
             t1.alignment = TextAlignmentOptions.Left;
 
             var t2 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Rank", $"#{user.rank}", Color.white);
+            t2.rectTransform.sizeDelta = new Vector2(275, 75);
             t2.alignment = TextAlignmentOptions.Right;
 
-            if (user.state != null)
-                switch (Enum.Parse(typeof(UserState), user.state))
+            var outline = lobbyInfoContainer.AddComponent<Outline>();
+            outline.effectDistance = Vector2.one * 3f;
+
+            if (user.id == _hostInfo.id)
+            {
+                GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.95f, .2f, .95f, 1), .2f);
+                outline.effectColor = new Color(.95f, .2f, .95f, 1);
+            }
+            else
+                switch (user.state != null ? Enum.Parse(typeof(UserState), user.state) : default)
                 {
                     case UserState.NoSong:
-                        GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), Color.red, .2f);
+                        GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.95f, .2f, .2f), .2f);
+                        outline.effectColor = new Color(.95f, .2f, .2f, 1);
                         break;
                     case UserState.NotReady:
-                        GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), Color.yellow, .2f);
+                        GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.95f, .95f, .2f, 1), .2f);
+                        outline.effectColor = new Color(.95f, .95f, .2f, 1);
                         break;
                     case UserState.Ready:
-                        GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), Color.green, .2f);
+                        GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.2f, .95f, .2f), .2f);
+                        outline.effectColor = new Color(.2f, .95f, .2f, 1);
+                        break;
+                    default:
+                        outline.effectColor = new Color(1, 1, 1, 1);
                         break;
                 }
         }
