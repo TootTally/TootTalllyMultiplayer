@@ -1,5 +1,6 @@
 ﻿using BaboonAPI.Hooks.Tracks;
 using HarmonyLib;
+using System;
 using TootTallyAccounts;
 using TootTallyCore;
 using TootTallyCore.Graphics.Animations;
@@ -23,6 +24,7 @@ namespace TootTallyMultiplayer
         private static MultiplayerController.MultiplayerState _state, _previousState;
         private static MultiplayerController _multiController;
         private static bool _multiButtonLoaded;
+        private static bool _isLevelSelectInit;
 
         [HarmonyPatch(typeof(PlaytestAnims), nameof(PlaytestAnims.Start))]
         [HarmonyPostfix]
@@ -45,14 +47,13 @@ namespace TootTallyMultiplayer
                 _previousState = MultiplayerController.MultiplayerState.None;
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
             }
-
         }
 
         [HarmonyPatch(typeof(Plugin), nameof(Plugin.Update))]
         [HarmonyPostfix]
         public static void Update()
         {
-            if (!_isSceneActive) return;
+            if (!_isSceneActive || _state == MultiplayerController.MultiplayerState.SelectSong) return;
 
             if (Input.GetKeyDown(KeyCode.Escape) && _state != MultiplayerController.MultiplayerState.ExitScene)
             {
@@ -87,9 +88,9 @@ namespace TootTallyMultiplayer
             GameObject mainCanvas = GameObject.Find("MainCanvas").gameObject;
             GameObject mainMenu = mainCanvas.transform.Find("MainMenu").gameObject;
             #region MultiplayerButton
-            GameObject multiplayerButton = Object.Instantiate(__instance.btncontainers[(int)HomeScreenButtonIndexes.Collect], mainMenu.transform);
-            GameObject multiplayerHitbox = Object.Instantiate(mainMenu.transform.Find("Button1Collect").gameObject, mainMenu.transform);
-            GameObject multiplayerText = Object.Instantiate(__instance.paneltxts[(int)HomeScreenButtonIndexes.Collect], mainMenu.transform);
+            GameObject multiplayerButton = GameObject.Instantiate(__instance.btncontainers[(int)HomeScreenButtonIndexes.Collect], mainMenu.transform);
+            GameObject multiplayerHitbox = GameObject.Instantiate(mainMenu.transform.Find("Button1Collect").gameObject, mainMenu.transform);
+            GameObject multiplayerText = GameObject.Instantiate(__instance.paneltxts[(int)HomeScreenButtonIndexes.Collect], mainMenu.transform);
             multiplayerButton.name = "MULTIContainer";
             multiplayerHitbox.name = "MULTIButton";
             multiplayerText.name = "MULTIText";
@@ -233,8 +234,15 @@ namespace TootTallyMultiplayer
         [HarmonyPostfix]
         public static void HideBackButton(LevelSelectController __instance)
         {
-            __instance.backbutton.gameObject.SetActive(_multiController == null || !_multiController.IsConnected);
+            if (_currentInstance != null && _multiController.IsConnected)
+            {
+                _currentInstance.hidefade();
+                __instance.backbutton.gameObject.SetActive(false);
+            }
         }
+        [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.clickBack))]
+        [HarmonyPrefix]
+        public static bool ClickBackButtonMultiplayerSelectSong(LevelSelectController __instance) => ClickPlayButtonMultiplayerSelectSong(__instance);
 
 
         [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.clickPlay))]
@@ -257,8 +265,23 @@ namespace TootTallyMultiplayer
 
             __instance.back_clicked = true;
             __instance.bgmus.Stop();
-            __instance.doSfx(__instance.sfx_slidedown);
-            __instance.fadeOut("zzz_playtest", 0.35f);
+            __instance.doSfx(__instance.sfx_click);
+
+            _multiController.UpdateLobbySongDetails();
+            _multiController.UpdateLobbySongInfo(GlobalVariables.chosen_track_data.trackname_short, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
+            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
+
+            __instance.fader.SetActive(true);
+            __instance.fader.transform.localScale = new Vector3(9.9f, 0.001f, 1f);
+            LeanTween.scaleY(__instance.fader, 9.75f, 0.25f).setEaseInQuart().setOnComplete(new Action(delegate
+            {
+                _multiController.ShowPanel();
+                SceneManager.UnloadSceneAsync("levelselect");
+                _currentInstance.fadepanel.alpha = 1f;
+                _currentInstance.fadepanel.gameObject.SetActive(true);
+                LeanTween.alphaCanvas(_currentInstance.fadepanel, 0f, 1f).setOnComplete(new Action(_currentInstance.hidefade));
+                _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
+            }));
             return false;
         }
 
@@ -296,6 +319,15 @@ namespace TootTallyMultiplayer
             return true;
         }
 
+        [HarmonyPatch(typeof(GameController), nameof(GameController.doScoreText))]
+        [HarmonyPostfix]
+        private static void OnDoScoreTextSendScoreToLobby(int whichtext, GameController __instance)
+        {
+            if (_multiController != null && _state == MultiplayerController.MultiplayerState.Playing)
+            {
+                _multiController.SendScoreDataToLobby(__instance.totalscore, __instance.highestcombocounter, (int)__instance.currenthealth, whichtext);
+            }
+        }
 
         private static void ResolveMultiplayerState()
         {
@@ -310,7 +342,14 @@ namespace TootTallyMultiplayer
                     _multiController.OnLobbyConnectionSuccess();
                     break;
                 case MultiplayerController.MultiplayerState.SelectSong:
-                    SceneManager.LoadScene("levelselect");
+                    _currentInstance.fadepanel.alpha = 0f;
+                    _currentInstance.fadepanel.gameObject.SetActive(true);
+                    LeanTween.alphaCanvas(_currentInstance.fadepanel, 1f, .4f).setOnComplete(new Action(delegate
+                    {
+                        SceneManager.LoadScene("levelselect", LoadSceneMode.Additive);
+                        _multiController.HidePanel();
+                    }));
+                    _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
                     break;
                 case MultiplayerController.MultiplayerState.ExitScene:
                     _currentInstance.clickedOK();

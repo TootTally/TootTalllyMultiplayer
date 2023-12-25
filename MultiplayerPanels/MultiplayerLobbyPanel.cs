@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using TootTallyCore.Graphics;
@@ -21,6 +22,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private TMP_Text _titleText, _maxPlayerText, _hostText, _songNameText, _songDescText, _genreText, _bpmText, _gameSpeedText, _yearText, _modifiersText, _ratingText;
 
         private bool _isHost;
+
+        private UserState _userState;
 
         public MultiplayerLobbyPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "LobbyPanel")
         {
@@ -74,7 +77,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _lobbySettingsButton.gameObject.SetActive(false);
             _startGameButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Start Game", "StartGameButton", OnStartGameButtonClick);
             _startGameButton.gameObject.SetActive(false);
-            _readyUpButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Ready Up", "ReadyUpButton");
+            _readyUpButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
         }
 
         public void DisplayAllUserInfo(List<MultiplayerUserInfo> users)
@@ -100,14 +103,15 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             if (_isHost && user.id != TootTallyAccounts.TootTallyUser.userInfo.id)
             {
-                lobbyInfoContainer.GetComponent<HorizontalLayoutGroup>().padding.left = 125;
+                /*lobbyInfoContainer.GetComponent<HorizontalLayoutGroup>().padding.left = 125;
                 var image = GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 58f, "V", "ShowActionsButton");
                 image.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
                 var rectTransform = image.GetComponent<RectTransform>();
                 rectTransform.anchorMin = rectTransform.anchorMax = new Vector2(.05f, .5f);
-                rectTransform.pivot = Vector2.one / 2f;
-                //GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("Kick.png"), $"Kick{user.username}", delegate { OnKickUserButtonClick(user.id); });
-                //GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("GiveHost.png"), $"Promote{user.username}", delegate { OnPromoteButtonClick(user.id); });
+                rectTransform.pivot = Vector2.one / 2f;*/
+                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("Kick.png"), $"Kick{user.username}", delegate { OnKickUserButtonClick(user.id); });
+                GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("GiveHost.png"), $"Promote{user.username}", delegate { OnPromoteButtonClick(user.id); });
+                OnUserStateChange((UserState)Enum.Parse(typeof(UserState), user.state));
             }
 
             var t1 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
@@ -115,12 +119,41 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             var t2 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Rank", $"#{user.rank}", Color.white);
             t2.alignment = TextAlignmentOptions.Right;
+
+            switch (Enum.Parse(typeof(UserState), user.state))
+            {
+                case UserState.NoSong:
+                    GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), Color.red, .2f);
+                    break;
+                case UserState.NotReady:
+                    GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), Color.yellow, .2f);
+                    break;
+                case UserState.Ready:
+                    GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), Color.green, .2f);
+                    break;
+            }
         }
 
         public void ClearAllUserRows()
         {
-            _userRowsList.ForEach(Object.DestroyImmediate);
+            _userRowsList.ForEach(GameObject.DestroyImmediate);
             _userRowsList.Clear();
+        }
+
+        public void OnReadyButtonClick()
+        {
+            switch (_userState)
+            {
+                case UserState.NoSong:
+                    //download chart
+                    break;
+                case UserState.NotReady:
+                    controller.SendUserState(UserState.Ready);
+                    break;
+                case UserState.Ready:
+                    controller.SendUserState(UserState.NotReady);
+                    break;
+            }
         }
 
         public void OnBackButtonClick()
@@ -166,6 +199,23 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _genreText.text = $"Genre: {trackData.genre}";
             _yearText.text = $"Year: {trackData.year}";
             _bpmText.text = $"BPM: {trackData.tempo}";
+        }
+
+        public void OnUserStateChange(UserState state)
+        {
+            _userState = state;
+            switch (state)
+            {
+                case UserState.NoSong:
+                    _readyUpButton.textHolder.text = "Download Song";
+                    break;
+                case UserState.NotReady:
+                    _readyUpButton.textHolder.text = "Ready Up";
+                    break;
+                case UserState.Ready:
+                    _readyUpButton.textHolder.text = "Not Ready";
+                    break;
+            }
         }
 
     }

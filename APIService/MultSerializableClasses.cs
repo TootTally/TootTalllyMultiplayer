@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.SocialPlatforms;
 
 namespace TootTallyMultiplayer.APIService
 {
@@ -56,7 +57,16 @@ namespace TootTallyMultiplayer.APIService
             public int rank;
             public int team;
             public string username;
+            public string state;
         }
 
+        public enum UserState
+        {
+            Ready,
+            NotReady,
+            NoSong,
+            Hosting,
+            SelectingSong,
+        }
     }
 }

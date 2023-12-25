@@ -37,6 +37,7 @@ namespace TootTallyMultiplayer
         public bool IsUpdating;
         public bool IsConnectionPending, IsConnected;
         private bool _hasSong;
+        private UserState _currentUserState;
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -139,10 +140,6 @@ namespace TootTallyMultiplayer
             MoveToMain();
         }
 
-        public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers)
-        {
-            _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
-        }
 
         public void Update()
         {
@@ -188,6 +185,10 @@ namespace TootTallyMultiplayer
         {
             TransitionToPanel(_lastPanel);
         }
+
+        public void HidePanel() => _currentActivePanel.panel.SetActive(false);
+
+        public void ShowPanel() => _currentActivePanel.panel.SetActive(true);
 
         public void RefreshAllLobbyInfo()
         {
@@ -252,9 +253,7 @@ namespace TootTallyMultiplayer
                 Plugin.LogInfo("Selected: " + savedTrackData.trackref);
             }
             else
-            {
-                //TODO: Offer option to download song
-            }
+                SendUserState(UserState.NoSong);
         }
 
         public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers) => _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers);
@@ -278,8 +277,14 @@ namespace TootTallyMultiplayer
             {
                 MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Playing);
                 Plugin.LogInfo("Starting Multiplayer for " + GlobalVariables.chosen_track_data.trackname_short + " - " + GlobalVariables.chosen_track_data.trackref);
-                CurrentInstance.fadepanel.gameObject.SetActive(true);
-                LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
+                if (CurrentInstance != null)
+                {
+                    CurrentInstance.fadepanel.gameObject.SetActive(true);
+                    LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
+                }
+                else
+                    LoadLoaderScene();
+
             }
             else
             {
@@ -293,6 +298,7 @@ namespace TootTallyMultiplayer
 
         public void LoadLoaderScene()
         {
+            CurrentInstance = null;
             SceneManager.LoadScene("loader");
         }
 
@@ -308,15 +314,32 @@ namespace TootTallyMultiplayer
                 case OptionInfoType.StartGame:
                     StartGame(); break;
                 case OptionInfoType.KickFromLobby:
-                    if (TootTallyAccounts.TootTallyUser.userInfo.id == (int)optionInfo.values[0])
+                    if (TootTallyAccounts.TootTallyUser.userInfo.id == optionInfo.values[0])
                         DisconnectFromLobby();
                     break;
                 case OptionInfoType.Refresh:
                 case OptionInfoType.GiveHost:
                     RefreshAllLobbyInfo();
                     break;
+                case OptionInfoType.UpdateScore:
+                    break;
+                case OptionInfoType.UpdateUserState:
+                    _currentLobby.players.Find(x => x.id == optionInfo.values[0]).state = Enum.Parse(typeof(UserState), optionInfo.values[1]);
+                    RefreshAllLobbyInfo();
+                    break;
             }
         }
+
+        #region MultiConnectionRequests
+        public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers) => _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
+        public void SendScoreDataToLobby(int score, int combo, int health, int tally) => _multiConnection?.SendUpdateScore(score, combo, health, tally);
+        public void SendUserState(UserState state)
+        {
+            _currentUserState = state;
+            _multLobbyPanel?.OnUserStateChange(state);
+            _multiConnection?.SendUserState(state);
+        }
+        #endregion
 
         public static SecondDegreeDynamicsAnimation GetSecondDegreeAnimation(float speedMult = 1f) => new SecondDegreeDynamicsAnimation(speedMult, 0.75f, 1.15f);
 

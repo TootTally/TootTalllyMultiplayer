@@ -6,6 +6,7 @@ using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyMultiplayer.APIService;
 using TootTallyWebsocketLibs;
 using WebSocketSharp;
+using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer
 {
@@ -15,9 +16,11 @@ namespace TootTallyMultiplayer
         public static JsonConverter[] _dataConverter = new JsonConverter[] { new SocketDataConverter() };
 
         public ConcurrentQueue<SocketSongInfo> _receivedSongInfo;
+        public ConcurrentQueue<SocketScoreInfo> _receivedScoreInfo;
         public ConcurrentQueue<SocketOptionInfo> _receivedSocketOptionInfo;
 
         public Action<SocketSongInfo> OnSocketSongInfoReceived;
+        public Action<SocketScoreInfo> OnSocketScoreInfoReceived;
         public Action<SocketOptionInfo> OnSocketOptionReceived;
 
         public string GetServerID => _id;
@@ -27,7 +30,9 @@ namespace TootTallyMultiplayer
             ConnectionPending = true;
 
             _receivedSongInfo = new ConcurrentQueue<SocketSongInfo>();
+            _receivedScoreInfo = new ConcurrentQueue<SocketScoreInfo>();
             _receivedSocketOptionInfo = new ConcurrentQueue<SocketOptionInfo>();
+
 
             ConnectToWebSocketServer(_url + serverID, TootTallyAccounts.Plugin.GetAPIKey, isHost);
         }
@@ -64,10 +69,18 @@ namespace TootTallyMultiplayer
             SendToSocket(json);
         }
 
+        public void SendUserState(UserState state) =>
+            SendOptionInfo(OptionInfoType.UpdateUserState, new dynamic[] { state.ToString() });
+
+        public void SendUpdateScore(int score, int combo, int health, int tally) =>
+            SendOptionInfo(OptionInfoType.UpdateScore, new dynamic[] { score, combo, health, tally});    
+
         public void UpdateStacks()
         {
             if (OnSocketSongInfoReceived != null && _receivedSongInfo.TryDequeue(out SocketSongInfo songInfo))
                 OnSocketSongInfoReceived.Invoke(songInfo);
+            if (OnSocketScoreInfoReceived != null && _receivedScoreInfo.TryDequeue(out SocketScoreInfo scoreInfo))
+                OnSocketScoreInfoReceived.Invoke(scoreInfo);
             if (OnSocketOptionReceived != null && _receivedSocketOptionInfo.TryDequeue(out SocketOptionInfo option))
                 OnSocketOptionReceived.Invoke(option);
         }
@@ -110,6 +123,7 @@ namespace TootTallyMultiplayer
         public enum DataType
         {
             SongInfo,
+            ScoreInfo,
             OptionInfo,
             SetSong
         }
@@ -118,6 +132,11 @@ namespace TootTallyMultiplayer
         {
             //Events
             Refresh,
+
+            //User Commands
+            UpdateUserState,
+            UpdateScore,
+            SongFinished,
 
             //Host Commands
             GiveHost,
@@ -151,6 +170,14 @@ namespace TootTallyMultiplayer
             public dynamic[] values { get; set; }
         }
 
+        public class SocketScoreInfo : SocketMessage
+        {
+            public int id { get; set; }
+            public int maxCombo { get; set; }
+            public float percent { get; set; }
+            public int[] noteTally { get; set; }
+        }
+
         public class SocketSongInfo : SocketMessage
         {
             public MultSerializableClasses.MultiplayerSongInfo songInfo { get; set; }
@@ -167,6 +194,7 @@ namespace TootTallyMultiplayer
                 return Enum.Parse(typeof(DataType), jo["dataType"].Value<string>()) switch
                 {
                     DataType.SongInfo => jo.ToObject<SocketSongInfo>(serializer),
+                    DataType.ScoreInfo => jo.ToObject<SocketScoreInfo>(serializer),
                     DataType.OptionInfo => jo.ToObject<SocketOptionInfo>(serializer),
                     _ => null,
                 };
