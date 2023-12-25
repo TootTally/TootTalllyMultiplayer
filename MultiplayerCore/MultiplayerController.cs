@@ -2,6 +2,7 @@
 using Microsoft.FSharp.Core;
 using System;
 using System.Collections.Generic;
+using TootTallyAccounts;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyNotifs;
@@ -210,12 +211,18 @@ namespace TootTallyMultiplayer
             }));
         }
 
+        public void RefreshCurrentLobbyInfo()
+        {
+            if (_currentLobby != null)
+                OnLobbyInfoReceived(_currentLobby);
+        }
 
         public void OnLobbyInfoReceived(MultiplayerLobbyInfo lobbyInfo)
         {
             _currentLobby = lobbyInfo;
             if (CurrentInstance != null)
             {
+                _currentUserState = (UserState)Enum.Parse(typeof(UserState), _currentLobby.players.Find(x => x.id == TootTallyUser.userInfo.id).state);
                 _multLobbyPanel.DisplayAllUserInfo(_currentLobby.players);
                 OnSongInfoReceived(_currentLobby.songInfo);
             }
@@ -313,7 +320,7 @@ namespace TootTallyMultiplayer
 
         public void KickUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.KickFromLobby, new dynamic[] { userID });
 
-        public void PromoteUser(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.GiveHost, new dynamic[] { userID });
+        public void GiveHostUser(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.GiveHost, new dynamic[] { userID });
 
         public void LoadLoaderScene()
         {
@@ -352,9 +359,12 @@ namespace TootTallyMultiplayer
         public void SendScoreDataToLobby(int score, int combo, int health, int tally) => _multiConnection?.SendUpdateScore(score, combo, health, tally);
         public void SendUserState(UserState state)
         {
-            _currentUserState = state;
-            _multLobbyPanel?.OnUserStateChange(state);
-            _multiConnection?.SendUserState(state);
+            if (_currentUserState != state)
+            {
+                _currentUserState = state;
+                _multLobbyPanel?.OnUserStateChange(state);
+                _multiConnection?.SendUserState(state);
+            }
         }
         #endregion
 

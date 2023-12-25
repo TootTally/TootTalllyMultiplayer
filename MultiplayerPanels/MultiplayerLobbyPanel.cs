@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using TootTallyCore.Graphics;
+using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using UnityEngine;
 using UnityEngine.UI;
+using static TootTallyCore.APIServices.SerializableClass;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.MultiplayerPanels
@@ -15,13 +17,17 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject lobbyUserContainer, rightPanelContainer, rightPanelContainerBox;
         public GameObject bottomPanelContainer;
 
-        private GameObject _dropdownMenu, _dropdownMenuContainer;
-
         private List<GameObject> _userRowsList;
 
         private CustomButton _selectSongButton, _lobbySettingsButton, _startGameButton, _readyUpButton;
+        private CustomButton _profileButton, _giveHostButton, _kickButton;
 
         private TMP_Text _titleText, _maxPlayerText, _hostText, _songNameText, _songDescText, _genreText, _bpmText, _gameSpeedText, _yearText, _modifiersText, _ratingText;
+
+        private GameObject _dropdownMenu, _dropdownMenuContainer;
+        private MultiplayerUserInfo _dropdownUserInfo;
+
+        private TootTallyAnimation _dropdownAnimation;
 
         private bool _isHost;
 
@@ -30,24 +36,32 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public MultiplayerLobbyPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "LobbyPanel")
         {
             lobbyUserContainer = panelFG.transform.Find("TopMain/LeftPanel/LeftPanelContainer").gameObject;
-            
+
             rightPanelContainer = panelFG.transform.Find("TopMain/RightPanel/RightPanelContainer").gameObject;
             rightPanelContainerBox = rightPanelContainer.transform.Find("ContainerBoxVertical").gameObject;
             bottomPanelContainer = panelFG.transform.Find("BottomMain/BottomMainContainer").gameObject;
 
-            _dropdownMenu = GameObject.Instantiate(rightPanelContainer.transform.parent.gameObject);
-            _dropdownMenuContainer = _dropdownMenu.transform.Find("RightPanelContainer").gameObject;
-            _dropdownMenu.SetActive(false);
-
             lobbyUserContainer.transform.parent.GetComponent<Image>().color = Color.black;
-
-            
+            lobbyUserContainer.GetComponent<VerticalLayoutGroup>().spacing = 8;
 
             _userRowsList = new List<GameObject>();
 
             GameObjectFactory.CreateCustomButton(bottomPanelContainer.transform, Vector2.zero, new Vector2(150, 75), "Back", "LobbyBackButton", OnBackButtonClick);
             _selectSongButton = GameObjectFactory.CreateCustomButton(bottomPanelContainer.transform, Vector2.zero, new Vector2(150, 75), "SelectSong", "SelectSongButton", OnSelectSongButtonClick);
             _selectSongButton.gameObject.SetActive(false);
+
+            //Menu when clicking on user pfp
+            _dropdownMenu = MultiplayerGameObjectFactory.AddVerticalBox(panelFG.transform);
+            _dropdownMenu.AddComponent<LayoutElement>().ignoreLayout = true;
+            _dropdownMenu.GetComponent<Image>().color = Color.white;
+            var rect = _dropdownMenu.GetComponent<RectTransform>();
+            rect.pivot = new Vector2(0, 1);
+            rect.sizeDelta = new Vector2(300, 180);
+            _dropdownMenuContainer = MultiplayerGameObjectFactory.AddVerticalBox(_dropdownMenu.transform);
+            _profileButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Profile", "DropdownProfile", OnProfileButtonClick);
+            _giveHostButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Give Host", "DropdownGiveHost", OnGiveHostButtonClick);
+            _kickButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Kick", "DropdownKick", OnKickUserButtonClick);
+            _dropdownMenu.SetActive(false);
 
             //Variable names my beloved
             var titleVBox = MultiplayerGameObjectFactory.AddVerticalBox(rightPanelContainerBox.transform);
@@ -103,7 +117,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _lobbySettingsButton.gameObject.SetActive(_isHost);
             _startGameButton.gameObject.SetActive(_isHost);
             _selectSongButton.gameObject.SetActive(_isHost);
+            _kickButton.gameObject.SetActive(_isHost);
+            _giveHostButton.gameObject.SetActive(_isHost);
+
             _readyUpButton.gameObject.SetActive(!_isHost);
+
+            _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 60);
+
             _hostText.text = $"Current Host: {_hostInfo.username}";
 
             users.ForEach(DisplayUserInfo);
@@ -119,15 +139,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _userRowsList.Add(lobbyInfoContainer);
             lobbyInfoContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(705, 75);
-            
-            if (_isHost && user.id != TootTallyAccounts.TootTallyUser.userInfo.id)
-            {
-                //GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("Kick.png"), $"Kick{user.username}", delegate { OnKickUserButtonClick(user.id); });
-                //GameObjectFactory.CreateCustomButton(lobbyInfoContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("GiveHost.png"), $"Promote{user.username}", delegate { OnPromoteButtonClick(user.id); });
-            }
 
-            var image = GameObjectFactory.CreateClickableImageHolder(lobbyInfoContainer.transform, Vector2.zero, new Vector2(90,64), AssetManager.GetSprite("icon.png"), $"{user.username}PFP", delegate { _dropdownMenu.SetActive(true); });
-            image.transform.localPosition = new Vector3(-305,0,0);
+            var image = GameObjectFactory.CreateClickableImageHolder(lobbyInfoContainer.transform, Vector2.zero, new Vector2(90, 64), AssetManager.GetSprite("icon.png"), $"{user.username}PFP", delegate { OnUserPFPClick(user); });
+            image.transform.localPosition = new Vector3(-305, 0, 0);
             AssetManager.GetProfilePictureByID(user.id, sprite => image.GetComponent<Image>().sprite = sprite);
 
             var t1 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
@@ -165,6 +179,18 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                         outline.effectColor = new Color(1, 1, 1, 1);
                         break;
                 }
+        }
+
+        private void OnUserPFPClick(MultiplayerUserInfo user)
+        {
+            _dropdownUserInfo = user;
+            var v3 = Input.mousePosition;
+            v3.z = 0;
+            _dropdownMenu.transform.position = v3;
+            _dropdownMenu.transform.localScale = Vector2.zero;
+            _dropdownMenu.SetActive(true);
+            _dropdownAnimation?.Dispose();
+            TootTallyAnimationManager.AddNewScaleAnimation(_dropdownMenu, Vector2.one, .8f, MultiplayerController.GetSecondDegreeAnimation(2.2f));
         }
 
         public void ClearAllUserRows()
@@ -206,17 +232,22 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             controller.StartLobbyGame();
         }
 
-        public void OnKickUserButtonClick(int userID)
+        public void OnKickUserButtonClick()
         {
-            controller.KickUserFromLobby(userID);
-            controller.RefreshAllLobbyInfo();
+            controller.KickUserFromLobby(_dropdownUserInfo.id);
+            controller.RefreshCurrentLobbyInfo();
         }
 
-        public void OnPromoteButtonClick(int userID)
+        public void OnProfileButtonClick()
         {
-            controller.PromoteUser(userID);
+            Application.OpenURL("");
+        }
+
+        public void OnGiveHostButtonClick()
+        {
+            controller.GiveHostUser(_dropdownUserInfo.id);
             controller.SendUserState(UserState.NotReady);
-            controller.RefreshAllLobbyInfo();
+            controller.RefreshCurrentLobbyInfo();
         }
 
         public void OnSongInfoChanged(string songName, float gamespeed, string modifiers)
