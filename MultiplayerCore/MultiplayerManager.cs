@@ -8,6 +8,7 @@ using TootTallyCore.Utils.Helpers;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
 using TootTallyLeaderboard.Replays;
+using TootTallyMultiplayer.APIService;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -238,6 +239,7 @@ namespace TootTallyMultiplayer
             {
                 _currentInstance.hidefade();
                 __instance.backbutton.gameObject.SetActive(false);
+                _multiController.SendUserState(MultSerializableClasses.UserState.SelectingSong);
             }
         }
         [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.clickBack))]
@@ -269,8 +271,9 @@ namespace TootTallyMultiplayer
 
             _multiController.UpdateLobbySongDetails();
             _multiController.UpdateLobbySongInfo(GlobalVariables.chosen_track_data.trackname_short, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
+            _multiController.SendUserState(MultSerializableClasses.UserState.Hosting);
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
-
+            
             __instance.fader.SetActive(true);
             __instance.fader.transform.localScale = new Vector3(9.9f, 0.001f, 1f);
             LeanTween.scaleY(__instance.fader, 9.75f, 0.25f).setEaseInQuart().setOnComplete(new Action(delegate

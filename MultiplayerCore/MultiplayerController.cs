@@ -28,6 +28,9 @@ namespace TootTallyMultiplayer
 
         private MultiplayerPanelBase _currentActivePanel, _lastPanel;
         private bool _isTransitioning;
+        private bool _hasSong;
+        private UserState _currentUserState;
+        private static string _savedDownloadLink;
 
         private MultiplayerMainPanel _multMainPanel;
         private MultiplayerLobbyPanel _multLobbyPanel;
@@ -36,8 +39,7 @@ namespace TootTallyMultiplayer
 
         public bool IsUpdating;
         public bool IsConnectionPending, IsConnected;
-        private bool _hasSong;
-        private UserState _currentUserState;
+        
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -245,6 +247,7 @@ namespace TootTallyMultiplayer
 
             if (_hasSong)
             {
+                _savedDownloadLink = null;
                 savedTrackData = TrackLookup.toTrackData(optionalTrack.Value);
                 UpdateLobbySongDetails();
                 GlobalVariables.levelselect_index = savedTrackData.trackindex;
@@ -253,7 +256,18 @@ namespace TootTallyMultiplayer
                 Plugin.LogInfo("Selected: " + savedTrackData.trackref);
             }
             else
+            {
+                _savedDownloadLink = songInfo.download;
                 SendUserState(UserState.NoSong);
+            }
+        }
+
+        public void DownloadSavedChart()
+        {
+            if (_savedDownloadLink != null)
+            {
+                //DownloadChartHere
+            }
         }
 
         public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers) => _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers);
