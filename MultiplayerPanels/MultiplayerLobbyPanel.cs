@@ -7,7 +7,6 @@ using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.TextCore;
 using UnityEngine.UI;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
@@ -107,55 +106,72 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             //SONG INFO
             var songVBox = MultiplayerGameObjectFactory.AddVerticalBox(rightPanelContainerBox.transform);
             songVBox.GetComponent<VerticalLayoutGroup>().childForceExpandHeight = songVBox.GetComponent<VerticalLayoutGroup>().childControlHeight = false;
-            songVBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 325);
+            songVBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 360);
             _songNameText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongNameText", "-", Color.white);
-            _songNameText.rectTransform.sizeDelta = new Vector2(0, 75);
+            _songNameText.rectTransform.sizeDelta = new Vector2(0, 60);
             _songNameText.enableAutoSizing = true;
             _songNameText.fontSizeMax = 60;
+            _songNameText.fontSizeMin = 48;
+            _songNameText.overflowMode = TextOverflowModes.Ellipsis;
             _songNameText.fontStyle = TMPro.FontStyles.Bold;
 
             _songArtistText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongArtistText", "-", Color.white);
+            _songArtistText.rectTransform.sizeDelta = new Vector2(0, 75);
             _songArtistText.fontSizeMax = 30;
 
             _songDescText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongDescText", "-", Color.white);
+            _songDescText.rectTransform.sizeDelta = new Vector2(0, 150);
             _songDescText.fontSizeMax = 22;
 
             _songArtistText.overflowMode = _songDescText.overflowMode = TextOverflowModes.Ellipsis;
-            _songArtistText.rectTransform.sizeDelta = _songDescText.rectTransform.sizeDelta = new Vector2(0, 100);
             _songNameText.alignment = _songDescText.alignment = _songArtistText.alignment = TextAlignmentOptions.Left;
 
             //DETAILS
-            var detailVBox = MultiplayerGameObjectFactory.AddVerticalBox(rightPanelContainerBox.transform);
-            detailVBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 300);
-            var HBox1 = MultiplayerGameObjectFactory.AddHorizontalBox(detailVBox.transform);
-            _genreText = GameObjectFactory.CreateSingleText(HBox1.transform, "GenreText", "Genre: -", Color.white);
-            _genreText.alignment = TextAlignmentOptions.Left;
-            _gameSpeedText = GameObjectFactory.CreateSingleText(HBox1.transform, "GameSpeedText", "Game Speed: -", Color.white);
-            _gameSpeedText.alignment = TextAlignmentOptions.Right;
+            var detailHBox = MultiplayerGameObjectFactory.AddHorizontalBox(rightPanelContainerBox.transform);
+            var hLayout = detailHBox.GetComponent<HorizontalLayoutGroup>();
+            hLayout.childForceExpandHeight = hLayout.childControlHeight = false;
+            hLayout.childAlignment = TextAnchor.UpperLeft;
+            detailHBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 200);
 
-            var HBox2 = MultiplayerGameObjectFactory.AddHorizontalBox(detailVBox.transform);
-            _yearText = GameObjectFactory.CreateSingleText(HBox2.transform, "YearText", "Year: -", Color.white);
-            _yearText.alignment = TextAlignmentOptions.Left;
-            _modifiersText = GameObjectFactory.CreateSingleText(HBox2.transform, "ModsText", "-", Color.white);
-            _modifiersText.alignment = TextAlignmentOptions.Right;
+            //Left side
+            var VBox1 = MultiplayerGameObjectFactory.AddVerticalBox(detailHBox.transform);
+            VBox1.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 190);
+            _genreText = GameObjectFactory.CreateSingleText(VBox1.transform, "GenreText", "Genre: -", Color.white);
+            _yearText = GameObjectFactory.CreateSingleText(VBox1.transform, "YearText", "Year: -", Color.white);
+            _bpmText = GameObjectFactory.CreateSingleText(VBox1.transform, "BPMText", "BPM: -", Color.white);
+            _timeText = GameObjectFactory.CreateSingleText(VBox1.transform, "TimeText", "Time: -", Color.white);
 
-            var HBox3 = MultiplayerGameObjectFactory.AddHorizontalBox(detailVBox.transform);
-            _bpmText = GameObjectFactory.CreateSingleText(HBox3.transform, "BPMText", "BPM: -", Color.white);
-            _bpmText.alignment = TextAlignmentOptions.Left;
-            _ratingText = GameObjectFactory.CreateSingleText(HBox3.transform, "RatingText", "Diff: -", Color.white);
-            _ratingText.alignment = TextAlignmentOptions.Right;
+            //Right side
+            var VBox2 = MultiplayerGameObjectFactory.AddVerticalBox(detailHBox.transform);
+            VBox2.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 145);
+            VBox2.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(50, 5, 5, 5);
+            _gameSpeedText = GameObjectFactory.CreateSingleText(VBox2.transform, "GameSpeedText", "Game Speed: -", Color.white);
+            _modifiersText = GameObjectFactory.CreateSingleText(VBox2.transform, "ModsText", "-", Color.white);
+            _ratingText = GameObjectFactory.CreateSingleText(VBox2.transform, "RatingText", "Diff: -", Color.white);
 
-            _timeText = GameObjectFactory.CreateSingleText(detailVBox.transform, "TimeText", "Time: -", Color.white);
-            _timeText.alignment = TextAlignmentOptions.Left;
+            SetTextsParameters(_timeText, _bpmText, _yearText, _genreText, _gameSpeedText, _modifiersText, _ratingText);
 
             //BUTTONS
-            var buttonsHBox = MultiplayerGameObjectFactory.AddHorizontalBox(detailVBox.transform);
+            var buttonsHBox = MultiplayerGameObjectFactory.AddHorizontalBox(rightPanelContainerBox.transform);
+            buttonsHBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 60);
             _lobbySettingsButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Lobby Settings", "LobbySettingsButton");
             _lobbySettingsButton.gameObject.SetActive(false);
             _startGameButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Start Game", "StartGameButton", OnStartGameButtonClick);
             _startGameButton.gameObject.SetActive(false);
             _readyUpButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
             _userState = UserState.NotReady;
+        }
+
+        private void SetTextsParameters(params TMP_Text[] texts)
+        {
+            for (int i = 0; i < texts.Length; i++)
+            {
+                var t = texts[i];
+                t.fontSize = t.fontSizeMax = 32;
+                t.alignment = TextAlignmentOptions.Left;
+                t.enableAutoSizing = true;
+                t.enableWordWrapping = false;
+            }
         }
 
         private MultiplayerUserInfo _hostInfo;
@@ -312,29 +328,34 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             controller.RefreshCurrentLobbyInfo();
         }
 
-        public void OnLobbyInfoReceived(string title, int maxPlayer)
+        public void OnLobbyInfoReceived(string title, int playerCount, int maxPlayer)
         {
             _titleText.text = title;
             _maxPlayerCount = maxPlayer;
-            _maxPlayerText.text = $"{_userRowsList.Count}/{_maxPlayerCount}";
+            _maxPlayerText.text = $"{playerCount}/{maxPlayer}";
         }
 
-        public void OnSongInfoChanged(string songName, float gamespeed, string modifiers)
+        public void OnSongInfoChanged(string songName, float gamespeed, string modifiers, float difficulty)
         {
             _songNameText.text = songName;
-            _gameSpeedText.text = $"Game Speed: {gamespeed:0.00}x";
-            _modifiersText.text = modifiers;
+            _gameSpeedText.text = $"Game Speed: <b>{gamespeed:0.00}x</b>";
+            _modifiersText.text = $"Mods: <b>{modifiers}</b>";
+            _ratingText.text = $"diff: <b>{difficulty:0.00}</b>";
         }
 
-        public void OnSongInfoChanged(MultiplayerSongInfo songInfo) => OnSongInfoChanged(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers);
+        public void OnSongInfoChanged(MultiplayerSongInfo songInfo) => OnSongInfoChanged(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, songInfo.difficulty);
 
         public void SetTrackDataDetails(SingleTrackData trackData)
         {
             _songArtistText.text = $"{trackData.artist}";
             _songDescText.text = $"{trackData.desc}";
-            _genreText.text = $"Genre: {trackData.genre}";
-            _yearText.text = $"Year: {trackData.year}";
-            _bpmText.text = $"BPM: {trackData.tempo}";
+            _genreText.text = $"Genre: <b>{trackData.genre}</b>";
+            _yearText.text = $"Year: <b>{trackData.year}</b>";
+            _bpmText.text = $"BPM: <b>{trackData.tempo}</b>";
+            //What the fuck am I doing??
+            var time = TimeSpan.FromSeconds(trackData.length);
+            var stringTime = $"{(time.Hours != 0 ? (time.Hours + ":") : "")}{(time.Minutes != 0 ? time.Minutes : "0")}:{(time.Seconds != 0 ? time.Seconds : "00"):00}";
+            _timeText.text = $"Time: <b>{stringTime}</b>";
         }
 
         public void SetNullTrackDataDetails()
@@ -344,6 +365,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _genreText.text = $"Genre: -";
             _yearText.text = $"Year: -";
             _bpmText.text = $"BPM: -";
+            _timeText.text = $"Time: -";
         }
 
         public void OnUserStateChange(UserState state)

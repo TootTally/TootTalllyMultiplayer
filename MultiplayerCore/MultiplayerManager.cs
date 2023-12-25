@@ -41,7 +41,6 @@ namespace TootTallyMultiplayer
             if (_state == MultiplayerController.MultiplayerState.SelectSong || _state == MultiplayerController.MultiplayerState.PointScene)
             {
                 _multiController.UpdateLobbySongDetails();
-                _multiController.UpdateLobbySongInfo(GlobalVariables.chosen_track_data.trackname_short, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
             }
             else
@@ -271,7 +270,6 @@ namespace TootTallyMultiplayer
             __instance.doSfx(__instance.sfx_click);
 
             _multiController.UpdateLobbySongDetails();
-            _multiController.UpdateLobbySongInfo(GlobalVariables.chosen_track_data.trackname_short, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
             _multiController.SendUserState(MultSerializableClasses.UserState.Ready);
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
             

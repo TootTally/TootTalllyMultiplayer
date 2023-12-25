@@ -38,7 +38,7 @@ namespace TootTallyMultiplayer.APIService
         [Serializable]
         public class MultiplayerSongInfo
         {
-            public string difficulty;
+            public float difficulty;
             public string download;
             public string fileHash;
             public float gameSpeed;

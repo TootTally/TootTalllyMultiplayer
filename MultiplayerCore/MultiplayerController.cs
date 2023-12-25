@@ -64,9 +64,11 @@ namespace TootTallyMultiplayer
             {
                 _multLobbyPanel = new MultiplayerLobbyPanel(canvas, this);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Plugin.LogError("Couldn't init lobby panel");
+                Plugin.LogError(e.Message);
+                Plugin.LogError(e.StackTrace);
             }
             try
             {
@@ -224,7 +226,7 @@ namespace TootTallyMultiplayer
             {
                 _currentUserState = (UserState)Enum.Parse(typeof(UserState), _currentLobby.players.Find(x => x.id == TootTallyUser.userInfo.id).state);
                 _multLobbyPanel.DisplayAllUserInfo(_currentLobby.players);
-                _multLobbyPanel.OnLobbyInfoReceived(lobbyInfo.title, lobbyInfo.maxPlayerCount);
+                _multLobbyPanel.OnLobbyInfoReceived(lobbyInfo.title,lobbyInfo.players.Count,  lobbyInfo.maxPlayerCount);
                 OnSongInfoReceived(_currentLobby.songInfo);
             }
         }
@@ -250,7 +252,7 @@ namespace TootTallyMultiplayer
         {
             ReplaySystemManager.gameSpeedMultiplier = songInfo.gameSpeed;
             GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
-            UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers);
+            UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, songInfo.difficulty);
 
             var optionalTrack = TrackLookup.tryLookup(songInfo.trackRef);
             _hasSong = OptionModule.IsSome(optionalTrack);
@@ -283,7 +285,7 @@ namespace TootTallyMultiplayer
             }
         }
 
-        public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers) => _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers);
+        public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers, float difficulty) => _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers, difficulty);
 
 
         public void UpdateLobbySongDetails()
