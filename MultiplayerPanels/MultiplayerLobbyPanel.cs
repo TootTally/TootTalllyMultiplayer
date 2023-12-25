@@ -184,6 +184,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnPromoteButtonClick(int userID)
         {
             controller.PromoteUser(userID);
+            controller.SendUserState(UserState.NotReady);
             controller.RefreshAllLobbyInfo();
         }
 
@@ -202,6 +203,14 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _genreText.text = $"Genre: {trackData.genre}";
             _yearText.text = $"Year: {trackData.year}";
             _bpmText.text = $"BPM: {trackData.tempo}";
+        }
+
+        public void SetNullTrackDataDetails()
+        {
+            _songDescText.text = $"-";
+            _genreText.text = $"Genre: -";
+            _yearText.text = $"Year: -";
+            _bpmText.text = $"BPM: -";
         }
 
         public void OnUserStateChange(UserState state)
