@@ -6,8 +6,9 @@ using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.TextCore;
 using UnityEngine.UI;
-using static TootTallyCore.APIServices.SerializableClass;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.MultiplayerPanels
@@ -22,7 +23,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private CustomButton _selectSongButton, _lobbySettingsButton, _startGameButton, _readyUpButton;
         private CustomButton _profileButton, _giveHostButton, _kickButton;
 
-        private TMP_Text _titleText, _maxPlayerText, _hostText, _songNameText, _songDescText, _genreText, _bpmText, _gameSpeedText, _yearText, _modifiersText, _ratingText;
+        private TMP_Text _titleText, _maxPlayerText, _hostText, _songNameText, _songArtistText, _timeText,
+            _songDescText, _genreText, _bpmText, _gameSpeedText, _yearText, _modifiersText, _ratingText;
 
         private GameObject _dropdownMenu, _dropdownMenuContainer;
         private MultiplayerUserInfo _dropdownUserInfo;
@@ -30,6 +32,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private TootTallyAnimation _dropdownAnimation;
 
         private bool _isHost;
+        private int _maxPlayerCount;
 
         private UserState _userState;
 
@@ -44,6 +47,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             lobbyUserContainer.transform.parent.GetComponent<Image>().color = Color.black;
             lobbyUserContainer.GetComponent<VerticalLayoutGroup>().spacing = 8;
 
+            rightPanelContainer.transform.parent.GetComponent<Image>().color = Color.black;
+            rightPanelContainerBox.GetComponent<Image>().color = new Color(0, 1, 0);
+
             _userRowsList = new List<GameObject>();
 
             GameObjectFactory.CreateCustomButton(bottomPanelContainer.transform, Vector2.zero, new Vector2(150, 75), "Back", "LobbyBackButton", OnBackButtonClick);
@@ -52,6 +58,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             //Menu when clicking on user pfp
             _dropdownMenu = MultiplayerGameObjectFactory.AddVerticalBox(panelFG.transform);
+
+            var trigger = _dropdownMenu.AddComponent<EventTrigger>();
+            EventTrigger.Entry pointerExitEvent = new EventTrigger.Entry();
+            pointerExitEvent.eventID = EventTriggerType.PointerExit;
+            pointerExitEvent.callback.AddListener(data => HideDropdown());
+            trigger.triggers.Add(pointerExitEvent);
+
             _dropdownMenu.AddComponent<LayoutElement>().ignoreLayout = true;
             _dropdownMenu.GetComponent<Image>().color = Color.white;
             var rect = _dropdownMenu.GetComponent<RectTransform>();
@@ -64,21 +77,56 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _dropdownMenu.SetActive(false);
 
             //Variable names my beloved
+            var verticalLayout = rightPanelContainerBox.GetComponent<VerticalLayoutGroup>();
+            verticalLayout.childControlHeight = false;
+            verticalLayout.childForceExpandHeight = false;
+
+            //TITLE
             var titleVBox = MultiplayerGameObjectFactory.AddVerticalBox(rightPanelContainerBox.transform);
+            titleVBox.GetComponent<VerticalLayoutGroup>().childForceExpandHeight = titleVBox.GetComponent<VerticalLayoutGroup>().childControlHeight = false;
+            titleVBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 120);
             var topHBox = MultiplayerGameObjectFactory.AddHorizontalBox(titleVBox.transform);
-            _titleText = GameObjectFactory.CreateSingleText(topHBox.transform, "TitleText", "Birthday Party", Color.white);
+            topHBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 75);
+
+            _titleText = GameObjectFactory.CreateSingleText(topHBox.transform, "TitleText", "-", Color.white);
+            _titleText.enableAutoSizing = true;
             _titleText.alignment = TextAlignmentOptions.TopLeft;
-            _maxPlayerText = GameObjectFactory.CreateSingleText(topHBox.transform, "MaxPlayer", "2/24", Color.white);
+            _titleText.fontStyle = TMPro.FontStyles.Bold;
+            _titleText.fontSizeMax = 60;
+
+            _maxPlayerText = GameObjectFactory.CreateSingleText(topHBox.transform, "MaxPlayer", "-/-", Color.white);
             _maxPlayerText.alignment = TextAlignmentOptions.TopRight;
-            _hostText = GameObjectFactory.CreateSingleText(titleVBox.transform, "HostText", "Current Host: Electrostats", Color.white);
+            _maxPlayerText.fontSize = 32;
+            _maxPlayerText.enableWordWrapping = false;
 
+            _hostText = GameObjectFactory.CreateSingleText(titleVBox.transform, "HostText", "Current Host: -", Color.white);
+            _hostText.alignment = TextAlignmentOptions.Left;
+            _hostText.enableAutoSizing = true;
+            _hostText.rectTransform.sizeDelta = new Vector2(0, 30);
+
+            //SONG INFO
             var songVBox = MultiplayerGameObjectFactory.AddVerticalBox(rightPanelContainerBox.transform);
-            var t1 = GameObjectFactory.CreateSingleText(songVBox.transform, "NextSongText", "Next Song:", Color.white);
+            songVBox.GetComponent<VerticalLayoutGroup>().childForceExpandHeight = songVBox.GetComponent<VerticalLayoutGroup>().childControlHeight = false;
+            songVBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 325);
             _songNameText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongNameText", "-", Color.white);
-            _songDescText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongDescText", "-", Color.white);
-            t1.alignment = _songNameText.alignment = _songDescText.alignment = TextAlignmentOptions.Left;
+            _songNameText.rectTransform.sizeDelta = new Vector2(0, 75);
+            _songNameText.enableAutoSizing = true;
+            _songNameText.fontSizeMax = 60;
+            _songNameText.fontStyle = TMPro.FontStyles.Bold;
 
+            _songArtistText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongArtistText", "-", Color.white);
+            _songArtistText.fontSizeMax = 30;
+
+            _songDescText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongDescText", "-", Color.white);
+            _songDescText.fontSizeMax = 22;
+
+            _songArtistText.overflowMode = _songDescText.overflowMode = TextOverflowModes.Ellipsis;
+            _songArtistText.rectTransform.sizeDelta = _songDescText.rectTransform.sizeDelta = new Vector2(0, 100);
+            _songNameText.alignment = _songDescText.alignment = _songArtistText.alignment = TextAlignmentOptions.Left;
+
+            //DETAILS
             var detailVBox = MultiplayerGameObjectFactory.AddVerticalBox(rightPanelContainerBox.transform);
+            detailVBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 300);
             var HBox1 = MultiplayerGameObjectFactory.AddHorizontalBox(detailVBox.transform);
             _genreText = GameObjectFactory.CreateSingleText(HBox1.transform, "GenreText", "Genre: -", Color.white);
             _genreText.alignment = TextAlignmentOptions.Left;
@@ -91,13 +139,17 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _modifiersText = GameObjectFactory.CreateSingleText(HBox2.transform, "ModsText", "-", Color.white);
             _modifiersText.alignment = TextAlignmentOptions.Right;
 
-            _bpmText = GameObjectFactory.CreateSingleText(detailVBox.transform, "BPMText", "BPM: -", Color.white);
-            _ratingText = GameObjectFactory.CreateSingleText(detailVBox.transform, "RatingText", "Diff: -", Color.white);
-            _bpmText.alignment = _ratingText.alignment = TextAlignmentOptions.Left;
+            var HBox3 = MultiplayerGameObjectFactory.AddHorizontalBox(detailVBox.transform);
+            _bpmText = GameObjectFactory.CreateSingleText(HBox3.transform, "BPMText", "BPM: -", Color.white);
+            _bpmText.alignment = TextAlignmentOptions.Left;
+            _ratingText = GameObjectFactory.CreateSingleText(HBox3.transform, "RatingText", "Diff: -", Color.white);
+            _ratingText.alignment = TextAlignmentOptions.Right;
 
-            var pingHBox = MultiplayerGameObjectFactory.AddHorizontalBox(rightPanelContainerBox.transform);
+            _timeText = GameObjectFactory.CreateSingleText(detailVBox.transform, "TimeText", "Time: -", Color.white);
+            _timeText.alignment = TextAlignmentOptions.Left;
 
-            var buttonsHBox = MultiplayerGameObjectFactory.AddHorizontalBox(rightPanelContainerBox.transform);
+            //BUTTONS
+            var buttonsHBox = MultiplayerGameObjectFactory.AddHorizontalBox(detailVBox.transform);
             _lobbySettingsButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Lobby Settings", "LobbySettingsButton");
             _lobbySettingsButton.gameObject.SetActive(false);
             _startGameButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Start Game", "StartGameButton", OnStartGameButtonClick);
@@ -122,9 +174,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _readyUpButton.gameObject.SetActive(!_isHost);
 
-            _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 60);
+            _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, _isHost ? 180 : 60);
 
             _hostText.text = $"Current Host: {_hostInfo.username}";
+            _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
 
             users.ForEach(DisplayUserInfo);
         }
@@ -190,7 +243,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _dropdownMenu.transform.localScale = Vector2.zero;
             _dropdownMenu.SetActive(true);
             _dropdownAnimation?.Dispose();
-            TootTallyAnimationManager.AddNewScaleAnimation(_dropdownMenu, Vector2.one, .8f, MultiplayerController.GetSecondDegreeAnimation(2.2f));
+            _dropdownAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_dropdownMenu, Vector2.one, .6f, MultiplayerController.GetSecondDegreeAnimation(2.8f));
+        }
+
+        private void HideDropdown()
+        {
+            _dropdownAnimation?.Dispose();
+            _dropdownAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_dropdownMenu, Vector2.zero, .4f, MultiplayerController.GetSecondDegreeAnimationNoBounce(5f));
         }
 
         public void ClearAllUserRows()
@@ -234,20 +293,30 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnKickUserButtonClick()
         {
+            HideDropdown();
             controller.KickUserFromLobby(_dropdownUserInfo.id);
             controller.RefreshCurrentLobbyInfo();
         }
 
         public void OnProfileButtonClick()
         {
-            Application.OpenURL("");
+            HideDropdown();
+            Application.OpenURL($"https://toottally.com/profile/{_dropdownUserInfo.id}");
         }
 
         public void OnGiveHostButtonClick()
         {
+            HideDropdown();
             controller.GiveHostUser(_dropdownUserInfo.id);
             controller.SendUserState(UserState.NotReady);
             controller.RefreshCurrentLobbyInfo();
+        }
+
+        public void OnLobbyInfoReceived(string title, int maxPlayer)
+        {
+            _titleText.text = title;
+            _maxPlayerCount = maxPlayer;
+            _maxPlayerText.text = $"{_userRowsList.Count}/{_maxPlayerCount}";
         }
 
         public void OnSongInfoChanged(string songName, float gamespeed, string modifiers)
@@ -261,6 +330,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void SetTrackDataDetails(SingleTrackData trackData)
         {
+            _songArtistText.text = $"{trackData.artist}";
             _songDescText.text = $"{trackData.desc}";
             _genreText.text = $"Genre: {trackData.genre}";
             _yearText.text = $"Year: {trackData.year}";
@@ -269,6 +339,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void SetNullTrackDataDetails()
         {
+            _songArtistText.text = $"-";
             _songDescText.text = $"-";
             _genreText.text = $"Genre: -";
             _yearText.text = $"Year: -";

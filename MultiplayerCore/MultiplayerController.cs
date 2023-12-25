@@ -224,6 +224,7 @@ namespace TootTallyMultiplayer
             {
                 _currentUserState = (UserState)Enum.Parse(typeof(UserState), _currentLobby.players.Find(x => x.id == TootTallyUser.userInfo.id).state);
                 _multLobbyPanel.DisplayAllUserInfo(_currentLobby.players);
+                _multLobbyPanel.OnLobbyInfoReceived(lobbyInfo.title, lobbyInfo.maxPlayerCount);
                 OnSongInfoReceived(_currentLobby.songInfo);
             }
         }
@@ -369,6 +370,7 @@ namespace TootTallyMultiplayer
         #endregion
 
         public static SecondDegreeDynamicsAnimation GetSecondDegreeAnimation(float speedMult = 1f) => new SecondDegreeDynamicsAnimation(speedMult, 0.75f, 1.15f);
+        public static SecondDegreeDynamicsAnimation GetSecondDegreeAnimationNoBounce(float speedMult = 1f) => new SecondDegreeDynamicsAnimation(speedMult, 1f, 1f);
 
         public void Dispose()
         {
