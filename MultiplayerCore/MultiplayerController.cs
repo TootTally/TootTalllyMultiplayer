@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using TootTallyAccounts;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
+using TootTallyCore.Utils.Helpers;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
 using TootTallyLeaderboard.Replays;
@@ -252,7 +253,16 @@ namespace TootTallyMultiplayer
         {
             ReplaySystemManager.gameSpeedMultiplier = songInfo.gameSpeed;
             GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
-            UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, songInfo.difficulty);
+
+            float diffIndex = (int)((songInfo.gameSpeed - .5f) / .25f);
+            float diffMin = diffIndex * .25f + .5f;
+            float diffMax = (diffIndex + 1f) * .25f + .5f;
+
+            float by = (songInfo.gameSpeed - diffMin) / (diffMax - diffMin);
+
+            float diff = EasingHelper.Lerp(songInfo.speed_diffs[(int)diffIndex], songInfo.speed_diffs[(int)diffIndex + 1], by);
+
+            UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
 
             var optionalTrack = TrackLookup.tryLookup(songInfo.trackRef);
             _hasSong = OptionModule.IsSome(optionalTrack);

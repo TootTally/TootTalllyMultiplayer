@@ -47,6 +47,7 @@ namespace TootTallyMultiplayer.APIService
             public string songName;
             public string songShortName;
             public string trackRef;
+            public float[] speed_diffs;
         }
 
         [Serializable]
