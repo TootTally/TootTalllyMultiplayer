@@ -10,6 +10,7 @@ namespace TootTallyMultiplayer
     public static class MultiplayerGameObjectFactory
     {
         private static TMP_InputField _inputFieldPrefab;
+        private static GameObject _liveScorePrefab;
 
         private static bool _isInitialized;
 
@@ -19,6 +20,12 @@ namespace TootTallyMultiplayer
 
             SetInputFieldPrefab();
             _isInitialized = true;
+        }
+
+        private static void SetLiveScorePrefab()
+        {
+            _liveScorePrefab = MultiplayerGameObjectFactory.AddHorizontalBox(null);
+            _liveScorePrefab.GetComponent<RectTransform>().sizeDelta = new Vector2(280, 60);
         }
 
         private static void SetInputFieldPrefab()
@@ -70,6 +77,13 @@ namespace TootTallyMultiplayer
             inputField.inputType = isPassword ? TMP_InputField.InputType.Password : TMP_InputField.InputType.Standard;
 
             return inputField;
+        }
+
+        public static GameObject CreateLiveScoreCard(Transform canvasTransform, string name)
+        {
+            var liveScoreObject = GameObject.Instantiate(_liveScorePrefab, canvasTransform);
+            liveScoreObject.name = name;
+            return liveScoreObject;
         }
 
         public static GameObject AddVerticalBox(Transform parent) => GameObject.Instantiate(AssetBundleManager.GetPrefab("containerboxvertical"), parent);

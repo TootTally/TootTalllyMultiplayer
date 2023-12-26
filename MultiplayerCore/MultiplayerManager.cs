@@ -10,6 +10,7 @@ using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
 using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
+using TootTallyMultiplayer.MultiplayerCore;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -323,15 +324,24 @@ namespace TootTallyMultiplayer
             return true;
         }
 
+        [HarmonyPatch(typeof(GameController), nameof(GameController.Start))]
+        [HarmonyPostfix]
+        private static void OnGameControllerStartInitLiveScore(GameController __instance)
+        {
+            if (IsPlayingMultiplayer)
+                _multiController.InitializeLiveScore(__instance);
+        }
+
+
         [HarmonyPatch(typeof(GameController), nameof(GameController.doScoreText))]
         [HarmonyPostfix]
         private static void OnDoScoreTextSendScoreToLobby(int whichtext, GameController __instance)
         {
-            if (_multiController != null && _state == MultiplayerController.MultiplayerState.Playing)
-            {
+            if (IsPlayingMultiplayer)
                 _multiController.SendScoreDataToLobby(__instance.totalscore, __instance.highestcombocounter, (int)__instance.currenthealth, whichtext);
-            }
         }
+
+        private static bool IsPlayingMultiplayer => _multiController != null && _state == MultiplayerController.MultiplayerState.Playing;
 
         private static void ResolveMultiplayerState()
         {

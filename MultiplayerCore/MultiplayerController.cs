@@ -10,6 +10,7 @@ using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
 using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
+using TootTallyMultiplayer.MultiplayerCore;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -27,6 +28,7 @@ namespace TootTallyMultiplayer
         private static MultiplayerLobbyInfo _currentLobby;
 
         private static MultiplayerSystem _multiConnection;
+        private static MultiplayerLiveScoreController _multiLiveScoreController;
 
         private MultiplayerPanelBase _currentActivePanel, _lastPanel;
         private bool _isTransitioning;
@@ -94,6 +96,11 @@ namespace TootTallyMultiplayer
             }
 
             TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, 1f, GetSecondDegreeAnimation(1.5f), sender => RefreshAllLobbyInfo());
+        }
+
+        public void InitializeLiveScore()
+        {
+            _multiLiveScoreController = GameObject.Find("GameplayCanvas/UIHolder").AddComponent<MultiplayerLiveScoreController>();
         }
 
         public void OnSliderValueChangeScrollContainer(GameObject container, float value)
@@ -362,6 +369,7 @@ namespace TootTallyMultiplayer
                     RefreshAllLobbyInfo();
                     break;
                 case OptionInfoType.UpdateScore:
+                    _multiLiveScoreController?.UpdateLiveScore(optionInfo.values[0], optionInfo.values[1], optionInfo.values[2], optionInfo.values[3]);
                     break;
             }
         }
