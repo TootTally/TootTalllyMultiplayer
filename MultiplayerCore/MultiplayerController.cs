@@ -95,7 +95,11 @@ namespace TootTallyMultiplayer
                 OnLobbyInfoReceived(_currentLobby);
             }
 
-            TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, 1f, GetSecondDegreeAnimation(1.5f), sender => RefreshAllLobbyInfo());
+            TootTallyAnimationManager.AddNewScaleAnimation(_multMainPanel.panel, Vector3.one, .8f, GetSecondDegreeAnimation(1.5f), sender =>
+            {
+                RefreshAllLobbyInfo();
+                MultiplayerManager.AllowExit = true;
+            });
         }
 
         public void InitializeLiveScore()
@@ -234,7 +238,7 @@ namespace TootTallyMultiplayer
             {
                 _currentUserState = (UserState)Enum.Parse(typeof(UserState), _currentLobby.players.Find(x => x.id == TootTallyUser.userInfo.id).state);
                 _multLobbyPanel.DisplayAllUserInfo(_currentLobby.players);
-                _multLobbyPanel.OnLobbyInfoReceived(lobbyInfo.title,lobbyInfo.players.Count,  lobbyInfo.maxPlayerCount);
+                _multLobbyPanel.OnLobbyInfoReceived(lobbyInfo.title, lobbyInfo.players.Count, lobbyInfo.maxPlayerCount);
                 OnSongInfoReceived(_currentLobby.songInfo);
             }
         }

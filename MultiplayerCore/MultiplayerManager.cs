@@ -1,17 +1,14 @@
 ﻿using BaboonAPI.Hooks.Tracks;
 using HarmonyLib;
 using System;
-using System.Runtime.CompilerServices;
 using TootTallyAccounts;
 using TootTallyCore;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Helpers;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
-using TootTallyLeaderboard;
 using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
-using TootTallyMultiplayer.MultiplayerCore;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -21,6 +18,8 @@ namespace TootTallyMultiplayer
 {
     public static class MultiplayerManager
     {
+        public static bool AllowExit;
+
         private static PlaytestAnims _currentInstance;
         private static RectTransform _multiButtonOutlineRectTransform;
         private static bool _isSceneActive;
@@ -39,6 +38,7 @@ namespace TootTallyMultiplayer
             _multiController = new MultiplayerController(__instance);
 
             _isSceneActive = true;
+            AllowExit = false;
 
             if (_state == MultiplayerController.MultiplayerState.SelectSong || _state == MultiplayerController.MultiplayerState.PointScene)
             {
@@ -56,12 +56,15 @@ namespace TootTallyMultiplayer
         [HarmonyPostfix]
         public static void Update()
         {
-            if (!_isSceneActive || _state == MultiplayerController.MultiplayerState.SelectSong) return;
+            if (!_isSceneActive) return;
 
-            if (Input.GetKeyDown(KeyCode.Escape) && _state != MultiplayerController.MultiplayerState.ExitScene)
+            if (Input.GetKeyDown(KeyCode.Escape) && _state != MultiplayerController.MultiplayerState.ExitScene && _state != MultiplayerController.MultiplayerState.SelectSong)
             {
                 if (_state == MultiplayerController.MultiplayerState.Home)
-                    UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
+                {
+                    if (AllowExit) //Just skip changing state if now allow, but still enter this bracket
+                        UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
+                }
                 else if (_state == MultiplayerController.MultiplayerState.Lobby)
                     _multiController.DisconnectFromLobby();
                 else
@@ -108,6 +111,7 @@ namespace TootTallyMultiplayer
 
             multiplayerHitbox.GetComponent<Button>().onClick.AddListener(() =>
             {
+                if (__instance.waitforclick != 0) return;
                 __instance.addWaitForClick();
                 __instance.playSfx(3);
                 if (TootTallyUser.userInfo == null || TootTallyUser.userInfo.id == 0)
@@ -274,7 +278,7 @@ namespace TootTallyMultiplayer
             _multiController.UpdateLobbySongDetails();
             _multiController.SendUserState(MultSerializableClasses.UserState.Ready);
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
-            
+
             LeanTween.cancel(__instance.fader);
             __instance.fader.SetActive(true);
             __instance.fader.transform.localScale = new Vector3(9.9f, 0.001f, 1f);
@@ -368,9 +372,9 @@ namespace TootTallyMultiplayer
                     _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
                     break;
                 case MultiplayerController.MultiplayerState.ExitScene:
+                    LeanTween.cancel(_currentInstance.fadepanel.gameObject);
                     _currentInstance.clickedOK();
                     _multiController.Dispose();
-                    _state = MultiplayerController.MultiplayerState.None;
                     break;
                 case MultiplayerController.MultiplayerState.Playing:
                     break;
