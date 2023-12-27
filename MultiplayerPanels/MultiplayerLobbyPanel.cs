@@ -34,6 +34,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private int _maxPlayerCount;
         private float _savedGameSpeed;
 
+        private bool _canPressButton;
+
         private UserState _userState;
 
         public MultiplayerLobbyPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "LobbyPanel")
@@ -277,6 +279,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnReadyButtonClick()
         {
+            if (!_canPressButton) return;
+
+            _canPressButton = false;
             switch (_userState)
             {
                 case UserState.NoSong:
@@ -284,9 +289,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     break;
                 case UserState.NotReady:
                     controller.SendUserState(UserState.Ready);
+                    DelayAllowButtonClick(.8f);
                     break;
                 case UserState.Ready:
                     controller.SendUserState(UserState.NotReady);
+                    DelayAllowButtonClick(.8f);
                     break;
             }
         }
@@ -388,5 +395,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             }
         }
 
+        IEnumerable<WaitForSeconds> DelayAllowButtonClick(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            AllowButtonClick();
+        }
+
+        private void AllowButtonClick() => _canPressButton = true;
     }
 }
