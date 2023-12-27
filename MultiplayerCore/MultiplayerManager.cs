@@ -8,6 +8,7 @@ using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Helpers;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
+using TootTallyLeaderboard;
 using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
 using TootTallyMultiplayer.MultiplayerCore;
@@ -323,15 +324,15 @@ namespace TootTallyMultiplayer
             }
             return true;
         }
-
-        [HarmonyPatch(typeof(GameController), nameof(GameController.Start))]
-        [HarmonyPostfix]
-        private static void OnGameControllerStartInitLiveScore(GameController __instance)
+        [HarmonyPatch(typeof(ReplaySystemManager), nameof(ReplaySystemManager.ResolveLoadReplay))]
+        [HarmonyPrefix]
+        public static bool SkipResolveReplayIfInMulti()
         {
-            if (IsPlayingMultiplayer)
-                _multiController.InitializeLiveScore(__instance);
-        }
+            if (_state != MultiplayerController.MultiplayerState.SelectSong) return true;
 
+            TootTallyNotifManager.DisplayNotif("Cannot watch replays in multiplayer.");
+            return false;
+        }
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.doScoreText))]
         [HarmonyPostfix]
