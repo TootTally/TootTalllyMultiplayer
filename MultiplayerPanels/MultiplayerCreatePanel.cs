@@ -1,4 +1,5 @@
 ﻿using TMPro;
+using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyMultiplayer.APIService;
@@ -31,10 +32,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             rightLayout.childControlHeight = rightLayout.childControlWidth = false;
             rightLayout.childAlignment = TextAnchor.LowerCenter;
 
-            _lobbyName = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyNameInputField", new Vector2(300, 30), 24, "TestName", false);
-            _lobbyDescription = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyDescriptionInputField", new Vector2(300, 30), 24, "TestDescription", false);
-            _lobbyPassword = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyPasswordInputField", new Vector2(300, 30), 24, "TestPassword", false);
-            _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, "TestMaxPlayer", false);
+            _lobbyName = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyNameInputField", new Vector2(300, 30), 24, $"{TootTallyUser.userInfo.username}'s Lobby", false);
+            _lobbyDescription = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyDescriptionInputField", new Vector2(300, 30), 24, "Welcome to my lobby!", false);
+            _lobbyPassword = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyPasswordInputField", new Vector2(300, 30), 24, "", true);
+            _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, "16", false);
 
             _backButton = GameObjectFactory.CreateCustomButton(leftPanelContainerBox.transform, Vector2.zero, new Vector2(150, 75), "Back", "CreateBackButton", OnBackButtonClick);
             _createLobbyButton = GameObjectFactory.CreateCustomButton(rightPanelContainerBox.transform, Vector2.zero, new Vector2(150, 75), "Create", "CreateLobbyButton", OnCreateButtonClick);
