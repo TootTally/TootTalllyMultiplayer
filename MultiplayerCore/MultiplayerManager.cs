@@ -20,6 +20,8 @@ namespace TootTallyMultiplayer
     {
         public static bool AllowExit;
 
+        public const string PLAYTEST_SCENE_NAME = "zzz_playtest";
+
         private static PlaytestAnims _currentInstance;
         private static RectTransform _multiButtonOutlineRectTransform;
         private static bool _isSceneActive;
@@ -40,7 +42,7 @@ namespace TootTallyMultiplayer
             _isSceneActive = true;
             AllowExit = false;
 
-            if (_state == MultiplayerController.MultiplayerState.SelectSong || _state == MultiplayerController.MultiplayerState.PointScene)
+            if (_state == MultiplayerController.MultiplayerState.SelectSong || _state == MultiplayerController.MultiplayerState.PointScene || _state == MultiplayerController.MultiplayerState.Quitting)
             {
                 _multiController.UpdateLobbySongDetails();
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
@@ -314,7 +316,7 @@ namespace TootTallyMultiplayer
         private static void OnClickContReturnToMulti(PointSceneController __instance)
         {
             if (_state == MultiplayerController.MultiplayerState.PointScene)
-                __instance.scenetarget = "zzz_playtest";
+                __instance.scenetarget = PLAYTEST_SCENE_NAME;
         }
 
         [HarmonyPatch(typeof(PointSceneController), nameof(PointSceneController.clickRetry))]
@@ -379,6 +381,23 @@ namespace TootTallyMultiplayer
                 case MultiplayerController.MultiplayerState.Playing:
                     break;
             }
+        }
+
+        [HarmonyPatch(typeof(PauseCanvasController), nameof(PauseCanvasController.showPausePanel))]
+        [HarmonyPrefix]
+        public static bool OnGamePause(PauseCanvasController __instance)
+        {
+            if (!IsPlayingMultiplayer) return true;
+
+            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Quitting);
+            __instance.gc.sfxrefs.backfromfreeplay.Play();
+            LeanTween.alphaCanvas(__instance.curtaincontroller.fullfadeblack, 1f, 0.5f).setDelay(0.6f).setEaseInOutQuint().setOnComplete(() =>
+            {
+                __instance.curtaincontroller.unloadAssets();
+                SceneManager.LoadScene(PLAYTEST_SCENE_NAME);
+            });
+
+            return false;
         }
 
         public static void UpdateMultiplayerState(MultiplayerController.MultiplayerState newState)

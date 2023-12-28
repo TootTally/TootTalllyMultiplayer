@@ -414,6 +414,7 @@ namespace TootTallyMultiplayer
             ExitScene,
             Playing,
             PointScene,
+            Quitting
         }
 
         public enum MultiplayerUserState
