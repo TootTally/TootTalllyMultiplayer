@@ -46,9 +46,40 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             MultiplayerManager.UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
         }
 
+        private bool ValidateInput()
+        {
+            bool isValid = true;
+
+            if (!int.TryParse(_lobbyMaxPlayer.text, out int value))
+            {
+                isValid = false;
+                TootTallyNotifManager.DisplayNotif("MaxPlayer must be a number.");
+            }
+
+            if (_lobbyName.text.Length > 32)
+            {
+                isValid = false;
+                TootTallyNotifManager.DisplayNotif("Lobby name has to be\nshorter than 32 characters");
+            }
+
+            if (_lobbyDescription.text.Length > 100) 
+            {
+                isValid = false;
+                TootTallyNotifManager.DisplayNotif("Description has to be\nshorter than 32 characters");
+            }
+
+            if (_lobbyPassword.text.Length > 100)
+            {
+                isValid = false;
+                TootTallyNotifManager.DisplayNotif("Password has to be\nshorter than 32 characters");
+            }
+
+            return isValid;
+        }
+
         private void OnCreateButtonClick()
         {
-            if (_requestPending) return;
+            if (_requestPending || !ValidateInput()) return;
 
             _requestPending = true;
             TootTallyNotifManager.DisplayNotif("Creating lobby...");
