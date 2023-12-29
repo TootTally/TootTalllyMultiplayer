@@ -281,13 +281,14 @@ namespace TootTallyMultiplayer
             _multiController.SendUserState(MultSerializableClasses.UserState.Ready);
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
 
-            LeanTween.cancel(__instance.fader);
             __instance.fader.SetActive(true);
             __instance.fader.transform.localScale = new Vector3(9.9f, 0.001f, 1f);
+            LeanTween.cancelAll();
             LeanTween.scaleY(__instance.fader, 9.75f, 0.25f).setEaseInQuart().setOnComplete(new Action(delegate
             {
                 _multiController.ShowPanel();
                 SceneManager.UnloadSceneAsync("levelselect");
+                _currentInstance.startBGAnims();
                 _currentInstance.fadepanel.alpha = 1f;
                 _currentInstance.fadepanel.gameObject.SetActive(true);
                 LeanTween.alphaCanvas(_currentInstance.fadepanel, 0f, 1f).setOnComplete(new Action(_currentInstance.hidefade));
