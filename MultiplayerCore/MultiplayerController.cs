@@ -381,6 +381,8 @@ namespace TootTallyMultiplayer
                 case OptionInfoType.UpdateScore:
                     _multiLiveScoreController?.UpdateLiveScore((int)optionInfo.values[0], (int)optionInfo.values[1], (int)optionInfo.values[2], (int)optionInfo.values[3]);
                     break;
+                case OptionInfoType.SongFinished:
+                    break;
             }
         }
 

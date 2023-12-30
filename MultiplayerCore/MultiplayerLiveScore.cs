@@ -20,7 +20,9 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         private TMP_Text _positionText, _nameText, _scoreText, _comboText;
         private TootTallyAnimation _positionAnimation;
-        private GameObject _rainbow1, _rainbow2;
+        private GameObject _rainbowMask;
+        private Image _rainbow1, _rainbow2;
+        private RectTransform _rainbowMaskRect;
 
         private int _id;
         private string _name;
@@ -45,28 +47,25 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         public void Awake()
         {
-            var mask = transform.Find("Mask");
+            _rainbowMask = transform.Find("Mask").gameObject;
+            _rainbowMaskRect = _rainbowMask.GetComponent<RectTransform>();
+            _rainbowMaskRect.anchorMin = _rainbowMaskRect.anchorMax = _rainbowMaskRect.pivot = new Vector2(0, 1);
 
-            _rainbow1 = GameObjectFactory.CreateImageHolder(mask, Vector2.zero, new Vector2(180, 60), AssetManager.GetSprite("rainbow2.png"), "Rainbow1");
-            _rainbow1.transform.localPosition = new Vector3(-270, 0, 10);
-            _rainbow1.AddComponent<LayoutElement>().ignoreLayout = true;
-            var r1Image = _rainbow1.GetComponent<Image>();
-            r1Image.preserveAspect = false;
-            r1Image.color = new Color(1, 1, 1, .85f);
-            _rainbow1.SetActive(false);
+            var rainbowHolder1 = GameObjectFactory.CreateImageHolder(_rainbowMask.transform, Vector2.zero, new Vector2(180, 60), AssetManager.GetSprite("rainbow2.png"), "Rainbow1");
+            var rect = rainbowHolder1.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0, 1);
+            rainbowHolder1.transform.localPosition = new Vector3(-180, 0, 10);
+            rainbowHolder1.AddComponent<LayoutElement>().ignoreLayout = true;
+            _rainbow1 = rainbowHolder1.GetComponent<Image>();
+            _rainbow1.preserveAspect = false;
+            _rainbow1.color = new Color(1, 1, 1, .25f);
 
-            _rainbow2 = GameObjectFactory.CreateImageHolder(mask, Vector2.zero, new Vector2(180, 60), AssetManager.GetSprite("rainbow2.png"), "Rainbow2");
-            _rainbow2.transform.localPosition = new Vector3(-90, 0, 10);
-            _rainbow2.AddComponent<LayoutElement>().ignoreLayout = true;
-            var r2Image = _rainbow2.GetComponent<Image>();
-            r2Image.color = new Color(1, 1, 1, .85f);
-            r2Image.preserveAspect = false;
-            _rainbow2.SetActive(false);
+            var rainbowHolder2 = GameObject.Instantiate(rainbowHolder1, _rainbowMask.transform);
+            rainbowHolder2.transform.localPosition = new Vector3(0, 0, 10);
+            _rainbow2 = rainbowHolder2.GetComponent<Image>();
 
-            LeanTween.moveLocalX(_rainbow1, -90, 2).setLoopClamp();
-            LeanTween.moveLocalX(_rainbow2, 90, 2).setLoopClamp();
-
-            
+            LeanTween.moveLocalX(rainbowHolder1, 0, 2).setLoopClamp();
+            LeanTween.moveLocalX(rainbowHolder2, 180, 2).setLoopClamp();
 
             _positionText = GameObjectFactory.CreateSingleText(gameObject.transform, "Position", "#-", Color.white);
             _positionText.rectTransform.sizeDelta = new Vector2(18, 0);
@@ -80,7 +79,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
             vBoxLayout.childControlHeight = vBoxLayout.childForceExpandHeight = false;
             var vBoxRect = vBox.GetComponent<RectTransform>();
             vBoxRect.sizeDelta = new Vector2(60, 0);
-            _scoreText =  GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-", Color.white);
+            _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-", Color.white);
             _scoreText.rectTransform.sizeDelta = new Vector2(0, 12);
 
             _comboText = GameObjectFactory.CreateSingleText(vBox.transform, "Combo", "-", Color.white);
@@ -96,28 +95,32 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         }
 
+        private int _previousHealth;
+
         public void UpdateScore(int score, int combo, int health)
         {
             _score = score;
             _combo = combo;
             _health = health;
 
-            //I think Ill keep it for your own score too...
-            var shouldDisplayRainbow = /*!_IsSelf &&*/ health >= 100;
-            _rainbow1.SetActive(shouldDisplayRainbow);
-            _rainbow2.SetActive(shouldDisplayRainbow);
+            _rainbowMaskRect.sizeDelta = new Vector2(160 * (health / 100f), 30);
 
+            if (_previousHealth != _health && (_previousHealth == 100 || _health == 100))
+                _rainbow1.color = _rainbow2.color = new Color(1, 1, 1, health == 100 ? .85f : .25f);
+                
+
+            _previousHealth = health;
             _nameText.text = _name;
             _scoreText.text = _score.ToString();
             _comboText.text = $"{_combo}x";
         }
-        
+
         public void SetPosition(int position, int count)
         {
             if (_position != position || _count != count)
             {
                 _positionAnimation?.Dispose();
-                _positionAnimation = TootTallyAnimationManager.AddNewPositionAnimation(gameObject, new Vector3(0, 32 * (count-position)), 1f, GetSecondDegreeAnimation(1.5f));
+                _positionAnimation = TootTallyAnimationManager.AddNewPositionAnimation(gameObject, new Vector3(0, 32 * (count - position)), 1f, GetSecondDegreeAnimation(1.5f));
                 _positionText.text = $"#{position}";
                 _count = count;
                 _position = position;
@@ -139,8 +142,8 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         public void Dispose()
         {
-            LeanTween.cancel(_rainbow1);
-            LeanTween.cancel(_rainbow2);
+            LeanTween.cancel(_rainbow1.gameObject);
+            LeanTween.cancel(_rainbow2.gameObject);
             GameObject.DestroyImmediate(gameObject);
             _controller.Remove(_id);
         }
