@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
@@ -189,12 +190,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _lobbySettingsButton.gameObject.SetActive(_isHost);
             _startGameButton.gameObject.SetActive(_isHost);
             _selectSongButton.gameObject.SetActive(_isHost);
-            _kickButton.gameObject.SetActive(_isHost);
-            _giveHostButton.gameObject.SetActive(_isHost);
+           
 
             _readyUpButton.gameObject.SetActive(!_isHost);
 
-            _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, _isHost ? 180 : 60);
 
             _hostText.text = $"Current Host: {_hostInfo.username}";
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
@@ -257,6 +256,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private void OnUserPFPClick(MultiplayerUserInfo user)
         {
             _dropdownUserInfo = user;
+            UpdateDropdown(user.id);
             var v3 = Input.mousePosition;
             v3.z = 0;
             _dropdownMenu.transform.position = v3;
@@ -272,6 +272,17 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _dropdownAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_dropdownMenu, Vector2.zero, .4f, MultiplayerController.GetSecondDegreeAnimationNoBounce(5f));
         }
 
+        private void UpdateDropdown(int userID)
+        {
+            var isSelf = IsSelf(userID);
+            var showAllOptions = _isHost && !isSelf;
+            _kickButton.gameObject.SetActive(showAllOptions);
+            _giveHostButton.gameObject.SetActive(showAllOptions);
+            _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, showAllOptions ? 180 : 60);
+        }
+
+        private bool IsSelf(int userID) => TootTallyUser.userInfo.id== userID;
+
         public void ClearAllUserRows()
         {
             _userRowsList.ForEach(GameObject.DestroyImmediate);
@@ -282,7 +293,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             if (!_canPressButton) return;
 
-            _canPressButton = false;
             switch (_userState)
             {
                 case UserState.NoSong:
@@ -396,7 +406,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             }
         }
 
-        private void DisableButton(float delay) => Plugin.Instance.StartCoroutine(DelayAllowButtonClick(delay)); 
+        private void DisableButton(float delay)
+        {
+            _canPressButton = false;
+            Plugin.Instance.StartCoroutine(DelayAllowButtonClick(delay));
+        }
 
         private IEnumerator <WaitForSeconds> DelayAllowButtonClick(float delay)
         {
