@@ -31,7 +31,7 @@ namespace TootTallyMultiplayer
         private static MultiplayerLiveScoreController _multiLiveScoreController;
 
         private MultiplayerPanelBase _currentActivePanel, _lastPanel;
-        private bool _isTransitioning;
+        public bool IsTransitioning;
         private bool _hasSong;
         private UserState _currentUserState;
         private static string _savedDownloadLink;
@@ -246,15 +246,15 @@ namespace TootTallyMultiplayer
 
         public void TransitionToPanel(MultiplayerPanelBase nextPanel)
         {
-            if (_currentActivePanel == nextPanel || _isTransitioning) return;
+            if (_currentActivePanel == nextPanel || IsTransitioning) return;
 
-            _isTransitioning = true;
+            IsTransitioning = true;
             _lastPanel = _currentActivePanel;
             var positionOut = -nextPanel.GetPanelPosition;
             TootTallyAnimationManager.AddNewPositionAnimation(_currentActivePanel.panel, positionOut, 0.9f, new SecondDegreeDynamicsAnimation(1.5f, 0.89f, 1.1f), delegate { _lastPanel.panel.SetActive(false); _lastPanel.panel.GetComponent<RectTransform>().anchoredPosition = positionOut; });
             nextPanel.panel.SetActive(true);
             _currentActivePanel = nextPanel;
-            TootTallyAnimationManager.AddNewPositionAnimation(nextPanel.panel, Vector2.zero, 0.9f, new SecondDegreeDynamicsAnimation(1.5f, 0.89f, 1.1f), sender => _isTransitioning = false);
+            TootTallyAnimationManager.AddNewPositionAnimation(nextPanel.panel, Vector2.zero, 0.9f, new SecondDegreeDynamicsAnimation(1.5f, 0.89f, 1.1f), sender => IsTransitioning = false);
         }
 
         public static SingleTrackData savedTrackData;

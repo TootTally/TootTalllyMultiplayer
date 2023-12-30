@@ -79,7 +79,8 @@ namespace TootTallyMultiplayer
             _multiController?.Update();
         }
 
-        private static bool CanPressEscape() => _state != MultiplayerController.MultiplayerState.ExitScene
+        private static bool CanPressEscape() => !_multiController.IsTransitioning
+                && _state != MultiplayerController.MultiplayerState.ExitScene
                 && _state != MultiplayerController.MultiplayerState.SelectSong
                 && _state != MultiplayerController.MultiplayerState.Playing
                 && _state != MultiplayerController.MultiplayerState.PointScene
