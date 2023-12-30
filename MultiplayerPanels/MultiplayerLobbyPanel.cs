@@ -216,13 +216,17 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             image.transform.localPosition = new Vector3(-305, 0, 0);
             AssetManager.GetProfilePictureByID(user.id, sprite => image.GetComponent<Image>().sprite = sprite);
 
-            var t1 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
-            t1.rectTransform.sizeDelta = new Vector2(275, 75);
-            t1.alignment = TextAlignmentOptions.Left;
+            var textName = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
+            textName.rectTransform.sizeDelta = new Vector2(190, 75);
+            textName.alignment = TextAlignmentOptions.Left;
 
-            var t2 = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Rank", $"#{user.rank}", Color.white);
-            t2.rectTransform.sizeDelta = new Vector2(275, 75);
-            t2.alignment = TextAlignmentOptions.Right;
+            var textState = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}State", $"{user.state}", Color.white);
+            textState.rectTransform.sizeDelta = new Vector2(190, 75);
+            textState.alignment = TextAlignmentOptions.Right;
+
+            var textRank = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Rank", $"#{user.rank}", Color.white);
+            textRank.rectTransform.sizeDelta = new Vector2(190, 75);
+            textRank.alignment = TextAlignmentOptions.Right;
 
             var outline = lobbyInfoContainer.AddComponent<Outline>();
             outline.effectDistance = Vector2.one * 3f;
