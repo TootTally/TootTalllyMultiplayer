@@ -163,6 +163,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _startGameButton.gameObject.SetActive(false);
             _readyUpButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
             _userState = UserState.NotReady;
+            DisableButton(.8f);
         }
 
         private void SetTextsParameters(params TMP_Text[] texts)
