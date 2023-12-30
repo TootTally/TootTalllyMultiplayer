@@ -40,27 +40,35 @@ namespace TootTallyMultiplayer.MultiplayerCore
             }));
         }
 
-        public static void PlayMusicSoft(float time = .2f)
+        public static void PlayMusicSoft(float time = .3f)
         {
+            if (!GlobalVariables.menu_music) return;
+
             _audioSource.Play();
             LeanTween.value(0, GetMaxVolume, time).setOnUpdate(v => _audioSource.volume = v);
         }
 
-        public static void ResumeMusicSoft(float time = .2f)
+        public static void ResumeMusicSoft(float time = .3f)
         {
+            if (!GlobalVariables.menu_music) return;
+
             IsPaused = false;
             _audioSource.UnPause();
             LeanTween.value(0, GetMaxVolume, time).setOnUpdate(v => _audioSource.volume = v);
         }
 
-        public static void StopMusicSoft(float time = .2f)
+        public static void StopMusicSoft(float time = .3f)
         {
+            if (!GlobalVariables.menu_music) return;
+
             var currentVolume = _audioSource.volume;
             LeanTween.value(currentVolume, 0, time).setOnComplete(_audioSource.Stop).setOnUpdate(v => _audioSource.volume = v);
         }
 
-        public static void PauseMusicSoft(float time = .2f)
+        public static void PauseMusicSoft(float time = .3f)
         {
+            if (!GlobalVariables.menu_music) return;
+
             IsPaused = true;
             var currentVolume = _audioSource.volume;
             LeanTween.value(currentVolume, 0, time).setOnComplete(_audioSource.Pause).setOnUpdate(v => _audioSource.volume = v);

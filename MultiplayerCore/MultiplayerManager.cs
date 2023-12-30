@@ -304,11 +304,11 @@ namespace TootTallyMultiplayer
             __instance.fader.SetActive(true);
             __instance.fader.transform.localScale = new Vector3(9.9f, 0.001f, 1f);
             LeanTween.cancelAll();
-            MultiAudioController.ResumeMusicSoft();
             LeanTween.scaleY(__instance.fader, 9.75f, 0.25f).setEaseInQuart().setOnComplete(new Action(delegate
             {
                 _multiController.ShowPanel();
                 SceneManager.UnloadSceneAsync("levelselect");
+                MultiAudioController.ResumeMusicSoft();
                 _currentInstance.startBGAnims();
                 _currentInstance.fadepanel.alpha = 1f;
                 _currentInstance.fadepanel.gameObject.SetActive(true);

@@ -51,7 +51,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
             _rainbowMaskRect = _rainbowMask.GetComponent<RectTransform>();
             _rainbowMaskRect.anchorMin = _rainbowMaskRect.anchorMax = _rainbowMaskRect.pivot = new Vector2(0, 1);
 
-            var rainbowHolder1 = GameObjectFactory.CreateImageHolder(_rainbowMask.transform, Vector2.zero, new Vector2(180, 60), AssetManager.GetSprite("rainbow2.png"), "Rainbow1");
+            var rainbowHolder1 = GameObjectFactory.CreateImageHolder(_rainbowMask.transform, Vector2.zero, new Vector2(180, 60), AssetManager.GetSprite("rainbow.png"), "Rainbow1");
             var rect = rainbowHolder1.GetComponent<RectTransform>();
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0, 1);
             rainbowHolder1.transform.localPosition = new Vector3(-180, 0, 10);
@@ -61,6 +61,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
             _rainbow1.color = new Color(1, 1, 1, .25f);
 
             var rainbowHolder2 = GameObject.Instantiate(rainbowHolder1, _rainbowMask.transform);
+            rainbowHolder2.name = "Rainbow2";
             rainbowHolder2.transform.localPosition = new Vector3(0, 0, 10);
             _rainbow2 = rainbowHolder2.GetComponent<Image>();
 
