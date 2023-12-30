@@ -2,6 +2,7 @@
 using Microsoft.FSharp.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TootTallyAccounts;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
@@ -26,6 +27,7 @@ namespace TootTallyMultiplayer
 
         private static List<MultiplayerLobbyInfo> _lobbyInfoList;
         private static MultiplayerLobbyInfo _currentLobby;
+        private static List<string> _serverCodeList;
 
         private static MultiplayerSystem _multiConnection;
         private static MultiplayerLiveScoreController _multiLiveScoreController;
@@ -83,6 +85,7 @@ namespace TootTallyMultiplayer
             }
 
             _lobbyInfoList ??= new List<MultiplayerLobbyInfo>();
+            _serverCodeList = new List<string>();
             _currentActivePanel = _multMainPanel;
 
             IsConnected = _multiConnection != null && _multiConnection.IsConnected;
@@ -156,6 +159,7 @@ namespace TootTallyMultiplayer
                 _multiConnection.Disconnect();
             _currentLobby = null;
             IsConnected = IsConnectionPending = false;
+            RefreshAllLobbyInfo();
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Home);
             MoveToMain();
         }
@@ -218,8 +222,10 @@ namespace TootTallyMultiplayer
             IsUpdating = true;
             Plugin.Instance.StartCoroutine(MultiplayerAPIService.GetLobbyList(lobbyList =>
             {
+                var shouldAnimate = !_serverCodeList.TrueForAll(x => lobbyList.Any(l => l.id == x)) && lobbyList.TrueForAll(l => _serverCodeList.Contains(l.id)); //check if any ids were removed or added
+                _serverCodeList = lobbyList.Select(x => x.id).ToList();
                 _lobbyInfoList = lobbyList;
-                UpdateLobbyInfo(true);
+                UpdateLobbyInfo(shouldAnimate);
                 IsUpdating = false;
                 _multMainPanel.ShowRefreshLobbyButton();
             }));
@@ -364,7 +370,7 @@ namespace TootTallyMultiplayer
                 case OptionInfoType.StartGame:
                     StartGame(); break;
                 case OptionInfoType.KickFromLobby:
-                    if (TootTallyAccounts.TootTallyUser.userInfo.id == optionInfo.values[0])
+                    if (TootTallyAccounts.TootTallyUser.userInfo.id == (int)optionInfo.values[0])
                         DisconnectFromLobby();
                     break;
                 case OptionInfoType.Refresh:
@@ -373,15 +379,21 @@ namespace TootTallyMultiplayer
                     RefreshAllLobbyInfo();
                     break;
                 case OptionInfoType.UpdateScore:
-                    _multiLiveScoreController?.UpdateLiveScore(optionInfo.values[0], optionInfo.values[1], optionInfo.values[2], optionInfo.values[3]);
+                    _multiLiveScoreController?.UpdateLiveScore((int)optionInfo.values[0], (int)optionInfo.values[1], (int)optionInfo.values[2], (int)optionInfo.values[3]);
                     break;
             }
         }
 
+        public static MultiplayerUserInfo GetUserFromLobby(int id) => _currentLobby?.players.Find(x => x.id == id);
+
         #region MultiConnectionRequests
         public void SendSongFinishedToLobby() => _multiConnection?.SendOptionInfo(OptionInfoType.SongFinished);
         public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers) => _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
-        public void SendScoreDataToLobby(int score, int combo, int health, int tally) => _multiConnection?.SendUpdateScore(score, combo, health, tally);
+        public void SendScoreDataToLobby(int score, int combo, int health, int tally)
+        {
+            _multiConnection?.SendUpdateScore(score, combo, health, tally);
+            _multiLiveScoreController?.UpdateLiveScore(TootTallyUser.userInfo.id, score, combo, health);
+        }
         public void SendUserState(UserState state)
         {
             if (_currentUserState != state)

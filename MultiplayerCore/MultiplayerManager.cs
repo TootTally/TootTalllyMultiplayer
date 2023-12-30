@@ -356,6 +356,14 @@ namespace TootTallyMultiplayer
                 _multiController.SendScoreDataToLobby(__instance.totalscore, __instance.highestcombocounter, (int)__instance.currenthealth, whichtext);
         }
 
+        [HarmonyPatch(typeof(GameController), nameof(GameController.Start))]
+        [HarmonyPostfix]
+        private static void OnMultiplayerGameStart(GameController __instance)
+        {
+            if (IsPlayingMultiplayer)
+                _multiController.InitializeLiveScore();
+        }
+
         private static bool IsPlayingMultiplayer => _multiController != null && _state == MultiplayerController.MultiplayerState.Playing;
 
         private static void ResolveMultiplayerState()

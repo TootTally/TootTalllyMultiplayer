@@ -2,6 +2,7 @@
 using TootTallyCore;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.Assets;
+using TootTallySettings.TootTallySettingsObjects;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,13 +20,29 @@ namespace TootTallyMultiplayer
             if (_isInitialized) return;
 
             SetInputFieldPrefab();
+            SetLiveScorePrefab();
             _isInitialized = true;
         }
 
         private static void SetLiveScorePrefab()
         {
-            _liveScorePrefab = MultiplayerGameObjectFactory.AddHorizontalBox(null);
-            _liveScorePrefab.GetComponent<RectTransform>().sizeDelta = new Vector2(280, 60);
+            _liveScorePrefab = AddHorizontalBox(null);
+
+            var group = _liveScorePrefab.AddComponent<CanvasGroup>();
+            group.alpha = .75f;
+
+            var layout = _liveScorePrefab.GetComponent<HorizontalLayoutGroup>();
+            layout.childControlWidth = layout.childForceExpandWidth = false;
+            var rect = _liveScorePrefab.GetComponent<RectTransform>();
+            rect.pivot = rect.anchorMax = rect.anchorMin = new Vector2(1,0);
+            rect.sizeDelta = new Vector2(160, 30);
+            var mask = GameObject.Instantiate(_liveScorePrefab, _liveScorePrefab.transform);
+            mask.name = "Mask";
+            mask.AddComponent<LayoutElement>().ignoreLayout = true;
+            mask.AddComponent<Mask>().showMaskGraphic = false;
+            _liveScorePrefab.SetActive(false);
+
+            GameObject.DontDestroyOnLoad(_liveScorePrefab);
         }
 
         private static void SetInputFieldPrefab()
@@ -79,9 +96,11 @@ namespace TootTallyMultiplayer
             return inputField;
         }
 
-        public static GameObject CreateLiveScoreCard(Transform canvasTransform, string name)
+        public static GameObject CreateLiveScoreCard(Transform canvasTransform, Vector2 position, string name)
         {
             var liveScoreObject = GameObject.Instantiate(_liveScorePrefab, canvasTransform);
+            liveScoreObject.SetActive(true);
+            liveScoreObject.GetComponent<RectTransform>().anchoredPosition = position;
             liveScoreObject.name = name;
             return liveScoreObject;
         }

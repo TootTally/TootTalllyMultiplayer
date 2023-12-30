@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TootTallyCore.Graphics;
 using UnityEngine;
 
 namespace TootTallyMultiplayer.MultiplayerCore
@@ -27,21 +28,35 @@ namespace TootTallyMultiplayer.MultiplayerCore
             if (_timer > 1)
             {
                 _timer = 0;
-                _idToLiveScoreDict.OrderByDescending(x => x.Value.score);
-                for (int i = 0; i < _idToLiveScoreDict.Count; i++)
-                    _idToLiveScoreDict[i].SetPosition(i + 1);
-
+                var ordered = _idToLiveScoreDict.Select(x => x.Value).OrderByDescending(x => x.GetScore).ToArray();
+                for (int i = 0; i < ordered.Length; i++)
+                    ordered[i].SetPosition(i + 1, _idToLiveScoreDict.Count);
             }
-            //Rainbow Animation mayhaps?
         }
 
-        public void UpdateLiveScore(int id, int score, int health, int combo)
+        public void UpdateLiveScore(int id, int score, int combo, int health)
         {
+            if (!_isInitialized) return;
+
             if (!_idToLiveScoreDict.ContainsKey(id))
             {
-                _idToLiveScoreDict.Add(id, new MultiplayerLiveScore(this));
+                var user = MultiplayerController.GetUserFromLobby(id);
+                var liveScore = MultiplayerGameObjectFactory.CreateLiveScoreCard(gameObject.transform, new Vector2(200, 32 * _idToLiveScoreDict.Count), $"{id}LiveScore").AddComponent<MultiplayerLiveScore>();
+                liveScore.Initialize(id, user.username, this);
+                _idToLiveScoreDict.Add(id, liveScore);
             }
-            _idToLiveScoreDict[id].UpdateScore(score, health, combo);
+            _idToLiveScoreDict[id].UpdateScore(score, combo, health);
+        }
+        
+        public void OnDestroy()
+        {
+            _idToLiveScoreDict.Clear();
+            _isInitialized = false;
+        }
+
+        public void Remove(int id)
+        {
+            _idToLiveScoreDict.Remove(id);
         }
     }
 }

@@ -188,6 +188,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void ClearAllLobby()
         {
             _selectedLobby = null; _selectedLobbyContainer = null; _hoveredLobbyContainer = null;
+            _connectButton.gameObject.SetActive(false);
             _lobbyInfoRowsList.ForEach(GameObject.DestroyImmediate);
             _lobbyInfoRowsList.Clear();
         }

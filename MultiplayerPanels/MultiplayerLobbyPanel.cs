@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BepInEx;
+using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -18,7 +20,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject lobbyUserContainer, rightPanelContainer, rightPanelContainerBox;
         public GameObject bottomPanelContainer;
 
-        private List<GameObject> _userRowsList;
+        private Dictionary<int, GameObject> _userRowsList;
 
         private CustomButton _selectSongButton, _lobbySettingsButton, _startGameButton, _readyUpButton;
         private CustomButton _profileButton, _giveHostButton, _kickButton;
@@ -53,7 +55,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             rightPanelContainer.transform.parent.GetComponent<Image>().color = Color.black;
             rightPanelContainerBox.GetComponent<Image>().color = new Color(0, 1, 0);
 
-            _userRowsList = new List<GameObject>();
+            _userRowsList = new Dictionary<int, GameObject>();
 
             GameObjectFactory.CreateCustomButton(bottomPanelContainer.transform, Vector2.zero, new Vector2(150, 75), "Back", "LobbyBackButton", OnBackButtonClick);
             _selectSongButton = GameObjectFactory.CreateCustomButton(bottomPanelContainer.transform, Vector2.zero, new Vector2(150, 75), "SelectSong", "SelectSongButton", OnSelectSongButtonClick);
@@ -190,7 +192,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _lobbySettingsButton.gameObject.SetActive(_isHost);
             _startGameButton.gameObject.SetActive(_isHost);
             _selectSongButton.gameObject.SetActive(_isHost);
-           
+
 
             _readyUpButton.gameObject.SetActive(!_isHost);
 
@@ -203,18 +205,25 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void DisplayUserInfo(MultiplayerUserInfo user)
         {
+            //Should probably turn this into a prefab.
             var lobbyInfoContainer = GameObject.Instantiate(AssetBundleManager.GetPrefab("containerboxhorizontal"), lobbyUserContainer.transform);
             var horizontalLayout = lobbyInfoContainer.GetComponent<HorizontalLayoutGroup>();
             horizontalLayout.childAlignment = TextAnchor.MiddleLeft;
             horizontalLayout.childControlHeight = horizontalLayout.childControlWidth = false;
             horizontalLayout.childForceExpandHeight = horizontalLayout.childForceExpandWidth = false;
 
-            _userRowsList.Add(lobbyInfoContainer);
+            _userRowsList.Add(user.id, lobbyInfoContainer);
             lobbyInfoContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(705, 75);
 
-            var image = GameObjectFactory.CreateClickableImageHolder(lobbyInfoContainer.transform, Vector2.zero, new Vector2(90, 64), AssetManager.GetSprite("icon.png"), $"{user.username}PFP", delegate { OnUserPFPClick(user); });
-            image.transform.localPosition = new Vector3(-305, 0, 0);
-            AssetManager.GetProfilePictureByID(user.id, sprite => image.GetComponent<Image>().sprite = sprite);
+
+            var imageHolder = GameObjectFactory.CreateClickableImageHolder(lobbyInfoContainer.transform, Vector2.zero, new Vector2(90, 64), AssetManager.GetSprite("icon.png"), $"{user.username}PFP", delegate { OnUserPFPClick(user); });
+            imageHolder.transform.localPosition = new Vector3(-305, 0, 0);
+            var image = imageHolder.GetComponent<Image>();
+            image.SetLayoutDirty();
+            AssetManager.GetProfilePictureByID(user.id, sprite =>
+            {
+                imageHolder.GetComponent<Image>().sprite = sprite;
+            });
 
             var textName = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
             textName.rectTransform.sizeDelta = new Vector2(190, 75);
@@ -287,11 +296,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, showAllOptions ? 180 : 60);
         }
 
-        private bool IsSelf(int userID) => TootTallyUser.userInfo.id== userID;
+        private bool IsSelf(int userID) => TootTallyUser.userInfo.id == userID;
 
         public void ClearAllUserRows()
         {
-            _userRowsList.ForEach(GameObject.DestroyImmediate);
+
+            _userRowsList.Values.Do(GameObject.DestroyImmediate);
             _userRowsList.Clear();
         }
 
@@ -420,7 +430,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             Plugin.Instance.StartCoroutine(DelayAllowButtonClick(delay));
         }
 
-        private IEnumerator <WaitForSeconds> DelayAllowButtonClick(float delay)
+        private IEnumerator<WaitForSeconds> DelayAllowButtonClick(float delay)
         {
             yield return new WaitForSeconds(delay);
             AllowButtonClick();

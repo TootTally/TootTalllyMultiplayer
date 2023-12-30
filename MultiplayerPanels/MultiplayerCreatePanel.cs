@@ -80,7 +80,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private void OnCreateButtonClick()
         {
-            if (_requestPending || !ValidateInput()) return;
+            if (_requestPending || !ValidateInput() || controller.IsConnected || controller.IsConnectionPending) return;
 
             _requestPending = true;
             TootTallyNotifManager.DisplayNotif("Creating lobby...");
