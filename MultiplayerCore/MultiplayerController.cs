@@ -335,6 +335,7 @@ namespace TootTallyMultiplayer
                 Plugin.LogInfo("Starting Multiplayer for " + GlobalVariables.chosen_track_data.trackname_short + " - " + GlobalVariables.chosen_track_data.trackref);
                 if (CurrentInstance != null)
                 {
+                    CurrentInstance.sfx_ok.Play();
                     CurrentInstance.fadepanel.gameObject.SetActive(true);
                     MultiAudioController.PauseMusicSoft();
                     LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
