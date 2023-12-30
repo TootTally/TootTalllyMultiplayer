@@ -289,11 +289,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     break;
                 case UserState.NotReady:
                     controller.SendUserState(UserState.Ready);
-                    DelayAllowButtonClick(.8f);
+                    DisableButton(.8f);
                     break;
                 case UserState.Ready:
                     controller.SendUserState(UserState.NotReady);
-                    DelayAllowButtonClick(.8f);
+                    DisableButton(.8f);
                     break;
             }
         }
@@ -395,7 +395,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             }
         }
 
-        IEnumerable<WaitForSeconds> DelayAllowButtonClick(float delay)
+        private void DisableButton(float delay) => Plugin.Instance.StartCoroutine(DelayAllowButtonClick(delay)); 
+
+        private IEnumerator <WaitForSeconds> DelayAllowButtonClick(float delay)
         {
             yield return new WaitForSeconds(delay);
             AllowButtonClick();

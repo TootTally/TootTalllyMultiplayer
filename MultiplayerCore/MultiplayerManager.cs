@@ -60,7 +60,7 @@ namespace TootTallyMultiplayer
         {
             if (!_isSceneActive) return;
 
-            if (Input.GetKeyDown(KeyCode.Escape) && _state != MultiplayerController.MultiplayerState.ExitScene && _state != MultiplayerController.MultiplayerState.SelectSong)
+            if (Input.GetKeyDown(KeyCode.Escape) && CanPressEscape())
             {
                 if (_state == MultiplayerController.MultiplayerState.Home)
                 {
@@ -78,6 +78,12 @@ namespace TootTallyMultiplayer
 
             _multiController?.Update();
         }
+
+        private static bool CanPressEscape() => _state != MultiplayerController.MultiplayerState.ExitScene
+                && _state != MultiplayerController.MultiplayerState.SelectSong
+                && _state != MultiplayerController.MultiplayerState.Playing
+                && _state != MultiplayerController.MultiplayerState.PointScene
+                && _state != MultiplayerController.MultiplayerState.Quitting;
 
         [HarmonyPatch(typeof(PlaytestAnims), nameof(PlaytestAnims.nextScene))]
         [HarmonyPrefix]
