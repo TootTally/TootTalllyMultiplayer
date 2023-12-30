@@ -9,6 +9,7 @@ using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
 using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
+using TootTallyMultiplayer.MultiplayerCore;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -36,6 +37,15 @@ namespace TootTallyMultiplayer
         public static void ChangePlayTestToMultiplayerScreen(PlaytestAnims __instance)
         {
             MultiplayerGameObjectFactory.Initialize();
+
+            MultiAudioController.InitMusic();
+            if (!MultiAudioController.IsMusicLoaded)
+                MultiAudioController.LoadMusic("MultiplayerMusic.mp3", () => MultiAudioController.PlayMusicSoft());
+            else if (MultiAudioController.IsPaused)
+                MultiAudioController.ResumeMusicSoft();
+            else
+                MultiAudioController.PlayMusicSoft();
+
             _currentInstance = __instance;
             _multiController = new MultiplayerController(__instance);
 
@@ -52,6 +62,9 @@ namespace TootTallyMultiplayer
                 _previousState = MultiplayerController.MultiplayerState.None;
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
             }
+
+
+
         }
 
         [HarmonyPatch(typeof(Plugin), nameof(Plugin.Update))]
@@ -291,6 +304,7 @@ namespace TootTallyMultiplayer
             __instance.fader.SetActive(true);
             __instance.fader.transform.localScale = new Vector3(9.9f, 0.001f, 1f);
             LeanTween.cancelAll();
+            MultiAudioController.ResumeMusicSoft();
             LeanTween.scaleY(__instance.fader, 9.75f, 0.25f).setEaseInQuart().setOnComplete(new Action(delegate
             {
                 _multiController.ShowPanel();
@@ -381,6 +395,7 @@ namespace TootTallyMultiplayer
                 case MultiplayerController.MultiplayerState.SelectSong:
                     _currentInstance.fadepanel.alpha = 0f;
                     _currentInstance.fadepanel.gameObject.SetActive(true);
+                    MultiAudioController.PauseMusicSoft();
                     LeanTween.alphaCanvas(_currentInstance.fadepanel, 1f, .25f)
                     .setOnComplete(() =>
                     {
@@ -391,6 +406,7 @@ namespace TootTallyMultiplayer
                     break;
                 case MultiplayerController.MultiplayerState.ExitScene:
                     LeanTween.cancel(_currentInstance.fadepanel.gameObject);
+                    MultiAudioController.StopMusicSoft();
                     _currentInstance.clickedOK();
                     _multiController.Dispose();
                     break;
@@ -398,6 +414,8 @@ namespace TootTallyMultiplayer
                     break;
             }
         }
+
+
 
         [HarmonyPatch(typeof(PauseCanvasController), nameof(PauseCanvasController.showPausePanel))]
         [HarmonyPrefix]

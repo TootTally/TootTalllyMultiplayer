@@ -336,6 +336,7 @@ namespace TootTallyMultiplayer
                 if (CurrentInstance != null)
                 {
                     CurrentInstance.fadepanel.gameObject.SetActive(true);
+                    MultiAudioController.PauseMusicSoft();
                     LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
                 }
                 else

@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
 using UnityEngine.Networking;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
@@ -49,6 +51,17 @@ namespace TootTallyMultiplayer.APIService
             else
                 callback(null);
         }
+
+        public static IEnumerator<UnityWebRequestAsyncOperation> TryLoadingAudioClipLocal(string fileName, Action<AudioClip> callback)
+        {
+            string assetDir = Path.Combine(Path.GetDirectoryName(Plugin.Instance.Info.Location), "Music");
+            assetDir = Path.Combine(assetDir, fileName);
+            UnityWebRequest webRequest = UnityWebRequestMultimedia.GetAudioClip("file://" + assetDir, AudioType.MPEG);
+            yield return webRequest.SendWebRequest();
+            if (!HasError(webRequest, assetDir))
+                callback(DownloadHandlerAudioClip.GetContent(webRequest));
+        }
+
 
         private static UnityWebRequest PostUploadRequest(string query, byte[] data, string contentType = "application/json")
         {
