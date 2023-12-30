@@ -233,6 +233,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             if (user.id == _hostInfo.id)
             {
+                if (user.state == "Ready" || user.state == "NotReady")
+                    textState.text = "Host";
                 GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.95f, .2f, .95f, 1), .2f);
                 outline.effectColor = new Color(.95f, .2f, .95f, 1);
             }
