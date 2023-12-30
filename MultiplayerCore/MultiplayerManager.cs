@@ -392,6 +392,8 @@ namespace TootTallyMultiplayer
 
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.Quitting);
             __instance.gc.sfxrefs.backfromfreeplay.Play();
+            __instance.gc.pausecanvas.SetActive(false);
+            __instance.gc.curtainc.closeCurtain(false);
             LeanTween.alphaCanvas(__instance.curtaincontroller.fullfadeblack, 1f, 0.5f).setDelay(0.6f).setEaseInOutQuint().setOnComplete(() =>
             {
                 __instance.curtaincontroller.unloadAssets();
