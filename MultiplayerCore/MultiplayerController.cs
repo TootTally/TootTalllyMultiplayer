@@ -1,5 +1,6 @@
 ﻿using BaboonAPI.Hooks.Tracks;
 using Microsoft.FSharp.Core;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ using TootTallyGameModifiers;
 using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
 using TootTallyMultiplayer.MultiplayerCore;
+using TootTallyMultiplayer.MultiplayerCore.PointScore;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -108,6 +110,12 @@ namespace TootTallyMultiplayer
         public void InitializeLiveScore()
         {
             _multiLiveScoreController = GameObject.Find("GameplayCanvas/UIHolder").AddComponent<MultiplayerLiveScoreController>();
+            MultiplayerPointScoreController.ClearSavedScores();
+        }
+
+        public void InitializePointScore()
+        {
+            GameObject.Find("Canvas/FullPanel").AddComponent<MultiplayerPointScoreController>();
         }
 
         public void OnSliderValueChangeScrollContainer(GameObject container, float value)
@@ -381,9 +389,12 @@ namespace TootTallyMultiplayer
                     RefreshAllLobbyInfo();
                     break;
                 case OptionInfoType.UpdateScore:
+                    //id - score - combo - health
                     _multiLiveScoreController?.UpdateLiveScore((int)optionInfo.values[0], (int)optionInfo.values[1], (int)optionInfo.values[2], (int)optionInfo.values[3]);
                     break;
-                case OptionInfoType.SongFinished:
+                case OptionInfoType.FinalScore:
+                    //id - score - percent - maxcombo - tally
+                    MultiplayerPointScoreController.AddScore((int)optionInfo.values[0], (int)optionInfo.values[1], (float)optionInfo.values[2], (int)optionInfo.values[3], JArray.FromObject(optionInfo.values[4]).ToObject<int[]>());
                     break;
             }
         }

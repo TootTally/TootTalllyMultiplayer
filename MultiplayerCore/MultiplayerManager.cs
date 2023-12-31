@@ -318,19 +318,43 @@ namespace TootTallyMultiplayer
             return false;
         }
 
+        private static PointSceneController _currentPointSceneInstance;
+        
         [HarmonyPatch(typeof(PointSceneController), nameof(PointSceneController.Start))]
         [HarmonyPostfix]
         private static void OnPointSceneControllerStart(PointSceneController __instance)
         {
             if (_state == MultiplayerController.MultiplayerState.Playing)
             {
+                _currentPointSceneInstance = __instance;
                 _multiController.SendSongFinishedToLobby();
+                _multiController.InitializePointScore();
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.PointScene);
                 __instance.btn_retry_obj.SetActive(false);
                 __instance.btn_nav_cards.SetActive(false);
                 __instance.btn_nav_baboon.SetActive(false);
                 __instance.btn_leaderboard.SetActive(false);
             }
+        }
+
+
+        private static readonly string[] LETTER_GRADES = { "F", "D", "C", "B", "A", "S", "SS" };
+
+        public static void OnMultiplayerPointScoreClick(int score, float percent, int maxCombo, int[] noteTally)
+        {
+            if (_currentPointSceneInstance == null) return;
+
+            _currentPointSceneInstance.txt_score.text = score.ToString("n0");
+            _currentPointSceneInstance.txt_perfectos.text = noteTally[4].ToString("n0");
+            _currentPointSceneInstance.txt_nices.text = noteTally[3].ToString("n0");
+            _currentPointSceneInstance.txt_okays.text = noteTally[2].ToString("n0");
+            _currentPointSceneInstance.txt_mehs.text = noteTally[1].ToString("n0");
+            _currentPointSceneInstance.txt_nasties.text = noteTally[0].ToString("n0");
+            _currentPointSceneInstance.scorepercentage = Mathf.Max(score / GlobalVariables.gameplay_absolute_max_score, .01f);
+            _currentPointSceneInstance.scoreindex = (int)Mathf.Clamp((_currentPointSceneInstance.scorepercentage / .2f) - 1, -1, 5);
+            _currentPointSceneInstance.letterscore = LETTER_GRADES[_currentPointSceneInstance.scoreindex + 1];
+            _currentPointSceneInstance.popScoreAnim(_currentPointSceneInstance.scoreindex + 1);
+
         }
 
         [HarmonyPatch(typeof(PointSceneController), nameof(PointSceneController.clickCont))]

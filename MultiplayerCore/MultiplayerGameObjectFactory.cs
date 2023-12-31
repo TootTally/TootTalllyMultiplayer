@@ -11,7 +11,7 @@ namespace TootTallyMultiplayer
     public static class MultiplayerGameObjectFactory
     {
         private static TMP_InputField _inputFieldPrefab;
-        private static GameObject _liveScorePrefab;
+        private static GameObject _liveScorePrefab, _pointScorePrefab;
 
         private static bool _isInitialized;
 
@@ -21,6 +21,7 @@ namespace TootTallyMultiplayer
 
             SetInputFieldPrefab();
             SetLiveScorePrefab();
+            SetPointScorePrefab();
             _isInitialized = true;
         }
 
@@ -43,6 +44,22 @@ namespace TootTallyMultiplayer
             _liveScorePrefab.SetActive(false);
 
             GameObject.DontDestroyOnLoad(_liveScorePrefab);
+        }
+
+        private static void SetPointScorePrefab()
+        {
+            _pointScorePrefab = AddHorizontalBox(null);
+
+            var layout = _pointScorePrefab.GetComponent<HorizontalLayoutGroup>();
+            layout.childControlWidth = layout.childForceExpandWidth = false;
+            var rect = _pointScorePrefab.GetComponent<RectTransform>();
+            rect.pivot = Vector2.zero;
+            rect.anchoredPosition = new Vector2(-200, 0);
+            rect.anchorMax = rect.anchorMin = new Vector2(.04f, .5f);
+            rect.sizeDelta = new Vector2(180, 30);
+            _pointScorePrefab.SetActive(false);
+
+            GameObject.DontDestroyOnLoad(_pointScorePrefab);
         }
 
         private static void SetInputFieldPrefab()
@@ -103,6 +120,15 @@ namespace TootTallyMultiplayer
             liveScoreObject.GetComponent<RectTransform>().anchoredPosition = position;
             liveScoreObject.name = name;
             return liveScoreObject;
+        }
+
+        public static GameObject CreatePointScoreCard(Transform canvasTransform, Vector2 position, string name)
+        {
+            var pointScoreObject = GameObject.Instantiate(_pointScorePrefab,canvasTransform);
+            pointScoreObject.SetActive(true);
+            pointScoreObject.GetComponent <RectTransform>().anchoredPosition = position;
+            pointScoreObject.name = name;
+            return pointScoreObject;
         }
 
         public static GameObject AddVerticalBox(Transform parent) => GameObject.Instantiate(AssetBundleManager.GetPrefab("containerboxvertical"), parent);

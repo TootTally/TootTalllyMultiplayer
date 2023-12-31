@@ -41,6 +41,8 @@ namespace TootTallyMultiplayer.MultiplayerCore
             if (!_idToLiveScoreDict.ContainsKey(id))
             {
                 var user = MultiplayerController.GetUserFromLobby(id);
+                if (user == null) return;
+
                 var liveScore = MultiplayerGameObjectFactory.CreateLiveScoreCard(gameObject.transform, new Vector2(200, 32 * _idToLiveScoreDict.Count), $"{id}LiveScore").AddComponent<MultiplayerLiveScore>();
                 liveScore.Initialize(id, user.username, this);
                 _idToLiveScoreDict.Add(id, liveScore);

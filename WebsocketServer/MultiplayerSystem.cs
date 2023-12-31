@@ -139,6 +139,7 @@ namespace TootTallyMultiplayer
             UpdateUserState,
             UpdateScore,
             SongFinished,
+            FinalScore,
 
             //Host Commands
             GiveHost,
