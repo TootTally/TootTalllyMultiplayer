@@ -23,6 +23,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
             if (_isInitialized) return;
 
             _audioSource = Plugin.Instance.gameObject.AddComponent<AudioSource>();
+            _audioSource.loop = true;
 
             _isInitialized = true;
             IsPaused = false;
