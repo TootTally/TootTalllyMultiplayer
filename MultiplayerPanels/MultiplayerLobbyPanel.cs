@@ -419,6 +419,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             switch (state)
             {
                 case UserState.NoSong:
+                    _readyUpButton.gameObject.SetActive(!controller.IsDownloadPending);
                     _readyUpButton.textHolder.text = "Download Song";
                     break;
                 case UserState.NotReady:

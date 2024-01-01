@@ -51,7 +51,7 @@ namespace TootTallyMultiplayer
 
         public bool IsUpdating;
         public bool IsConnectionPending, IsConnected;
-
+        public bool IsDownloadPending;
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -321,8 +321,10 @@ namespace TootTallyMultiplayer
         {
             if (_savedDownloadLink != null)
             {
+                IsDownloadPending = true;
                 Plugin.Instance.StartCoroutine(TootTallyAPIService.DownloadZipFromServer(_savedDownloadLink, bar, data =>
                 {
+                    IsDownloadPending = false;
                     if (data != null)
                     {
                         string downloadDir = Path.Combine(Path.GetDirectoryName(Plugin.Instance.Info.Location), "Downloads/");
@@ -341,6 +343,7 @@ namespace TootTallyMultiplayer
                     }
                     else
                     {
+                        _multLobbyPanel.OnUserStateChange(_currentUserState);
                         TootTallyNotifManager.DisplayNotif("Download failed.");
                     }
 
