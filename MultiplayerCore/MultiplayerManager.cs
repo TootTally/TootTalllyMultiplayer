@@ -1,6 +1,7 @@
 ﻿using BaboonAPI.Hooks.Tracks;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using TootTallyAccounts;
 using TootTallyCore;
 using TootTallyCore.Graphics.Animations;
@@ -31,6 +32,7 @@ namespace TootTallyMultiplayer
         private static MultiplayerController _multiController;
         private static bool _multiButtonLoaded;
         private static bool _isLevelSelectInit;
+        private static bool _isRecursiveRefreshRunning;
 
         [HarmonyPatch(typeof(PlaytestAnims), nameof(PlaytestAnims.Start))]
         [HarmonyPostfix]
@@ -62,9 +64,28 @@ namespace TootTallyMultiplayer
                 _previousState = MultiplayerController.MultiplayerState.None;
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
             }
+            StartRecursiveRefresh();
+        }
 
+        public static void StartRecursiveRefresh()
+        {
+            _currentInstance.StartCoroutine(RecursiveLobbyRefresh());
+        }
 
+        public static void StopRecursiveRefresh()
+        {
+            _currentInstance.StopCoroutine(RecursiveLobbyRefresh());
+        }
 
+        private static IEnumerator<WaitForSeconds> RecursiveLobbyRefresh()
+        {
+            WaitForSeconds waitTime = new WaitForSeconds(5f);
+            yield return waitTime;
+            if (_currentInstance != null)
+            {
+                _multiController.RefreshAllLobbyInfo();
+                _currentInstance.StartCoroutine(RecursiveLobbyRefresh());
+            }
         }
 
         [HarmonyPatch(typeof(Plugin), nameof(Plugin.Update))]
@@ -319,7 +340,7 @@ namespace TootTallyMultiplayer
         }
 
         private static PointSceneController _currentPointSceneInstance;
-        
+
         [HarmonyPatch(typeof(PointSceneController), nameof(PointSceneController.Start))]
         [HarmonyPostfix]
         private static void OnPointSceneControllerStart(PointSceneController __instance)
@@ -431,10 +452,12 @@ namespace TootTallyMultiplayer
                 case MultiplayerController.MultiplayerState.ExitScene:
                     LeanTween.cancel(_currentInstance.fadepanel.gameObject);
                     MultiAudioController.StopMusicSoft();
+                    StopRecursiveRefresh();
                     _currentInstance.clickedOK();
                     _multiController.Dispose();
                     break;
                 case MultiplayerController.MultiplayerState.Playing:
+                    StopRecursiveRefresh();
                     break;
             }
         }

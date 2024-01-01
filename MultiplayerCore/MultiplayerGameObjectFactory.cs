@@ -56,7 +56,7 @@ namespace TootTallyMultiplayer
             rect.pivot = Vector2.zero;
             rect.anchoredPosition = new Vector2(-200, 0);
             rect.anchorMax = rect.anchorMin = new Vector2(.04f, .5f);
-            rect.sizeDelta = new Vector2(180, 30);
+            rect.sizeDelta = new Vector2(200, 30);
             _pointScorePrefab.SetActive(false);
 
             GameObject.DontDestroyOnLoad(_pointScorePrefab);

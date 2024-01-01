@@ -28,8 +28,8 @@ namespace TootTallyMultiplayer
         public static PlaytestAnims CurrentInstance { get; private set; }
 
         private static List<MultiplayerLobbyInfo> _lobbyInfoList;
+        private static List<string> _newLobbyCodeList;
         private static MultiplayerLobbyInfo _currentLobby;
-        private static List<string> _serverCodeList;
 
         private static MultiplayerSystem _multiConnection;
         private static MultiplayerLiveScoreController _multiLiveScoreController;
@@ -87,7 +87,6 @@ namespace TootTallyMultiplayer
             }
 
             _lobbyInfoList ??= new List<MultiplayerLobbyInfo>();
-            _serverCodeList = new List<string>();
             _currentActivePanel = _multMainPanel;
 
             IsConnected = _multiConnection != null && _multiConnection.IsConnected;
@@ -130,15 +129,17 @@ namespace TootTallyMultiplayer
             callback(lobby);
         }
 
-        public void UpdateLobbyInfo(bool delay)
+        public void UpdateLobbyInfo()
         {
             for (int i = 0; i < _lobbyInfoList.Count; i++)
             {
-                if (delay)
+                var doAnimation = _newLobbyCodeList.Contains(_lobbyInfoList[i].id);
+                if (doAnimation)
                     Plugin.Instance.StartCoroutine(DelayDisplayLobbyInfo(i * .1f, _lobbyInfoList[i], _multMainPanel.DisplayLobby));
                 else
-                    _multMainPanel.DisplayLobby(_lobbyInfoList[i]);
+                    _multMainPanel.DisplayLobby(_lobbyInfoList[i], false);
             }
+            _newLobbyCodeList.Clear();
             _multMainPanel.UpdateScrolling(_lobbyInfoList.Count);
         }
 
@@ -225,15 +226,16 @@ namespace TootTallyMultiplayer
         public void RefreshAllLobbyInfo()
         {
             if (IsUpdating || CurrentInstance == null) return;
-
-            _multMainPanel.ClearAllLobby();
+            Plugin.LogInfo("Lobby list updated.");
             IsUpdating = true;
             Plugin.Instance.StartCoroutine(MultiplayerAPIService.GetLobbyList(lobbyList =>
             {
-                var shouldAnimate = !_serverCodeList.TrueForAll(x => lobbyList.Any(l => l.id == x)) && lobbyList.TrueForAll(l => _serverCodeList.Contains(l.id)); //check if any ids were removed or added
-                _serverCodeList = lobbyList.Select(x => x.id).ToList();
+                _multMainPanel.ClearAllLobby();
+                var idList = _lobbyInfoList.Select(x => x.id);
+                _newLobbyCodeList = lobbyList.Select(x => x.id).Where(x => !idList.Contains(x)).ToList();
+
                 _lobbyInfoList = lobbyList;
-                UpdateLobbyInfo(shouldAnimate);
+                UpdateLobbyInfo();
                 IsUpdating = false;
                 _multMainPanel.ShowRefreshLobbyButton();
             }));

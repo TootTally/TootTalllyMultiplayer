@@ -15,6 +15,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject topPanelContainer;
         public GameObject lobbyListContainer, lobbyInfoContainer, lobbyConnectContainer;
         private List<GameObject> _lobbyInfoRowsList;
+        private Dictionary<string, int> _savedCodeToPing;
+        private string _lastSelectedLobby;
 
         private Slider _slider;
         private ScrollableSliderHandler _scrollingHandler;
@@ -40,6 +42,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             panel.transform.localScale = Vector2.zero;
 
             _lobbyInfoRowsList = new List<GameObject>();
+            _savedCodeToPing = new Dictionary<string, int>();
 
             var connectLayout = lobbyConnectContainer.GetComponent<VerticalLayoutGroup>();
             connectLayout.childControlHeight = connectLayout.childControlWidth = false;
@@ -74,7 +77,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _connectButton.gameObject.SetActive(false);
         }
 
-        public void DisplayLobby(MultiplayerLobbyInfo lobbyInfo)
+        public void DisplayLobby(MultiplayerLobbyInfo lobbyinfo) => DisplayLobby(lobbyinfo, true);
+
+        public void DisplayLobby(MultiplayerLobbyInfo lobbyInfo, bool shouldAnimate)
         {
 
             var lobbyContainer = MultiplayerGameObjectFactory.AddHorizontalBox(lobbyListContainer.transform);
@@ -88,7 +93,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             EventTrigger.Entry pointerClickEvent = new EventTrigger.Entry();
             pointerClickEvent.eventID = EventTriggerType.PointerClick;
-            pointerClickEvent.callback.AddListener((data) => OnMouseClickSelectLobby(lobbyInfo, lobbyContainer));
+            pointerClickEvent.callback.AddListener((data) => OnMouseClickSelectLobby(lobbyInfo, lobbyContainer,true));
             button.triggers.Add(pointerClickEvent);
 
             button.triggers.Add(_pointerExitLobbyContainerEvent);
@@ -106,10 +111,25 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var t3 = GameObjectFactory.CreateSingleText(test2.transform, "LobbyCount", $"{lobbyInfo.players.Count}/{lobbyInfo.maxPlayerCount}", Color.white);
             var t4 = GameObjectFactory.CreateSingleText(test2.transform, "LobbyPing", $"-ms", Color.white);
             t3.alignment = t4.alignment = TextAlignmentOptions.Right;
-            lobbyContainer.transform.eulerAngles = new Vector3(270, 25, 0);
-            TootTallyAnimationManager.AddNewEulerAngleAnimation(lobbyContainer, new Vector3(25, 25, 0), 2f, new SecondDegreeDynamicsAnimation(1.25f, 1f, 1f));
+            if (shouldAnimate)
+            {
+                lobbyContainer.transform.eulerAngles = new Vector3(270, 25, 0);
+                TootTallyAnimationManager.AddNewEulerAngleAnimation(lobbyContainer, new Vector3(25, 25, 0), 2f, new SecondDegreeDynamicsAnimation(1.25f, 1f, 1f));
+            }
+            else
+                lobbyContainer.transform.eulerAngles = new Vector3(25, 25, 0);
 
-            Plugin.Instance.StartCoroutine(SendPing("68.183.206.69", ping => t4.text = $"{ping}ms"));
+            if (_lastSelectedLobby == lobbyInfo.id)
+                OnMouseClickSelectLobby(lobbyInfo, lobbyContainer, false);
+
+            if (_savedCodeToPing.ContainsKey(lobbyInfo.id))
+                t4.text = $"{_savedCodeToPing[lobbyInfo.id]}ms";
+            else
+                Plugin.Instance.StartCoroutine(SendPing("68.183.206.69", ping =>
+                {
+                    _savedCodeToPing.Add(lobbyInfo.id, ping);
+                    t4.text = $"{ping}ms";
+                }));
         }
 
         private static IEnumerator<WaitForSeconds> SendPing(string address, Action<int> callback)
@@ -122,6 +142,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             }
             callback(pingSender.time);
         }
+
+
 
         public void UpdateScrolling(int lobbyCount)
         {
@@ -157,7 +179,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _hoveredLobbyContainer = null;
         }
 
-        public void OnMouseClickSelectLobby(MultiplayerLobbyInfo lobbyInfo, GameObject lobbyContainer)
+        public void OnMouseClickSelectLobby(MultiplayerLobbyInfo lobbyInfo, GameObject lobbyContainer, bool animateConnect)
         {
             if (_selectedLobby == lobbyInfo) return;
 
@@ -165,9 +187,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 GameObject.DestroyImmediate(_selectedLobbyContainer.GetComponent<Outline>());
 
             _selectedLobby = lobbyInfo;
-            _selectedLobbyContainer = _hoveredLobbyContainer;
+            _lastSelectedLobby = lobbyInfo.id;
+            _selectedLobbyContainer = lobbyContainer;
 
-            var outline = _hoveredLobbyContainer.GetComponent<Outline>();
+            Outline outline;
+            if (!_selectedLobbyContainer.TryGetComponent(out outline))
+                outline = _selectedLobbyContainer.AddComponent<Outline>();
             outline.effectColor = new Color(1, 0, 0);
             outline.effectDistance = Vector2.one * 5f;
             _hoveredLobbyContainer = null;
@@ -177,9 +202,14 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (lobbyInfo.players.Count < lobbyInfo.maxPlayerCount)
             {
                 _connectButton.gameObject.SetActive(true);
-                _connectButton.transform.localScale = Vector2.zero;
                 _connectButton.gameObject.GetComponent<RectTransform>().pivot = Vector2.one / 2f;
-                _connectButtonScaleAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_connectButton.gameObject, Vector3.one, 1f, new SecondDegreeDynamicsAnimation(2.5f, 0.98f, 1.1f));
+                if (animateConnect)
+                {
+                    _connectButton.transform.localScale = Vector2.zero;
+                    _connectButtonScaleAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_connectButton.gameObject, Vector3.one, 1f, new SecondDegreeDynamicsAnimation(2.5f, 0.98f, 1.1f));
+                }
+                else
+                    _connectButton.transform.localScale = Vector3.one;
                 controller.GetInstance.sfx_hover.Play();
             }
 
@@ -205,6 +235,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_selectedLobby == null) return;
 
             controller.ConnectToLobby(_selectedLobby.code);
+            _lastSelectedLobby = null; _selectedLobby = null;
         }
 
         public void OnRefreshLobbyButtonClick()
