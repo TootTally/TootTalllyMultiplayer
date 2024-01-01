@@ -63,6 +63,7 @@ namespace TootTallyMultiplayer
             {
                 _previousState = MultiplayerController.MultiplayerState.None;
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
+                _isRecursiveRefreshRunning = true;
             }
             StartRecursiveRefresh();
         }
@@ -81,7 +82,7 @@ namespace TootTallyMultiplayer
         {
             WaitForSeconds waitTime = new WaitForSeconds(5f);
             yield return waitTime;
-            if (_currentInstance != null)
+            if (_currentInstance != null && _isRecursiveRefreshRunning)
             {
                 _multiController.RefreshAllLobbyInfo();
                 _currentInstance.StartCoroutine(RecursiveLobbyRefresh());
