@@ -28,6 +28,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private TMP_Text _titleText, _maxPlayerText, _hostText, _songNameText, _songArtistText, _timeText,
             _songDescText, _genreText, _bpmText, _gameSpeedText, _yearText, _modifiersText, _ratingText;
 
+        private ProgressBar _downloadProgressBar;
+
         private GameObject _dropdownMenu, _dropdownMenuContainer;
         private MultiplayerUserInfo _dropdownUserInfo;
 
@@ -166,6 +168,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _startGameButton.gameObject.SetActive(false);
             _readyUpButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
             _userState = UserState.NotReady;
+            _downloadProgressBar = GameObjectFactory.CreateProgressBar(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), false, "DownloadProgressBar");
+
             DisableButton(.8f);
         }
 
@@ -312,7 +316,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             switch (_userState)
             {
                 case UserState.NoSong:
-                    controller.DownloadSavedChart();
+                    _readyUpButton.gameObject.SetActive(false);
+                    controller.DownloadSavedChart(_downloadProgressBar);
                     break;
                 case UserState.NotReady:
                     controller.SendUserState(UserState.Ready);
@@ -397,8 +402,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _timeText.text = $"Time: <b>{stringTime}</b>";
         }
 
-        public void SetNullTrackDataDetails()
+        public void SetNullTrackDataDetails(bool isDownloadable)
         {
+            _readyUpButton.gameObject.SetActive(isDownloadable);
             _songArtistText.text = $"-";
             _songDescText.text = $"-";
             _genreText.text = $"Genre: -";
@@ -416,9 +422,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _readyUpButton.textHolder.text = "Download Song";
                     break;
                 case UserState.NotReady:
+                    _readyUpButton.gameObject.SetActive(!_isHost);
                     _readyUpButton.textHolder.text = "Ready Up";
                     break;
                 case UserState.Ready:
+                    _readyUpButton.gameObject.SetActive(!_isHost);
                     _readyUpButton.textHolder.text = "Not Ready";
                     break;
             }

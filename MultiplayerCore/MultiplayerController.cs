@@ -1,10 +1,14 @@
 ﻿using BaboonAPI.Hooks.Tracks;
+using BepInEx;
 using Microsoft.FSharp.Core;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using TootTallyAccounts;
+using TootTallyCore.APIServices;
+using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.Helpers;
@@ -226,7 +230,6 @@ namespace TootTallyMultiplayer
         public void RefreshAllLobbyInfo()
         {
             if (IsUpdating || CurrentInstance == null) return;
-            Plugin.LogInfo("Lobby list updated.");
             IsUpdating = true;
             Plugin.Instance.StartCoroutine(MultiplayerAPIService.GetLobbyList(lobbyList =>
             {
@@ -310,15 +313,38 @@ namespace TootTallyMultiplayer
             {
                 _savedDownloadLink = songInfo.download;
                 SendUserState(UserState.NoSong);
-                _multLobbyPanel.SetNullTrackDataDetails();
+                _multLobbyPanel.SetNullTrackDataDetails(_savedDownloadLink != "");
             }
         }
 
-        public void DownloadSavedChart()
+        public void DownloadSavedChart(ProgressBar bar)
         {
             if (_savedDownloadLink != null)
             {
-                //DownloadChartHere
+                Plugin.Instance.StartCoroutine(TootTallyAPIService.DownloadZipFromServer(_savedDownloadLink, bar, data =>
+                {
+                    if (data != null)
+                    {
+                        string downloadDir = Path.Combine(Path.GetDirectoryName(Plugin.Instance.Info.Location), "Downloads/");
+                        string fileName = $"{_savedDownloadLink.Split('/').Last()}";
+                        if (!Directory.Exists(downloadDir))
+                            Directory.CreateDirectory(downloadDir);
+                        FileHelper.WriteBytesToFile(downloadDir, fileName, data);
+
+                        string source = Path.Combine(downloadDir, fileName);
+                        string destination = Path.Combine(Paths.BepInExRootPath, "CustomSongs/");
+                        FileHelper.ExtractZipToDirectory(source, destination);
+
+                        FileHelper.DeleteFile(downloadDir, fileName);
+                        TootTallyCore.Plugin.Instance.ReloadTracks();
+                        SendUserState(UserState.NotReady);
+                    }
+                    else
+                    {
+                        TootTallyNotifManager.DisplayNotif("Download failed.");
+                    }
+
+                }));
             }
         }
 
