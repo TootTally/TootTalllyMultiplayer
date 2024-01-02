@@ -199,7 +199,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_selectedLobby == lobbyInfo) return;
 
             if (_selectedLobbyContainer != null)
-                GameObject.DestroyImmediate(_selectedLobbyContainer.GetComponent<Outline>());
+                _selectedLobbyContainer.GetComponent<Image>().color = new Color(0, 1f, 0f);
 
             _selectedLobby = lobbyInfo;
             _lastSelectedLobby = lobbyInfo.id;
@@ -218,10 +218,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 {
                     _connectButton.transform.localScale = Vector2.zero;
                     _connectButtonScaleAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_connectButton.gameObject, Vector3.one, 1f, new SecondDegreeDynamicsAnimation(2.5f, 0.98f, 1.1f));
+                    controller.GetInstance.sfx_hover.Play();
                 }
                 else
                     _connectButton.transform.localScale = Vector3.one;
-                controller.GetInstance.sfx_hover.Play();
+                    
             }
 
         }
