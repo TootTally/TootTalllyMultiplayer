@@ -1,5 +1,4 @@
-﻿using BepInEx;
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -215,70 +214,43 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void DisplayUserInfo(MultiplayerUserInfo user)
         {
             //Should probably turn this into a prefab.
-            var lobbyInfoContainer = GameObject.Instantiate(AssetBundleManager.GetPrefab("containerboxhorizontal"), lobbyUserContainer.transform);
-            var horizontalLayout = lobbyInfoContainer.GetComponent<HorizontalLayoutGroup>();
-            horizontalLayout.childAlignment = TextAnchor.MiddleLeft;
-            horizontalLayout.childControlHeight = horizontalLayout.childControlWidth = false;
-            horizontalLayout.childForceExpandHeight = horizontalLayout.childForceExpandWidth = false;
+            var userState = user.id == _hostInfo.id ? UserState.Host : (UserState)Enum.Parse(typeof(UserState), user.state);
+            var displayedState = userState == UserState.Host && (user.state == "Ready" || user.state == "NotReady") ? "Host" : user.state;
+
+            var lobbyInfoContainer = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform, user.username, displayedState, user.rank);
 
             _userRowsList.Add(user.id, lobbyInfoContainer);
-            lobbyInfoContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(705, 75);
 
-            var imageHolder = GameObjectFactory.CreateClickableImageHolder(lobbyInfoContainer.transform, Vector2.zero, new Vector2(90, 64), AssetManager.GetSprite("icon.png"), $"{user.username}PFP", delegate { OnUserPFPClick(user); });
+            var imageHolder = GameObjectFactory.CreateClickableImageHolder(lobbyInfoContainer.transform, Vector2.zero, new Vector2(90, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
             imageHolder.transform.localPosition = new Vector3(-305, 0, 0);
+            imageHolder.transform.SetAsFirstSibling();
             AssetManager.GetProfilePictureByID(user.id, sprite =>
             {
                 imageHolder.GetComponent<Image>().sprite = sprite;
             });
 
-            var textName = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Name", $"{user.username}", Color.white);
-            textName.rectTransform.sizeDelta = new Vector2(190, 75);
-            textName.alignment = TextAlignmentOptions.Left;
+            var outline = lobbyInfoContainer.GetComponent<Outline>();
 
-            var textState = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}State", $"{user.state}", Color.white);
-            textState.rectTransform.sizeDelta = new Vector2(190, 75);
-            textState.alignment = TextAlignmentOptions.Right;
-
-            var textRank = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, $"Lobby{user.username}Rank", $"#{user.rank}", Color.white);
-            textRank.rectTransform.sizeDelta = new Vector2(190, 75);
-            textRank.alignment = TextAlignmentOptions.Right;
-
-            var outline = lobbyInfoContainer.AddComponent<Outline>();
-            outline.effectDistance = Vector2.one * 3f;
-
-            if (user.id == _hostInfo.id)
-            {
-                if (user.state == "Ready" || user.state == "NotReady")
-                    textState.text = "Host";
+            if (userState == UserState.Ready || userState == UserState.Host)
                 _readyCount++;
-                GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.95f, .2f, .95f, 1), .2f);
-                outline.effectColor = new Color(.95f, .2f, .95f, 1);
-            }
-            else
-                switch (user.state != null ? Enum.Parse(typeof(UserState), user.state) : default)
-                {
-                    case UserState.NoSong:
-                        GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.95f, .2f, .2f), .2f);
-                        outline.effectColor = new Color(.95f, .2f, .2f, 1);
-                        break;
-                    case UserState.NotReady:
-                        GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.95f, .95f, .2f, 1), .2f);
-                        outline.effectColor = new Color(.95f, .95f, .2f, 1);
-                        break;
-                    case UserState.Ready:
-                        _readyCount++;
-                        GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.2f, .95f, .2f), .2f);
-                        outline.effectColor = new Color(.2f, .95f, .2f, 1);
-                        break;
-                    default:
-                        outline.effectColor = new Color(1, 1, 1, 1);
-                        break;
-                }
+            var color = UserStateToColor(userState);
+            GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), color, .2f);
+            outline.effectColor = color;
         }
+
+        private Color UserStateToColor(UserState userState) =>
+            userState switch
+            {
+                UserState.NoSong => new Color(.95f, .2f, .2f, 1),
+                UserState.NotReady => new Color(.95f, .95f, .2f, 1),
+                UserState.Ready => new Color(.2f, .95f, .2f, 1),
+                _ => new Color(.95f, .2f, .95f, 1),
+            };
 
         private void OnUserPFPClick(MultiplayerUserInfo user)
         {
-            _dropdownUserInfo = user;
+            _dropdownUserInfo = user
+                ;
             UpdateDropdown(user.id);
             var v3 = Input.mousePosition;
             v3.z = 0;
