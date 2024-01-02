@@ -192,7 +192,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             ClearAllUserRows();
 
             _hostInfo = users.First();
-            _isHost = _hostInfo.id == TootTallyAccounts.TootTallyUser.userInfo.id;
+            _isHost = _hostInfo.id == TootTallyUser.userInfo.id;
             _lobbySettingsButton.gameObject.SetActive(_isHost);
             _startGameButton.gameObject.SetActive(_isHost);
             _selectSongButton.gameObject.SetActive(_isHost);
@@ -205,10 +205,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _readyCount = 0;
             users.ForEach(DisplayUserInfo);
 
-            if (_readyCount == users.Count)
-                _readyUpButton.textHolder.text = "Start Game";
-            else
-                _readyUpButton.textHolder.text = $"{_readyCount}/{users.Count} Force Start";
+            if (_isHost)
+                if (_readyCount == users.Count)
+                    _readyUpButton.textHolder.text = "Start Game";
+                else
+                    _readyUpButton.textHolder.text = $"{_readyCount}/{users.Count} Force Start";
         }
 
         public void DisplayUserInfo(MultiplayerUserInfo user)
