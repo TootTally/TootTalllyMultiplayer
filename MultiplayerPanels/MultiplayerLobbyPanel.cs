@@ -207,9 +207,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             if (_isHost)
                 if (_readyCount == users.Count)
-                    _readyUpButton.textHolder.text = "Start Game";
+                    _startGameButton.textHolder.text = "Start Game";
                 else
-                    _readyUpButton.textHolder.text = $"{_readyCount}/{users.Count} Force Start";
+                    _startGameButton.textHolder.text = $"{_readyCount}/{users.Count} Force Start";
         }
 
         public void DisplayUserInfo(MultiplayerUserInfo user)

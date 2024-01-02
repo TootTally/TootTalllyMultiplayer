@@ -52,7 +52,6 @@ namespace TootTallyMultiplayer
         public void SendSongHash(SocketSetSongByHash socketSetSongByHash)
         {
             var json = JsonConvert.SerializeObject(socketSetSongByHash);
-            Plugin.LogInfo("Sending: " + json);
             SendToSocket(json);
         }
 
@@ -65,7 +64,6 @@ namespace TootTallyMultiplayer
                 values = values
             };
             var json = JsonConvert.SerializeObject(socketOptionInfo);
-            Plugin.LogInfo("Sending: " + json);
             SendToSocket(json);
         }
 
@@ -89,7 +87,6 @@ namespace TootTallyMultiplayer
         {
             if (e.IsText)
             {
-                Plugin.LogInfo("Receiving: " + e.Data);
                 SocketMessage message;
                 try
                 {
