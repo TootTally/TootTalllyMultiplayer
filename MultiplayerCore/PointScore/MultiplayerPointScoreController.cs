@@ -24,6 +24,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
             _isInitialized = true;
         }
 
+        public static void AddScoreDebug() => AddScore(UnityEngine.Random.Range(1, 3000), UnityEngine.Random.Range(1, 1000000), UnityEngine.Random.value, UnityEngine.Random.Range(0, 1000), new int[] {0,1,2,3,4});
 
         public static void AddScore(int id, int score, float percent, int maxCombo, int[] noteTally)
         {
@@ -45,7 +46,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
                 var user = MultiplayerController.GetUserFromLobby(id);
                 if (user == null) return;
 
-                var pointScore = MultiplayerGameObjectFactory.CreatePointScoreCard(_gameObject.transform, new Vector2(0, 32 * _idToPointScoreDict.Count), $"{id}PointScore").AddComponent<MultiplayerPointScore>();
+                var pointScore = MultiplayerGameObjectFactory.CreatePointScoreCard(_gameObject.transform, new Vector2(-250, 32 * _idToPointScoreDict.Count), $"{id}PointScore").AddComponent<MultiplayerPointScore>();
                 pointScore.Initialize(id, user.username, score, percent, maxCombo, noteTally);
                 _idToPointScoreDict.Add(id, pointScore);
 

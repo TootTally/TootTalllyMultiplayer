@@ -38,6 +38,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private bool _isHost;
         private int _maxPlayerCount;
         private float _savedGameSpeed;
+        private int _readyCount;
 
         private bool _canPressButton;
 
@@ -197,14 +198,18 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _startGameButton.gameObject.SetActive(_isHost);
             _selectSongButton.gameObject.SetActive(_isHost);
 
-
             _readyUpButton.gameObject.SetActive(!_isHost);
-
 
             _hostText.text = $"Current Host: {_hostInfo.username}";
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
 
+            _readyCount = 0;
             users.ForEach(DisplayUserInfo);
+
+            if (_readyCount == users.Count)
+                _readyUpButton.textHolder.text = "Start Game";
+            else
+                _readyUpButton.textHolder.text = $"{_readyCount}/{users.Count} Force Start";
         }
 
         public void DisplayUserInfo(MultiplayerUserInfo user)
@@ -219,11 +224,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _userRowsList.Add(user.id, lobbyInfoContainer);
             lobbyInfoContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(705, 75);
 
-
             var imageHolder = GameObjectFactory.CreateClickableImageHolder(lobbyInfoContainer.transform, Vector2.zero, new Vector2(90, 64), AssetManager.GetSprite("icon.png"), $"{user.username}PFP", delegate { OnUserPFPClick(user); });
             imageHolder.transform.localPosition = new Vector3(-305, 0, 0);
-            var image = imageHolder.GetComponent<Image>();
-            image.SetLayoutDirty();
             AssetManager.GetProfilePictureByID(user.id, sprite =>
             {
                 imageHolder.GetComponent<Image>().sprite = sprite;
@@ -248,6 +250,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             {
                 if (user.state == "Ready" || user.state == "NotReady")
                     textState.text = "Host";
+                _readyCount++;
                 GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.95f, .2f, .95f, 1), .2f);
                 outline.effectColor = new Color(.95f, .2f, .95f, 1);
             }
@@ -263,6 +266,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                         outline.effectColor = new Color(.95f, .95f, .2f, 1);
                         break;
                     case UserState.Ready:
+                        _readyCount++;
                         GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), new Color(.2f, .95f, .2f), .2f);
                         outline.effectColor = new Color(.2f, .95f, .2f, 1);
                         break;
