@@ -291,9 +291,18 @@ namespace TootTallyMultiplayer
                 _multiController.SendUserState(MultSerializableClasses.UserState.SelectingSong);
             }
         }
+
+        private static bool IsConnectedToMultiplayer =>_multiController != null && _multiController.IsConnected;
+
         [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.clickBack))]
         [HarmonyPrefix]
-        public static bool ClickBackButtonMultiplayerSelectSong(LevelSelectController __instance) => ClickPlayButtonMultiplayerSelectSong(__instance);
+        public static bool ClickBackButtonMultiplayerSelectSong(LevelSelectController __instance)
+        {
+            if (!IsConnectedToMultiplayer) return true;
+
+            OnMultiplayerSelectSongExit(__instance);
+            return false;
+        }
 
 
         [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.clickPlay))]
@@ -301,7 +310,7 @@ namespace TootTallyMultiplayer
         public static bool ClickPlayButtonMultiplayerSelectSong(LevelSelectController __instance)
         {
             if (__instance.back_clicked) return false;
-            if (_multiController == null || !_multiController.IsConnected) return true;
+            if (!IsConnectedToMultiplayer) return true;
 
             var trackData = __instance.alltrackslist[__instance.songindex];
             MultiplayerController.savedTrackData = trackData;
@@ -315,14 +324,18 @@ namespace TootTallyMultiplayer
 
             _multiController.SendSongHashToLobby(songHash, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
 
+            OnMultiplayerSelectSongExit(__instance);
+            return false;
+        }
+
+
+        private static void OnMultiplayerSelectSongExit(LevelSelectController __instance)
+        {
+            _multiController.SendUserState(MultSerializableClasses.UserState.Ready);
+            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
             __instance.back_clicked = true;
             __instance.bgmus.Stop();
             __instance.doSfx(__instance.sfx_click);
-
-            _multiController.UpdateLobbySongDetails();
-            _multiController.SendUserState(MultSerializableClasses.UserState.Ready);
-            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
-
             __instance.fader.SetActive(true);
             __instance.fader.transform.localScale = new Vector3(9.9f, 0.001f, 1f);
             LeanTween.cancelAll();
@@ -337,7 +350,6 @@ namespace TootTallyMultiplayer
                 LeanTween.alphaCanvas(_currentInstance.fadepanel, 0f, 1f).setOnComplete(new Action(_currentInstance.hidefade));
                 _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
             }));
-            return false;
         }
 
         private static PointSceneController _currentPointSceneInstance;
