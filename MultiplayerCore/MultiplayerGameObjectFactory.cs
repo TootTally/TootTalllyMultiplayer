@@ -4,6 +4,7 @@ using TootTallyCore.Graphics;
 using TootTallyCore.Utils.Assets;
 using TootTallySettings.TootTallySettingsObjects;
 using UnityEngine;
+using UnityEngine.TextCore;
 using UnityEngine.UI;
 using static TootTallyCore.APIServices.SerializableClass;
 
@@ -49,9 +50,8 @@ namespace TootTallyMultiplayer
             textRank.rectTransform.sizeDelta = new Vector2(190, 75);
             textRank.alignment = TextAlignmentOptions.Right;
 
-            var outline = _userCardPrefab.AddComponent<Outline>();
+            var outline = _userCardPrefab.gameObject.AddComponent<Outline>();
             outline.effectDistance = Vector2.one * 3f;
-
             GameObject.DontDestroyOnLoad(_userCardPrefab);
         }
 
@@ -160,12 +160,10 @@ namespace TootTallyMultiplayer
             return pointScoreObject;
         }
 
-        public static GameObject CreateUserCard(Transform canvasTransform, string username, string state, int rank)
+        public static MultiplayerCard CreateUserCard(Transform canvasTransform)
         {
-            var userCard = GameObject.Instantiate(_userCardPrefab, canvasTransform);
-            userCard.transform.Find("Name").GetComponent<TMP_Text>().text = username;
-            userCard.transform.Find("State").GetComponent<TMP_Text>().text = state;
-            userCard.transform.Find("Rank").GetComponent<TMP_Text>().text = $"#{rank}";
+            var userCard = GameObject.Instantiate(_userCardPrefab, canvasTransform).AddComponent<MultiplayerCard>();
+            userCard.InitTexts();
             return userCard;
         }
 

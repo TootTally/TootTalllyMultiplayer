@@ -9,7 +9,10 @@ using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.TextCore;
 using UnityEngine.UI;
+using static Mono.Security.X509.X520;
+using static TootTallyCore.APIServices.SerializableClass;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.MultiplayerPanels
@@ -19,7 +22,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject lobbyUserContainer, rightPanelContainer, rightPanelContainerBox;
         public GameObject bottomPanelContainer;
 
-        private Dictionary<int, GameObject> _userRowsList;
+        private Dictionary<int, MultiplayerCard> _userCardsDict;
 
         private CustomButton _selectSongButton, _lobbySettingsButton, _startGameButton, _readyUpButton;
         private CustomButton _profileButton, _giveHostButton, _kickButton;
@@ -57,7 +60,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             rightPanelContainer.transform.parent.GetComponent<Image>().color = Color.black;
             rightPanelContainerBox.GetComponent<Image>().color = new Color(0, 1, 0);
 
-            _userRowsList = new Dictionary<int, GameObject>();
+            _userCardsDict = new Dictionary<int, MultiplayerCard>();
 
             GameObjectFactory.CreateCustomButton(bottomPanelContainer.transform, Vector2.zero, new Vector2(150, 75), "Back", "LobbyBackButton", OnBackButtonClick);
             _selectSongButton = GameObjectFactory.CreateCustomButton(bottomPanelContainer.transform, Vector2.zero, new Vector2(150, 75), "SelectSong", "SelectSongButton", OnSelectSongButtonClick);
@@ -205,14 +208,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _hostText.text = $"Current Host: {_hostInfo.username}";
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
 
-            _readyCount = 0;
+            _readyCount = 1;
             users.ForEach(DisplayUserInfo);
-
-            if (_isHost)
-                if (_readyCount == users.Count)
-                    _startGameButton.textHolder.text = "Start Game";
-                else
-                    _startGameButton.textHolder.text = $"{_readyCount}/{users.Count} Force Start";
         }
 
         public void DisplayUserInfo(MultiplayerUserInfo user)
@@ -220,16 +217,14 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             //Should probably turn this into a prefab.
             var parsedState = (UserState)Enum.Parse(typeof(UserState), user.state);
             var userState = user.id == _hostInfo.id ? UserState.Host : parsedState;
-            var displayedState = userState == UserState.Host && (user.state == "Ready" || user.state == "NotReady") ? "Host" : user.state;
 
             if (_userState == UserState.None && IsSelf(user.id))
                 _userState = parsedState;
 
-            var lobbyInfoContainer = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform, user.username, displayedState, user.rank);
+            var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform);
+            _userCardsDict.Add(user.id, userCard);
 
-            _userRowsList.Add(user.id, lobbyInfoContainer);
-
-            var imageHolder = GameObjectFactory.CreateClickableImageHolder(lobbyInfoContainer.transform, Vector2.zero, new Vector2(90, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
+            var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.transform, Vector2.zero, new Vector2(90, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
             imageHolder.transform.localPosition = new Vector3(-305, 0, 0);
             imageHolder.transform.SetAsFirstSibling();
             AssetManager.GetProfilePictureByID(user.id, sprite =>
@@ -237,13 +232,48 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 imageHolder.GetComponent<Image>().sprite = sprite;
             });
 
-            var outline = lobbyInfoContainer.GetComponent<Outline>();
+            UpdateUserInfo(user);
+        }
 
-            if (userState == UserState.Ready || userState == UserState.Host)
-                _readyCount++;
+        public void UpdateUserInfo(MultiplayerUserInfo user)
+        {
+            if (!_userCardsDict.ContainsKey(user.id)) return;
+
+            var userCard = _userCardsDict[user.id];
+
+            var parsedPreviousState = userCard.user != null ? (UserState)Enum.Parse(typeof(UserState), userCard.user.state) : UserState.None;
+
+            var parsedState = (UserState)Enum.Parse(typeof(UserState), user.state);
+            var userState = user.id == _hostInfo.id ? UserState.Host : parsedState;
+            var displayedState = userState == UserState.Host && (user.state == "Ready" || user.state == "NotReady") ? "Host" : user.state;
+
+            if (_userState == UserState.None && IsSelf(user.id))
+                _userState = parsedState;
+
+            userCard.UpdateUserInfo(user, displayedState);
+
+            var outline = userCard.GetComponent<Outline>();
+
+            if (parsedPreviousState != parsedState && _hostInfo.id != user.id)
+                if (parsedPreviousState != UserState.Ready && userState == UserState.Ready)
+                    _readyCount++;
+                else if (parsedPreviousState == UserState.Ready && userState == UserState.NotReady)
+                    _readyCount--;
+
             var color = UserStateToColor(userState);
-            GameObjectFactory.TintImage(lobbyInfoContainer.GetComponent<Image>(), color, .2f);
+            GameObjectFactory.TintImage(userCard.GetComponent<Image>(), color, .2f);
             outline.effectColor = color;
+
+            if (_isHost)
+                if (_readyCount == _userCardsDict.Count)
+                    _startGameButton.textHolder.text = "Start Game";
+                else
+                    _startGameButton.textHolder.text = $"{_readyCount}/{_userCardsDict.Count} Force Start";
+        }
+
+        public void RemoveUserCard(int id)
+        {
+            _userCardsDict.Remove(id);
         }
 
         private Color UserStateToColor(UserState userState) =>
@@ -258,8 +288,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private void OnUserPFPClick(MultiplayerUserInfo user)
         {
-            _dropdownUserInfo = user
-                ;
+            _dropdownUserInfo = user;
             UpdateDropdown(user.id);
             var v3 = Input.mousePosition;
             v3.z = 0;
@@ -289,9 +318,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void ClearAllUserRows()
         {
-
-            _userRowsList.Values.Do(GameObject.DestroyImmediate);
-            _userRowsList.Clear();
+            _userCardsDict.Values.Do(x => GameObject.DestroyImmediate(x.gameObject));
+            _userCardsDict.Clear();
         }
 
         public void OnReadyButtonClick()

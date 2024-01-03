@@ -1,6 +1,7 @@
 ﻿using BaboonAPI.Hooks.Tracks;
 using BepInEx;
 using Microsoft.FSharp.Core;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -52,7 +53,7 @@ namespace TootTallyMultiplayer
         public bool IsUpdating;
         public bool IsConnectionPending, IsConnected;
         public bool IsDownloadPending;
-        public bool IsAnybodyLoading => _currentLobby.players.Any(x => x.state == "Loading");
+        public bool IsAnybodyLoading => _currentLobby.players.Where(x => x.id != TootTallyUser.userInfo.id).Any(x => x.state == "Loading");
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -119,7 +120,7 @@ namespace TootTallyMultiplayer
 
         public void OnGameControllerStartSongSendReadyState()
         {
-            _multiConnection.SendUserState(UserState.Playing);
+            SendUserState(UserState.Playing);
         }
 
         public void OnSongQuit()
@@ -273,7 +274,19 @@ namespace TootTallyMultiplayer
                 OnSongInfoReceived(_currentLobby.songInfo);
             }
         }
+
         public void OnLobbyInfoReceived(SocketLobbyInfo socketLobbyInfo) => OnLobbyInfoReceived(socketLobbyInfo.lobbyInfo);
+
+        public void OnUserInfoReceived(MultiplayerUserInfo userInfo)
+        {
+            if (userInfo == null) return;
+
+            var index = _currentLobby.players.FindIndex(x => x.id == userInfo.id);
+            _currentLobby.players[index] = userInfo;
+
+            if (CurrentInstance != null)
+                _multLobbyPanel?.UpdateUserInfo(userInfo);
+        }
 
         public void TransitionToPanel(MultiplayerPanelBase nextPanel)
         {
@@ -439,13 +452,16 @@ namespace TootTallyMultiplayer
                 case OptionInfoType.UpdateUserState:
                     RefreshAllLobbyInfo();
                     break;
+                case OptionInfoType.UpdateUserInfo:
+                    OnUserInfoReceived(optionInfo.values[0].ToObject<MultiplayerUserInfo>());
+                    break;
                 case OptionInfoType.UpdateScore:
                     //id - score - combo - health
                     _multiLiveScoreController?.UpdateLiveScore((int)optionInfo.values[0], (int)optionInfo.values[1], (int)optionInfo.values[2], (int)optionInfo.values[3]);
                     break;
                 case OptionInfoType.FinalScore:
                     //id - score - percent - maxcombo - tally
-                    MultiplayerPointScoreController.AddScore((int)optionInfo.values[0], (int)optionInfo.values[1], (float)optionInfo.values[2], (int)optionInfo.values[3], JArray.FromObject(optionInfo.values[4]).ToObject<int[]>());
+                    MultiplayerPointScoreController.AddScore((int)optionInfo.values[0], (int)optionInfo.values[1], (float)optionInfo.values[2], (int)optionInfo.values[3], optionInfo.values[4].ToObject<int[]>());
                     break;
             }
         }
@@ -460,6 +476,7 @@ namespace TootTallyMultiplayer
             _multiConnection?.SendUpdateScore(score, combo, health, tally);
             _multiLiveScoreController?.UpdateLiveScore(TootTallyUser.userInfo.id, score, combo, health);
         }
+
         public void SendUserState(UserState state)
         {
             if (_currentUserState != state)
