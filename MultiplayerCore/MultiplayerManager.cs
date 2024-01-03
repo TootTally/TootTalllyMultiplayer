@@ -110,6 +110,10 @@ namespace TootTallyMultiplayer
                     RollbackMultiplayerState();
                 }
             }
+            else if (Input.GetKeyDown(KeyCode.Minus) && _state != MultiplayerController.MultiplayerState.Playing)
+                MultiAudioController.ChangeVolume(-.01f);
+            else if (Input.GetKeyDown(KeyCode.Equals) && _state != MultiplayerController.MultiplayerState.Playing)
+                MultiAudioController.ChangeVolume(.01f);
 
             _multiController?.Update();
         }
@@ -147,6 +151,7 @@ namespace TootTallyMultiplayer
             ThemeManager.OverwriteGameObjectSpriteAndColor(multiplayerButton.transform.Find("FG").gameObject, "MultiplayerButtonV2.png", Color.white);
             ThemeManager.OverwriteGameObjectSpriteAndColor(multiplayerText, "MultiText.png", Color.white);
             multiplayerButton.transform.SetSiblingIndex(0);
+            multiplayerHitbox.transform.SetSiblingIndex(22);
             RectTransform multiTextRectTransform = multiplayerText.GetComponent<RectTransform>();
             multiTextRectTransform.anchoredPosition = new Vector2(100, 100);
             multiTextRectTransform.sizeDelta = new Vector2(334, 87);
@@ -378,7 +383,7 @@ namespace TootTallyMultiplayer
         {
             if (_currentPointSceneInstance == null) return;
 
-            _currentPointSceneInstance.txt_score.text = score.ToString("n0");
+            _currentPointSceneInstance.txt_score.text = $"{score}:n0 {percent:0.00}%";
             _currentPointSceneInstance.txt_perfectos.text = noteTally[4].ToString("n0");
             _currentPointSceneInstance.txt_nices.text = noteTally[3].ToString("n0");
             _currentPointSceneInstance.txt_okays.text = noteTally[2].ToString("n0");
@@ -433,7 +438,7 @@ namespace TootTallyMultiplayer
         private static void OnMultiplayerGameStart(GameController __instance)
         {
             if (IsPlayingMultiplayer)
-                _multiController.InitializeLiveScore();
+                _multiController.OnGameControllerStartSetup();
         }
 
         private static bool IsPlayingMultiplayer => _multiController != null && _state == MultiplayerController.MultiplayerState.Playing;
@@ -471,6 +476,9 @@ namespace TootTallyMultiplayer
                     break;
                 case MultiplayerController.MultiplayerState.Playing:
                     StopRecursiveRefresh();
+                    break;
+                case MultiplayerController.MultiplayerState.Quitting:
+                    _multiController.OnSongQuit();
                     break;
             }
         }

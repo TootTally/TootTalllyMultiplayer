@@ -167,9 +167,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _startGameButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Start Game", "StartGameButton", OnStartGameButtonClick);
             _startGameButton.gameObject.SetActive(false);
             _readyUpButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
-            _userState = UserState.NotReady;
             _downloadProgressBar = GameObjectFactory.CreateProgressBar(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), false, "DownloadProgressBar");
+        }
 
+        public void ResetData()
+        {
+            _userState = UserState.None;
             DisableButton(.8f);
         }
 
@@ -215,8 +218,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void DisplayUserInfo(MultiplayerUserInfo user)
         {
             //Should probably turn this into a prefab.
-            var userState = user.id == _hostInfo.id ? UserState.Host : (UserState)Enum.Parse(typeof(UserState), user.state);
+            var parsedState = (UserState)Enum.Parse(typeof(UserState), user.state);
+            var userState = user.id == _hostInfo.id ? UserState.Host : parsedState;
             var displayedState = userState == UserState.Host && (user.state == "Ready" || user.state == "NotReady") ? "Host" : user.state;
+
+            if (_userState == UserState.None && IsSelf(user.id))
+                _userState = parsedState;
 
             var lobbyInfoContainer = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform, user.username, displayedState, user.rank);
 
@@ -245,7 +252,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 UserState.NoSong => new Color(.95f, .2f, .2f, 1),
                 UserState.NotReady => new Color(.95f, .95f, .2f, 1),
                 UserState.Ready => new Color(.2f, .95f, .2f, 1),
-                _ => new Color(.95f, .2f, .95f, 1),
+                UserState.Host => new Color(.95f, .2f, .95f, 1),
+                _ => new Color(.95f, .95f, .95f, 1),
             };
 
         private void OnUserPFPClick(MultiplayerUserInfo user)

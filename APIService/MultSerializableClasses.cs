@@ -63,10 +63,12 @@ namespace TootTallyMultiplayer.APIService
 
         public enum UserState
         {
+            None,
             Ready,
             NotReady,
             NoSong,
             SelectingSong,
+            Playing,
             Host,
         }
     }

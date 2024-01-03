@@ -110,10 +110,16 @@ namespace TootTallyMultiplayer
             });
         }
 
-        public void InitializeLiveScore()
+        public void OnGameControllerStartSetup()
         {
             _multiLiveScoreController = GameObject.Find("GameplayCanvas/UIHolder").AddComponent<MultiplayerLiveScoreController>();
             MultiplayerPointScoreController.ClearSavedScores();
+            _multiConnection.SendUserState(UserState.Playing);
+        }
+
+        public void OnSongQuit()
+        {
+            _multiConnection.SendUserState(UserState.NotReady);
         }
 
         public void InitializePointScore()
@@ -199,6 +205,7 @@ namespace TootTallyMultiplayer
 
         public void OnLobbyConnectionSuccess()
         {
+            _multLobbyPanel.ResetData();
             MoveToLobby();
             RefreshAllLobbyInfo();
         }
@@ -285,12 +292,20 @@ namespace TootTallyMultiplayer
             GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
 
             float diffIndex = (int)((songInfo.gameSpeed - .5f) / .25f);
-            float diffMin = diffIndex * .25f + .5f;
-            float diffMax = (diffIndex + 1f) * .25f + .5f;
 
-            float by = (songInfo.gameSpeed - diffMin) / (diffMax - diffMin);
+            float diff;
 
-            float diff = EasingHelper.Lerp(songInfo.speed_diffs[(int)diffIndex], songInfo.speed_diffs[(int)diffIndex + 1], by);
+            if (diffIndex != 6)
+            {
+                float diffMin = diffIndex * .25f + .5f;
+                float diffMax = (diffIndex + 1f) * .25f + .5f;
+
+                float by = (songInfo.gameSpeed - diffMin) / (diffMax - diffMin);
+
+                diff = EasingHelper.Lerp(songInfo.speed_diffs[(int)diffIndex], songInfo.speed_diffs[(int)diffIndex + 1], by);
+            }
+            else
+                diff = songInfo.speed_diffs[(int)diffIndex];
 
             UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
 

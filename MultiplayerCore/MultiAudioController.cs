@@ -13,10 +13,12 @@ namespace TootTallyMultiplayer.MultiplayerCore
         private static float GetMaxVolume => .2f * GlobalVariables.localsettings.maxvolume_music;
         private static AudioSource _audioSource;
         private static bool _isInitialized;
+        private static float _volume;
 
         public static bool IsPlaying => _audioSource.isPlaying;
         public static bool IsPaused;
         public static bool IsMusicLoaded;
+
 
         public static void InitMusic()
         {
@@ -24,6 +26,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
             _audioSource = Plugin.Instance.gameObject.AddComponent<AudioSource>();
             _audioSource.loop = true;
+            _volume = GetMaxVolume;
 
             _isInitialized = true;
             IsPaused = false;
@@ -46,7 +49,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
             if (!GlobalVariables.menu_music) return;
 
             _audioSource.Play();
-            LeanTween.value(0, GetMaxVolume, time).setOnUpdate(v => _audioSource.volume = v);
+            LeanTween.value(0, _volume, time).setOnUpdate(v => _audioSource.volume = v);
         }
 
         public static void ResumeMusicSoft(float time = .3f)
@@ -55,7 +58,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
             IsPaused = false;
             _audioSource.UnPause();
-            LeanTween.value(0, GetMaxVolume, time).setOnUpdate(v => _audioSource.volume = v);
+            LeanTween.value(0, _volume, time).setOnUpdate(v => _audioSource.volume = v);
         }
 
         public static void StopMusicSoft(float time = .3f)
@@ -74,6 +77,13 @@ namespace TootTallyMultiplayer.MultiplayerCore
             var currentVolume = _audioSource.volume;
             LeanTween.value(currentVolume, 0, time).setOnComplete(_audioSource.Pause).setOnUpdate(v => _audioSource.volume = v);
         }
-       
+        
+        public static void ChangeVolume(float increment)
+        {
+            _volume = Mathf.Clamp(_volume + increment, 0, 1);
+            _audioSource.volume = _volume;
+        }
+
+
     }
 }
