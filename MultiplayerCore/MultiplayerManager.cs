@@ -83,7 +83,7 @@ namespace TootTallyMultiplayer
             _isSceneActive = true;
             AllowExit = false;
 
-            if (_state == MultiplayerController.MultiplayerState.SelectSong || _state == MultiplayerController.MultiplayerState.PointScene || _state == MultiplayerController.MultiplayerState.Quitting)
+            if (_multiController.IsConnected && _state == MultiplayerController.MultiplayerState.SelectSong || _state == MultiplayerController.MultiplayerState.PointScene || _state == MultiplayerController.MultiplayerState.Quitting)
             {
                 _multiController.UpdateLobbySongDetails();
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
@@ -484,13 +484,20 @@ namespace TootTallyMultiplayer
         }
 
         private static bool _isSyncing = true;
+        private static float _syncTimeoutTimer;
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.Update))]
         [HarmonyPostfix]
         private static void OnMultiplayerUpdateWaitForSync(GameController __instance)
         {
-            if (IsPlayingMultiplayer && _isSyncing && !_multiController.IsAnybodyLoading)
-                __instance.startSong(true);
+            if (_isSyncing)
+            {
+                if (IsPlayingMultiplayer && (!_multiController.IsAnybodyLoading || _syncTimeoutTimer > 10f))
+                    __instance.startSong(true);
+                else
+                    _syncTimeoutTimer += Time.deltaTime;
+            }
+            
         }
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.startSong))]
@@ -500,6 +507,7 @@ namespace TootTallyMultiplayer
             if (IsPlayingMultiplayer && _multiController.IsAnybodyLoading)
             {
                 _isSyncing = true;
+                _syncTimeoutTimer = 0;
                 _multiController.OnGameControllerStartSongSendReadyState();
                 TootTallyNotifManager.DisplayNotif("Waiting for all players to load...");
                 return false;

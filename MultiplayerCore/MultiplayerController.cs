@@ -51,8 +51,9 @@ namespace TootTallyMultiplayer
 
 
         public bool IsUpdating;
-        public bool IsConnectionPending, IsConnected;
+        public bool IsConnectionPending;
         public bool IsDownloadPending;
+        public bool IsConnected => _multiConnection != null && _multiConnection.IsConnected;
         public bool IsAnybodyLoading => _currentLobby.players.Where(x => x.id != TootTallyUser.userInfo.id).Any(x => x.state == "Loading");
 
         public MultiplayerController(PlaytestAnims __instance)
@@ -94,8 +95,6 @@ namespace TootTallyMultiplayer
 
             _lobbyInfoList ??= new List<MultiplayerLobbyInfo>();
             _currentActivePanel = _multMainPanel;
-
-            IsConnected = _multiConnection != null && _multiConnection.IsConnected;
 
             if (IsConnected)
             {
@@ -170,7 +169,6 @@ namespace TootTallyMultiplayer
             {
                 OnWebSocketOpenCallback = delegate
                 {
-                    IsConnected = true;
                     _multiConnection.OnSocketSongInfoReceived = OnSongInfoReceived;
                     _multiConnection.OnSocketOptionReceived = OnOptionInfoReceived;
                     _multiConnection.OnSocketLobbyInfoReceived = OnLobbyInfoReceived;
@@ -183,7 +181,7 @@ namespace TootTallyMultiplayer
             if (_multiConnection.IsConnected)
                 _multiConnection.Disconnect();
             _currentLobby = null;
-            IsConnected = IsConnectionPending = false;
+            IsConnectionPending = false;
             RefreshAllLobbyInfo();
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Home);
             MoveToMain();
