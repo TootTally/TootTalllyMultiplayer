@@ -25,6 +25,8 @@ namespace TootTallyMultiplayer
         public static bool AllowExit;
 
         public const string PLAYTEST_SCENE_NAME = "zzz_playtest";
+        public const string LEVELSELECT_SCENE_NAME = "levelselect";
+
         private static readonly string[] LETTER_GRADES = { "F", "D", "C", "B", "A", "S", "SS" };
 
         private static PlaytestAnims _currentInstance;
@@ -54,7 +56,7 @@ namespace TootTallyMultiplayer
                 _attemptedInitLevelSelect = true;
                 __instance.fadepanel.alpha = 1f;
                 __instance.fadepanel.gameObject.SetActive(true);
-                SceneManager.LoadScene("levelselect", LoadSceneMode.Additive);
+                SceneManager.LoadScene(LEVELSELECT_SCENE_NAME, LoadSceneMode.Additive);
                 return false;
             }
             return true;
@@ -320,7 +322,7 @@ namespace TootTallyMultiplayer
                 if (_currentInstance != null)
                 {
                     LeanTween.cancelAll();
-                    SceneManager.UnloadSceneAsync("levelselect");
+                    SceneManager.UnloadSceneAsync(LEVELSELECT_SCENE_NAME);
                     _currentInstance.Start();
                 }
             }
@@ -397,7 +399,7 @@ namespace TootTallyMultiplayer
             LeanTween.scaleY(__instance.fader, 9.75f, 0.25f).setEaseInQuart().setOnComplete(new Action(delegate
             {
                 _multiController.ShowPanel();
-                SceneManager.UnloadSceneAsync("levelselect");
+                SceneManager.UnloadSceneAsync(LEVELSELECT_SCENE_NAME);
                 MultiAudioController.ResumeMusicSoft();
                 _currentInstance.startBGAnims();
                 _currentInstance.fadepanel.alpha = 1f;
@@ -487,7 +489,8 @@ namespace TootTallyMultiplayer
         [HarmonyPostfix]
         private static void OnMultiplayerUpdateWaitForSync(GameController __instance)
         {
-            if (IsPlayingMultiplayer && _isSyncing) __instance.startSong(true);
+            if (IsPlayingMultiplayer && _isSyncing && !_multiController.IsAnybodyLoading)
+                __instance.startSong(true);
         }
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.startSong))]
@@ -554,7 +557,7 @@ namespace TootTallyMultiplayer
                     LeanTween.alphaCanvas(_currentInstance.fadepanel, 1f, .25f)
                     .setOnComplete(() =>
                     {
-                        SceneManager.LoadScene("levelselect", LoadSceneMode.Additive);
+                        SceneManager.LoadScene(LEVELSELECT_SCENE_NAME, LoadSceneMode.Additive);
                         _multiController.HidePanel();
                     });
                     _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
