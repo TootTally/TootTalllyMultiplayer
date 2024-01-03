@@ -131,6 +131,7 @@ namespace TootTallyMultiplayer
         {
             //Events
             Refresh,
+            UpdateUserInfo,
 
             //User Commands
             UpdateUserState,

@@ -68,6 +68,7 @@ namespace TootTallyMultiplayer.APIService
             NotReady,
             NoSong,
             SelectingSong,
+            Loading,
             Playing,
             Host,
         }

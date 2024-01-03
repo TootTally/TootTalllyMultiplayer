@@ -52,6 +52,7 @@ namespace TootTallyMultiplayer
         public bool IsUpdating;
         public bool IsConnectionPending, IsConnected;
         public bool IsDownloadPending;
+        public bool IsAnybodyLoading => _currentLobby.players.Any(x => x.state == "Loading");
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -114,6 +115,10 @@ namespace TootTallyMultiplayer
         {
             _multiLiveScoreController = GameObject.Find("GameplayCanvas/UIHolder").AddComponent<MultiplayerLiveScoreController>();
             MultiplayerPointScoreController.ClearSavedScores();
+        }
+
+        public void OnGameControllerStartSongSendReadyState()
+        {
             _multiConnection.SendUserState(UserState.Playing);
         }
 

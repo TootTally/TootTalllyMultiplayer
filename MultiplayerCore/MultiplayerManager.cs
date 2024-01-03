@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using TootTallyAccounts;
 using TootTallyCore;
+using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Helpers;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
+using TootTallyLeaderboard;
 using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
 using TootTallyMultiplayer.MultiplayerCore;
@@ -23,21 +25,47 @@ namespace TootTallyMultiplayer
         public static bool AllowExit;
 
         public const string PLAYTEST_SCENE_NAME = "zzz_playtest";
+        private static readonly string[] LETTER_GRADES = { "F", "D", "C", "B", "A", "S", "SS" };
 
         private static PlaytestAnims _currentInstance;
+        private static PointSceneController _currentPointSceneInstance;
+
         private static RectTransform _multiButtonOutlineRectTransform;
-        private static bool _isSceneActive;
         private static TootTallyAnimation _multiBtnAnimation, _multiTextAnimation;
         private static MultiplayerController.MultiplayerState _state, _previousState;
         private static MultiplayerController _multiController;
+
+        private static bool _isSceneActive;
         private static bool _multiButtonLoaded;
-        private static bool _isLevelSelectInit;
+        private static bool _isLevelSelectInit, _attemptedInitLevelSelect;
+
         private static bool _isRecursiveRefreshRunning;
+        private static bool IsConnectedToMultiplayer => _multiController != null && _multiController.IsConnected;
+        private static bool IsPlayingMultiplayer => _multiController != null && _state == MultiplayerController.MultiplayerState.Playing;
+
+        #region Playtest Patches
+        [HarmonyPatch(typeof(PlaytestAnims), nameof(PlaytestAnims.Start))]
+        [HarmonyPrefix]
+        public static bool OnStartPrefixLoadLevelSelectIfNotInit(PlaytestAnims __instance)
+        {
+            _currentInstance = __instance;
+            if (!_isLevelSelectInit)
+            {
+                _attemptedInitLevelSelect = true;
+                __instance.fadepanel.alpha = 1f;
+                __instance.fadepanel.gameObject.SetActive(true);
+                SceneManager.LoadScene("levelselect", LoadSceneMode.Additive);
+                return false;
+            }
+            return true;
+        }
 
         [HarmonyPatch(typeof(PlaytestAnims), nameof(PlaytestAnims.Start))]
         [HarmonyPostfix]
         public static void ChangePlayTestToMultiplayerScreen(PlaytestAnims __instance)
         {
+            if (!_isLevelSelectInit) return;
+
             MultiplayerGameObjectFactory.Initialize();
 
             MultiAudioController.InitMusic();
@@ -48,7 +76,6 @@ namespace TootTallyMultiplayer
             else
                 MultiAudioController.PlayMusicSoft();
 
-            _currentInstance = __instance;
             _multiController = new MultiplayerController(__instance);
 
             _isSceneActive = true;
@@ -66,27 +93,6 @@ namespace TootTallyMultiplayer
                 _isRecursiveRefreshRunning = true;
             }
             StartRecursiveRefresh();
-        }
-
-        public static void StartRecursiveRefresh()
-        {
-            _currentInstance.StartCoroutine(RecursiveLobbyRefresh());
-        }
-
-        public static void StopRecursiveRefresh()
-        {
-            _currentInstance.StopCoroutine(RecursiveLobbyRefresh());
-        }
-
-        private static IEnumerator<WaitForSeconds> RecursiveLobbyRefresh()
-        {
-            WaitForSeconds waitTime = new WaitForSeconds(5f);
-            yield return waitTime;
-            if (_currentInstance != null && _isRecursiveRefreshRunning)
-            {
-                _multiController.RefreshAllLobbyInfo();
-                _currentInstance.StartCoroutine(RecursiveLobbyRefresh());
-            }
         }
 
         [HarmonyPatch(typeof(Plugin), nameof(Plugin.Update))]
@@ -134,7 +140,9 @@ namespace TootTallyMultiplayer
             SceneManager.LoadScene("saveslot");
             return false;
         }
+        #endregion
 
+        #region Homescreen Patches
         [HarmonyPatch(typeof(HomeController), nameof(HomeController.Start))]
         [HarmonyPostfix]
         public static void OnHomeControllerStartPostFixAddMultiplayerButton(HomeController __instance)
@@ -285,19 +293,61 @@ namespace TootTallyMultiplayer
             if (_multiButtonLoaded)
                 _multiButtonOutlineRectTransform.transform.parent.transform.Find("FG/texholder").GetComponent<CanvasGroup>().alpha = (_multiButtonOutlineRectTransform.localScale.y - 0.4f) / 1.5f;
         }
+        #endregion
 
+        #region Compatibility Patches
+        [HarmonyPatch(typeof(GlobalLeaderboardManager), nameof(GlobalLeaderboardManager.OnLevelSelectControllerStartPostfix))]
+        [HarmonyPrefix]
+        public static bool PreventGlobalLeaderboardFromLoadingWhenInitMulti()
+        {
+            if (_attemptedInitLevelSelect)
+            {
+                _attemptedInitLevelSelect = false;
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(GameObjectFactory), nameof(GameObjectFactory.OnLevelSelectControllerInitialize))]
+        [HarmonyPostfix]
+        public static void ArtificiallyInitLevelSelectOnFirstMultiplayerEnter(LevelSelectController levelSelectController)
+        {
+            if (!_isLevelSelectInit)
+            {
+                Plugin.LogInfo("levelselect init success");
+                _isLevelSelectInit = true;
+
+                if (_currentInstance != null)
+                {
+                    LeanTween.cancelAll();
+                    SceneManager.UnloadSceneAsync("levelselect");
+                    _currentInstance.Start();
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(ReplaySystemManager), nameof(ReplaySystemManager.ResolveLoadReplay))]
+        [HarmonyPrefix]
+        public static bool SkipResolveReplayIfInMulti()
+        {
+            if (_state != MultiplayerController.MultiplayerState.SelectSong) return true;
+
+            TootTallyNotifManager.DisplayNotif("Cannot watch replays in multiplayer.");
+            return false;
+        }
+        #endregion
+
+        #region LevelSelect Patches
         [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.Start))]
         [HarmonyPostfix]
         public static void HideBackButton(LevelSelectController __instance)
         {
-            if (_currentInstance != null && _multiController.IsConnected)
+            if (IsConnectedToMultiplayer)
             {
                 _currentInstance.hidefade();
                 _multiController.SendUserState(MultSerializableClasses.UserState.SelectingSong);
             }
         }
-
-        private static bool IsConnectedToMultiplayer =>_multiController != null && _multiController.IsConnected;
 
         [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.clickBack))]
         [HarmonyPrefix]
@@ -356,9 +406,9 @@ namespace TootTallyMultiplayer
                 _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
             }));
         }
+        #endregion
 
-        private static PointSceneController _currentPointSceneInstance;
-
+        #region PointScene Patches
         [HarmonyPatch(typeof(PointSceneController), nameof(PointSceneController.Start))]
         [HarmonyPostfix]
         private static void OnPointSceneControllerStart(PointSceneController __instance)
@@ -375,9 +425,6 @@ namespace TootTallyMultiplayer
                 __instance.btn_leaderboard.SetActive(false);
             }
         }
-
-
-        private static readonly string[] LETTER_GRADES = { "F", "D", "C", "B", "A", "S", "SS" };
 
         public static void OnMultiplayerPointScoreClick(int score, float percent, int maxCombo, int[] noteTally)
         {
@@ -415,16 +462,9 @@ namespace TootTallyMultiplayer
             }
             return true;
         }
-        [HarmonyPatch(typeof(ReplaySystemManager), nameof(ReplaySystemManager.ResolveLoadReplay))]
-        [HarmonyPrefix]
-        public static bool SkipResolveReplayIfInMulti()
-        {
-            if (_state != MultiplayerController.MultiplayerState.SelectSong) return true;
+        #endregion
 
-            TootTallyNotifManager.DisplayNotif("Cannot watch replays in multiplayer.");
-            return false;
-        }
-
+        #region GameController Patches
         [HarmonyPatch(typeof(GameController), nameof(GameController.doScoreText))]
         [HarmonyPostfix]
         private static void OnDoScoreTextSendScoreToLobby(int whichtext, GameController __instance)
@@ -441,7 +481,59 @@ namespace TootTallyMultiplayer
                 _multiController.OnGameControllerStartSetup();
         }
 
-        private static bool IsPlayingMultiplayer => _multiController != null && _state == MultiplayerController.MultiplayerState.Playing;
+        private static bool _isSyncing = true;
+
+        [HarmonyPatch(typeof(GameController), nameof(GameController.Update))]
+        [HarmonyPostfix]
+        private static void OnMultiplayerUpdateWaitForSync(GameController __instance)
+        {
+            if (IsPlayingMultiplayer && _isSyncing) __instance.startSong(true);
+        }
+
+        [HarmonyPatch(typeof(GameController), nameof(GameController.startSong))]
+        [HarmonyPrefix]
+        private static bool OnMultiplayerWaitForSync()
+        {
+            if (IsPlayingMultiplayer && _multiController.IsAnybodyLoading)
+            {
+                _isSyncing = true;
+                _multiController.OnGameControllerStartSongSendReadyState();
+                TootTallyNotifManager.DisplayNotif("Waiting for all players to load...");
+                return false;
+            }
+            _isSyncing = false;
+            return true;
+        }
+
+
+        [HarmonyPatch(typeof(PauseCanvasController), nameof(PauseCanvasController.showPausePanel))]
+        [HarmonyPrefix]
+        public static bool OnGamePause(PauseCanvasController __instance)
+        {
+            if (!IsPlayingMultiplayer) return true;
+
+            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Quitting);
+            __instance.gc.sfxrefs.backfromfreeplay.Play();
+            __instance.gc.pausecanvas.SetActive(false);
+            __instance.gc.curtainc.closeCurtain(false);
+            LeanTween.alphaCanvas(__instance.curtaincontroller.fullfadeblack, 1f, 0.5f).setDelay(0.6f).setEaseInOutQuint().setOnComplete(() =>
+            {
+                __instance.curtaincontroller.unloadAssets();
+                SceneManager.LoadScene(PLAYTEST_SCENE_NAME);
+            });
+
+            return false;
+        }
+
+        #endregion
+
+        #region MultiplayerState
+        public static void UpdateMultiplayerState(MultiplayerController.MultiplayerState newState)
+        {
+            _previousState = _state;
+            _state = newState;
+            ResolveMultiplayerState();
+        }
 
         private static void ResolveMultiplayerState()
         {
@@ -482,35 +574,9 @@ namespace TootTallyMultiplayer
                     break;
             }
         }
+        #endregion
 
-
-
-        [HarmonyPatch(typeof(PauseCanvasController), nameof(PauseCanvasController.showPausePanel))]
-        [HarmonyPrefix]
-        public static bool OnGamePause(PauseCanvasController __instance)
-        {
-            if (!IsPlayingMultiplayer) return true;
-
-            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Quitting);
-            __instance.gc.sfxrefs.backfromfreeplay.Play();
-            __instance.gc.pausecanvas.SetActive(false);
-            __instance.gc.curtainc.closeCurtain(false);
-            LeanTween.alphaCanvas(__instance.curtaincontroller.fullfadeblack, 1f, 0.5f).setDelay(0.6f).setEaseInOutQuint().setOnComplete(() =>
-            {
-                __instance.curtaincontroller.unloadAssets();
-                SceneManager.LoadScene(PLAYTEST_SCENE_NAME);
-            });
-
-            return false;
-        }
-
-        public static void UpdateMultiplayerState(MultiplayerController.MultiplayerState newState)
-        {
-            _previousState = _state;
-            _state = newState;
-            ResolveMultiplayerState();
-        }
-
+        #region Utils
         public static void RollbackMultiplayerState()
         {
             var lastState = _state;
@@ -518,6 +584,29 @@ namespace TootTallyMultiplayer
             _previousState = lastState;
             ResolveMultiplayerState();
         }
+
+
+        public static void StartRecursiveRefresh()
+        {
+            _currentInstance.StartCoroutine(RecursiveLobbyRefresh());
+        }
+
+        public static void StopRecursiveRefresh()
+        {
+            _currentInstance.StopCoroutine(RecursiveLobbyRefresh());
+        }
+
+        private static IEnumerator<WaitForSeconds> RecursiveLobbyRefresh()
+        {
+            WaitForSeconds waitTime = new WaitForSeconds(5f);
+            yield return waitTime;
+            if (_currentInstance != null && _isRecursiveRefreshRunning)
+            {
+                _multiController.RefreshAllLobbyInfo();
+                _currentInstance.StartCoroutine(RecursiveLobbyRefresh());
+            }
+        }
+        #endregion
 
         public enum HomeScreenButtonIndexes
         {
