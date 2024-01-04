@@ -208,7 +208,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _hostText.text = $"Current Host: {_hostInfo.username}";
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
 
-            _readyCount = 1;
             users.ForEach(DisplayUserInfo);
         }
 
@@ -254,11 +253,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             var outline = userCard.GetComponent<Outline>();
 
-            if (parsedPreviousState != parsedState && _hostInfo.id != user.id)
-                if (parsedPreviousState != UserState.Ready && userState == UserState.Ready)
-                    _readyCount++;
-                else if (parsedPreviousState == UserState.Ready && userState == UserState.NotReady)
-                    _readyCount--;
+            _readyCount = _userCardsDict.Values.Select(x => x.user.state == "Ready").Count() + 1;
 
             var color = UserStateToColor(userState);
             GameObjectFactory.TintImage(userCard.GetComponent<Image>(), color, .2f);

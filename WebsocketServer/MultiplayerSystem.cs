@@ -3,7 +3,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using TootTallyCore.Utils.TootTallyNotifs;
-using TootTallyMultiplayer.APIService;
 using TootTallyWebsocketLibs;
 using WebSocketSharp;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
