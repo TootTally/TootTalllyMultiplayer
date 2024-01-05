@@ -317,7 +317,7 @@ namespace TootTallyMultiplayer
                 _savedDownloadLink = songInfo.mirror;
                 _savedTrackRef = songInfo.trackRef;
                 SendUserState(UserState.NoSong);
-                _multLobbyPanel.SetNullTrackDataDetails(_savedDownloadLink != "");
+                _multLobbyPanel.SetNullTrackDataDetails(_savedDownloadLink != null);
             }
         }
 

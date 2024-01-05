@@ -32,7 +32,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private static MultiplayerLobbyInfo _selectedLobby;
         private static GameObject _hoveredLobbyContainer;
         private static GameObject _selectedLobbyContainer;
-        private static int _previousLobbyCount;
+        private static float _previousLobbyCount;
 
         public MultiplayerMainPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "MainPanel")
         {
@@ -167,10 +167,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             callback(pingSender.time);
         }
 
+        private float _posYJumpValue = 105f;
+        private float _posYOffset = -440f;
+
         public void OnSliderValueChangeScrollContainer(float value)
         {
             var gridPanelRect = lobbyListContainer.GetComponent<RectTransform>();
-            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, value * (_lobbyInfoRowsList.Count - 8f) * 52.5f - 440f);
+            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, value * (_lobbyInfoRowsList.Count - 7f) * _posYJumpValue + _posYOffset);
         }
 
         public void UpdateScrolling(int lobbyCount)

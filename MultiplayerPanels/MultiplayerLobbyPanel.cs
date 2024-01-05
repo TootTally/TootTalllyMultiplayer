@@ -41,7 +41,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private int _maxPlayerCount;
         private float _savedGameSpeed;
         private int _readyCount;
-        private int _previousUserCount;
+        private float _previousUserCount;
 
         private bool _canPressButton;
 
@@ -298,7 +298,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _startGameButton.textHolder.text = $"{_readyCount}/{_userCardsDict.Count} Force Start";
         }
 
-        private float _posYJumpValue = 41.5f;
+        private float _posYJumpValue = 83f;
         private float _posYOffset = -387.5f;
 
         public void OnSliderValueChangeScrollContainer(GameObject container, float value)
