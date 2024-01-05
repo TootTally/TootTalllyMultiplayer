@@ -160,6 +160,7 @@ namespace TootTallyMultiplayer
             ThemeManager.OverwriteGameObjectSpriteAndColor(multiplayerButton.transform.Find("FG").gameObject, "MultiplayerButtonV2.png", Color.white);
             ThemeManager.OverwriteGameObjectSpriteAndColor(multiplayerText, "MultiText.png", Color.white);
             multiplayerButton.transform.SetSiblingIndex(0);
+            multiplayerText.transform.SetSiblingIndex(21);
             multiplayerHitbox.transform.SetSiblingIndex(22);
             RectTransform multiTextRectTransform = multiplayerText.GetComponent<RectTransform>();
             multiTextRectTransform.anchoredPosition = new Vector2(100, 100);

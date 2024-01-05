@@ -23,6 +23,8 @@ namespace TootTallyMultiplayer.MultiplayerCore
         private GameObject _rainbowMask;
         private Image _rainbow1, _rainbow2;
         private RectTransform _rainbowMaskRect;
+        private CanvasGroup _canvasGroup;
+        private int _lastTween;
 
         private int _id;
         private string _name;
@@ -47,9 +49,12 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         public void Awake()
         {
+            _lastTween = 0;
             _rainbowMask = transform.Find("Mask").gameObject;
             _rainbowMaskRect = _rainbowMask.GetComponent<RectTransform>();
             _rainbowMaskRect.anchorMin = _rainbowMaskRect.anchorMax = _rainbowMaskRect.pivot = new Vector2(0, 1);
+
+            _canvasGroup = GetComponent<CanvasGroup>();
 
             var rainbowHolder1 = GameObjectFactory.CreateImageHolder(_rainbowMask.transform, Vector2.zero, new Vector2(180, 60), AssetManager.GetSprite("rainbow.png"), "Rainbow1");
             var rect = rainbowHolder1.GetComponent<RectTransform>();
@@ -68,13 +73,13 @@ namespace TootTallyMultiplayer.MultiplayerCore
             LeanTween.moveLocalX(rainbowHolder1, 0, 2).setLoopClamp();
             LeanTween.moveLocalX(rainbowHolder2, 180, 2).setLoopClamp();
 
-            _positionText = GameObjectFactory.CreateSingleText(gameObject.transform, "Position", "#-", Color.white);
+            _positionText = GameObjectFactory.CreateSingleText(transform, "Position", "#-", Color.white);
             _positionText.rectTransform.sizeDelta = new Vector2(18, 0);
 
-            _nameText = GameObjectFactory.CreateSingleText(gameObject.transform, "Name", "Unknown", Color.white);
+            _nameText = GameObjectFactory.CreateSingleText(transform, "Name", "Unknown", Color.white);
             _nameText.rectTransform.sizeDelta = new Vector2(66, 0);
 
-            var vBox = MultiplayerGameObjectFactory.AddVerticalBox(gameObject.transform);
+            var vBox = MultiplayerGameObjectFactory.AddVerticalBox(transform);
             vBox.GetComponent<Image>().enabled = false;
             var vBoxLayout = vBox.GetComponent<VerticalLayoutGroup>();
             vBoxLayout.childControlHeight = vBoxLayout.childForceExpandHeight = false;
@@ -108,7 +113,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
             if (_previousHealth != _health && (_previousHealth == 100 || _health == 100))
                 _rainbow1.color = _rainbow2.color = new Color(1, 1, 1, health == 100 ? .85f : .25f);
-                
+
 
             _previousHealth = health;
             _nameText.text = _name;
@@ -126,6 +131,19 @@ namespace TootTallyMultiplayer.MultiplayerCore
                 _count = count;
                 _position = position;
             }
+        }
+
+        public void SetIsVisible(bool visible, bool animate = true)
+        {
+            if (!animate)
+            {
+                _canvasGroup.alpha = visible ? .8f : 0;
+                return;
+            }
+
+            if (_lastTween != 0)
+                LeanTween.cancel(_lastTween);
+            _lastTween = LeanTween.alphaCanvas(_canvasGroup, visible ? .8f : 0, .14f).setOnComplete(() => _lastTween = 0).id;
         }
 
         private static void SetTextProperties(params TMP_Text[] texts)
