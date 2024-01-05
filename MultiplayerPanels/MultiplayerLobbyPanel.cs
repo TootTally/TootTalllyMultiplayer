@@ -457,8 +457,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _timeText.text = $"Time: <b>{stringTime}</b>";
         }
 
+        private bool _isDownloadable;
+
         public void SetNullTrackDataDetails(bool isDownloadable)
         {
+            _isDownloadable = isDownloadable;
             _readyUpButton.gameObject.SetActive(isDownloadable);
             _startGameButton.gameObject.SetActive(false);
             _songArtistText.text = $"-";
@@ -475,7 +478,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             switch (state)
             {
                 case UserState.NoSong:
-                    _readyUpButton.gameObject.SetActive(!controller.IsDownloadPending);
+                    _readyUpButton.gameObject.SetActive(!controller.IsDownloadPending && _isDownloadable);
                     _readyUpButton.textHolder.text = "Download Song";
                     break;
                 case UserState.NotReady:
