@@ -43,7 +43,7 @@ namespace TootTallyMultiplayer
         public bool IsTransitioning;
         private bool _hasSong;
         private UserState _currentUserState;
-        private static string _savedDownloadLink;
+        private static string _savedDownloadLink, _savedTrackRef;
 
         private MultiplayerMainPanel _multMainPanel;
         private MultiplayerLobbyPanel _multLobbyPanel;
@@ -308,19 +308,14 @@ namespace TootTallyMultiplayer
 
             if (_hasSong)
             {
-                _savedDownloadLink = null;
-                savedTrackData = TrackLookup.toTrackData(optionalTrack.Value);
-                UpdateLobbySongDetails();
-                GlobalVariables.levelselect_index = savedTrackData.trackindex;
-                GlobalVariables.chosen_track = savedTrackData.trackref;
-                GlobalVariables.chosen_track_data = savedTrackData;
-                Plugin.LogInfo("Selected: " + savedTrackData.trackref);
+                SelectSongFromTrackref(optionalTrack.Value.trackref);
                 if (_currentUserState == UserState.NoSong)
                     SendUserState(UserState.NotReady);
             }
             else
             {
-                _savedDownloadLink = songInfo.mirror ?? "";
+                _savedDownloadLink = songInfo.mirror;
+                _savedTrackRef = songInfo.trackRef;
                 SendUserState(UserState.NoSong);
                 _multLobbyPanel.SetNullTrackDataDetails(_savedDownloadLink != "");
             }
@@ -348,6 +343,7 @@ namespace TootTallyMultiplayer
 
                         FileHelper.DeleteFile(downloadDir, fileName);
                         TootTallyCore.Plugin.Instance.ReloadTracks();
+                        SelectSongFromTrackref(_savedTrackRef);
                         SendUserState(UserState.NotReady);
                     }
                     else
@@ -358,6 +354,19 @@ namespace TootTallyMultiplayer
 
                 }));
             }
+        }
+
+        public void SelectSongFromTrackref(string trackref)
+        {
+            var track = TrackLookup.tryLookup(trackref);
+            savedTrackData = TrackLookup.toTrackData(track.Value);
+            UpdateLobbySongDetails();
+            GlobalVariables.levelselect_index = savedTrackData.trackindex;
+            GlobalVariables.chosen_track = savedTrackData.trackref;
+            GlobalVariables.chosen_track_data = savedTrackData;
+            _savedDownloadLink = null;
+            _savedTrackRef = null;
+            Plugin.LogInfo("Selected: " + savedTrackData.trackref);
         }
 
         public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers, float difficulty) => _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers, difficulty);
