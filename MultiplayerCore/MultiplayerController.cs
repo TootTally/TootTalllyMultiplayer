@@ -75,6 +75,7 @@ namespace TootTallyMultiplayer
 
             if (IsConnected)
             {
+                UpdateLobbySongDetails();
                 _multiConnection.OnSocketOptionReceived = OnOptionInfoReceived;
                 _multiConnection.OnSocketSongInfoReceived = OnSongInfoReceived;
                 _multiConnection.OnSocketLobbyInfoReceived = OnLobbyInfoReceived;
@@ -157,6 +158,7 @@ namespace TootTallyMultiplayer
         {
             if (_multiConnection.IsConnected)
                 _multiConnection.Disconnect();
+            _multLobbyPanel.ResetData();
             _currentLobby = null;
             IsConnectionPending = false;
             RefreshAllLobbyInfo();
@@ -186,7 +188,6 @@ namespace TootTallyMultiplayer
 
         public void OnLobbyConnectionSuccess()
         {
-            _multLobbyPanel.ResetData();
             MoveToLobby();
             RefreshAllLobbyInfo();
         }

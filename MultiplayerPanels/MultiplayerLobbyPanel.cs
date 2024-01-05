@@ -146,7 +146,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             //Left side
             var VBox1 = MultiplayerGameObjectFactory.AddVerticalBox(detailHBox.transform);
-            VBox1.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 190);
+            VBox1.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 180);
             _genreText = GameObjectFactory.CreateSingleText(VBox1.transform, "GenreText", "Genre: -", Color.white);
             _yearText = GameObjectFactory.CreateSingleText(VBox1.transform, "YearText", "Year: -", Color.white);
             _bpmText = GameObjectFactory.CreateSingleText(VBox1.transform, "BPMText", "BPM: -", Color.white);
@@ -171,6 +171,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _startGameButton.gameObject.SetActive(false);
             _readyUpButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
             _downloadProgressBar = GameObjectFactory.CreateProgressBar(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), false, "DownloadProgressBar");
+            ResetData();
         }
 
         public void ResetData()
@@ -218,12 +219,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var userState = user.id == _hostInfo.id ? UserState.Host : parsedState;
 
             if (_userState == UserState.None && IsSelf(user.id))
-                _userState = parsedState;
+                OnUserStateChange(parsedState);
 
             var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform);
             _userCardsDict.Add(user.id, userCard);
 
-            var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.transform, Vector2.zero, new Vector2(90, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
+            var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.transform, Vector2.zero, new Vector2(100, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
             imageHolder.transform.localPosition = new Vector3(-305, 0, 0);
             imageHolder.transform.SetAsFirstSibling();
             AssetManager.GetProfilePictureByID(user.id, sprite =>
@@ -247,13 +248,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var displayedState = userState == UserState.Host && (user.state == "Ready" || user.state == "NotReady") ? "Host" : user.state;
 
             if (_userState == UserState.None && IsSelf(user.id))
-                _userState = parsedState;
+                OnUserStateChange(parsedState);
 
             userCard.UpdateUserInfo(user, displayedState);
 
             var outline = userCard.GetComponent<Outline>();
 
-            _readyCount = _userCardsDict.Values.Select(x => x.user.state == "Ready").Count() + 1;
+            _readyCount = _userCardsDict.Values.Select(x => x.user.state == "Ready").Count();
 
             var color = UserStateToColor(userState);
             GameObjectFactory.TintImage(userCard.GetComponent<Image>(), color, .2f);
@@ -393,6 +394,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _gameSpeedText.text = $"Game Speed: <b>{gamespeed:0.00}x</b>";
             _modifiersText.text = $"Mods: <b>{modifiers}</b>";
             _ratingText.text = $"diff: <b>{difficulty:0.00}</b>";
+            _startGameButton.gameObject.SetActive(_isHost);
         }
 
         public void OnSongInfoChanged(MultiplayerSongInfo songInfo) => OnSongInfoChanged(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, songInfo.difficulty);
@@ -404,15 +406,21 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _genreText.text = $"Genre: <b>{trackData.genre}</b>";
             _yearText.text = $"Year: <b>{trackData.year}</b>";
             _bpmText.text = $"BPM: <b>{trackData.tempo * _savedGameSpeed}</b>";
+
+            if (_savedGameSpeed == 0)
+                _savedGameSpeed = 1;
+
             //What the fuck am I doing??
             var time = TimeSpan.FromSeconds(trackData.length / _savedGameSpeed);
             var stringTime = $"{(time.Hours != 0 ? (time.Hours + ":") : "")}{(time.Minutes != 0 ? time.Minutes : "0")}:{(time.Seconds != 0 ? time.Seconds : "00"):00}";
+
             _timeText.text = $"Time: <b>{stringTime}</b>";
         }
 
         public void SetNullTrackDataDetails(bool isDownloadable)
         {
             _readyUpButton.gameObject.SetActive(isDownloadable);
+            _startGameButton.gameObject.SetActive(false);
             _songArtistText.text = $"-";
             _songDescText.text = $"-";
             _genreText.text = $"Genre: -";

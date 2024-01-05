@@ -22,6 +22,8 @@ namespace TootTallyMultiplayer
 {
     public static class MultiplayerManager
     {
+        public static readonly WaitForSeconds WAIT_TIME = new WaitForSeconds(5f);
+
         public static bool AllowExit;
 
         public const string PLAYTEST_SCENE_NAME = "zzz_playtest";
@@ -84,10 +86,7 @@ namespace TootTallyMultiplayer
             AllowExit = false;
 
             if (_multiController.IsConnected && _state == MultiplayerController.MultiplayerState.SelectSong || _state == MultiplayerController.MultiplayerState.PointScene || _state == MultiplayerController.MultiplayerState.Quitting)
-            {
-                _multiController.UpdateLobbySongDetails();
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
-            }
             else
             {
                 _previousState = MultiplayerController.MultiplayerState.None;
@@ -504,7 +503,7 @@ namespace TootTallyMultiplayer
         [HarmonyPrefix]
         private static bool OnMultiplayerWaitForSync()
         {
-            if (IsPlayingMultiplayer && _multiController.IsAnybodyLoading)
+            if (IsPlayingMultiplayer && _multiController.IsAnybodyLoading && _syncTimeoutTimer < 10f)
             {
                 _isSyncing = true;
                 _syncTimeoutTimer = 0;
@@ -512,6 +511,7 @@ namespace TootTallyMultiplayer
                 TootTallyNotifManager.DisplayNotif("Waiting for all players to load...");
                 return false;
             }
+            _syncTimeoutTimer = 0;
             _isSyncing = false;
             return true;
         }
@@ -609,8 +609,7 @@ namespace TootTallyMultiplayer
 
         private static IEnumerator<WaitForSeconds> RecursiveLobbyRefresh()
         {
-            WaitForSeconds waitTime = new WaitForSeconds(5f);
-            yield return waitTime;
+            yield return WAIT_TIME;
             if (_currentInstance != null && _isRecursiveRefreshRunning)
             {
                 _multiController.RefreshAllLobbyInfo();
