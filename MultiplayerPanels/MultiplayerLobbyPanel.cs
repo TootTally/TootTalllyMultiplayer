@@ -41,6 +41,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private int _maxPlayerCount;
         private float _savedGameSpeed;
         private int _readyCount;
+        private int _previousUserCount;
 
         private bool _canPressButton;
 
@@ -214,9 +215,32 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _hostText.text = $"Current Host: {_hostInfo.username}";
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
-            _scrollingHandler.enabled = users.Count > 9;
+            UpdateScrolling(_userCardsDict.Count);
 
             users.ForEach(DisplayUserInfo);
+        }
+
+        public void UpdateScrolling(int userCount)
+        {
+            var enableScrolling = userCount > 9;
+            if (!enableScrolling && _scrollingHandler.enabled)
+            {
+                _scrollingHandler.ResetAcceleration();
+                _slider.value = 0;
+            }
+            _scrollingHandler.enabled = enableScrolling;
+            _scrollingHandler.accelerationMult = enableScrolling ? 20f / userCount : 1f;
+
+            if (_previousUserCount != 0 && _slider.value != 0 && enableScrolling)
+                _slider.value *= _previousUserCount / userCount;
+
+            _previousUserCount = userCount;
+        }
+
+        public void DisplayUserInfoDebug()
+        {
+            DisplayUserInfo(new MultiplayerUserInfo() { id = TootTallyUser.userInfo.id + _userCardsDict.Count, rank = 69, username = "TestUser", state = "Ready" });
+            UpdateScrolling(_userCardsDict.Count);
         }
 
         public void DisplayUserInfo(MultiplayerUserInfo user)
@@ -274,10 +298,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _startGameButton.textHolder.text = $"{_readyCount}/{_userCardsDict.Count} Force Start";
         }
 
+        private float _posYJumpValue = 41.5f;
+        private float _posYOffset = -387.5f;
+
         public void OnSliderValueChangeScrollContainer(GameObject container, float value)
         {
             var gridPanelRect = container.GetComponent<RectTransform>();
-            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, Mathf.Min(value * (_userCardsDict.Count - 8f) * 82f - -387.5f, (_userCardsDict.Count - 9f) * 82f + 82f - -387.5f));
+            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, value * (_userCardsDict.Count - 9f) * _posYJumpValue + _posYOffset);
         }
 
         public void RemoveUserCard(int id)

@@ -91,9 +91,8 @@ namespace TootTallyMultiplayer
             {
                 _previousState = MultiplayerController.MultiplayerState.None;
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
-                _isRecursiveRefreshRunning = true;
+                StartRecursiveRefresh();
             }
-            StartRecursiveRefresh();
         }
 
         [HarmonyPatch(typeof(Plugin), nameof(Plugin.Update))]
@@ -497,7 +496,7 @@ namespace TootTallyMultiplayer
                 else
                     _syncTimeoutTimer += Time.deltaTime;
             }
-            
+
         }
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.startSong))]
@@ -575,8 +574,8 @@ namespace TootTallyMultiplayer
                     LeanTween.cancel(_currentInstance.fadepanel.gameObject);
                     MultiAudioController.StopMusicSoft();
                     StopRecursiveRefresh();
-                    _currentInstance.clickedOK();
                     _multiController.Dispose();
+                    LeaveScene();
                     break;
                 case MultiplayerController.MultiplayerState.Playing:
                     StopRecursiveRefresh();
@@ -585,6 +584,19 @@ namespace TootTallyMultiplayer
                     _multiController.OnSongQuit();
                     break;
             }
+        }
+
+        private static void LeaveScene()
+        {
+            if (TootTallyUser.userInfo.id == 8) //If emmett
+            {
+                _currentInstance.nextScene();
+                return;
+            }
+
+            _currentInstance.sfx_ok.Play();
+            _currentInstance.fadepanel.gameObject.SetActive(true);
+            LeanTween.alphaCanvas(_currentInstance.fadepanel, 1f, 0.4f).setOnComplete(new Action(_currentInstance.nextScene));
         }
         #endregion
 
@@ -597,14 +609,15 @@ namespace TootTallyMultiplayer
             ResolveMultiplayerState();
         }
 
-
         public static void StartRecursiveRefresh()
         {
+            _isRecursiveRefreshRunning = true;
             _currentInstance.StartCoroutine(RecursiveLobbyRefresh());
         }
 
         public static void StopRecursiveRefresh()
         {
+            _isRecursiveRefreshRunning = false;
             _currentInstance.StopCoroutine(RecursiveLobbyRefresh());
         }
 

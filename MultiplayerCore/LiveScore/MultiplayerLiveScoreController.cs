@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rewired;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,7 +41,6 @@ namespace TootTallyMultiplayer.MultiplayerCore
                 _showScore = !_showScore;
                 foreach (var liveScore in _idToLiveScoreDict.Values)
                     liveScore.SetIsVisible(_showScore);
-
             }
 
         }

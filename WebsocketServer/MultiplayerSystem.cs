@@ -11,7 +11,7 @@ namespace TootTallyMultiplayer
 {
     public class MultiplayerSystem : WebsocketManager
     {
-        public Action OnWebSocketOpenCallback;
+        public Action OnWebSocketOpenCallback, OnWebSocketCloseCallback;
         public static JsonConverter[] _dataConverter = new JsonConverter[] { new SocketDataConverter() };
 
         public ConcurrentQueue<SocketSongInfo> _receivedSongInfo;
@@ -107,6 +107,12 @@ namespace TootTallyMultiplayer
             TootTallyNotifManager.DisplayNotif($"Connected to multiplayer server.");
             OnWebSocketOpenCallback?.Invoke();
             base.OnWebSocketOpen(sender, e);
+        }
+
+        protected override void OnWebSocketClose(object sender, EventArgs e)
+        {
+            OnWebSocketCloseCallback?.Invoke();
+            base.OnWebSocketClose(sender, e);
         }
 
         public void Disconnect()

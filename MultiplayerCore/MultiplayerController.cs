@@ -110,12 +110,6 @@ namespace TootTallyMultiplayer
             GameObject.Find("Canvas/FullPanel").AddComponent<MultiplayerPointScoreController>();
         }
 
-        public void OnSliderValueChangeScrollContainer(GameObject container, float value)
-        {
-            var gridPanelRect = container.GetComponent<RectTransform>();
-            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, Mathf.Min(value * (_lobbyInfoList.Count - 7f) * 105f - 440f, (_lobbyInfoList.Count - 8f) * 105f + 74f - 440f)); //This is so scuffed I fucking love it
-        }
-
         private IEnumerator<WaitForSeconds> DelayDisplayLobbyInfo(float delay, MultiplayerLobbyInfo lobby, Action<MultiplayerLobbyInfo> callback)
         {
             yield return new WaitForSeconds(delay);
@@ -138,6 +132,7 @@ namespace TootTallyMultiplayer
 
         public void ConnectToLobby(string code)
         {
+            RefreshAllLobbyInfo();
             if (_multiConnection != null && _multiConnection.ConnectionPending) return;
 
             _multiConnection?.Disconnect();
@@ -147,23 +142,29 @@ namespace TootTallyMultiplayer
             {
                 OnWebSocketOpenCallback = delegate
                 {
+                    _multiConnection.OnWebSocketCloseCallback = null;
                     _multiConnection.OnSocketSongInfoReceived = OnSongInfoReceived;
                     _multiConnection.OnSocketOptionReceived = OnOptionInfoReceived;
                     _multiConnection.OnSocketLobbyInfoReceived = OnLobbyInfoReceived;
-                }
+                },
+                OnWebSocketCloseCallback = DisconnectFromLobby
             };
         }
 
         public void DisconnectFromLobby()
         {
             if (_multiConnection.IsConnected)
+            {
                 _multiConnection.Disconnect();
-            _multLobbyPanel.ResetData();
+                _multLobbyPanel.ResetData();
+                MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Home);
+                MoveToMain();
+            }
+            else
+                TootTallyNotifManager.DisplayNotif("Unexpected error occured.");
             _currentLobby = null;
             IsConnectionPending = false;
             RefreshAllLobbyInfo();
-            MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Home);
-            MoveToMain();
         }
 
 
@@ -189,7 +190,6 @@ namespace TootTallyMultiplayer
         public void OnLobbyConnectionSuccess()
         {
             MoveToLobby();
-            RefreshAllLobbyInfo();
         }
 
         public void MoveToCreate()

@@ -83,8 +83,8 @@ namespace TootTallyMultiplayer
             var layout = _pointScorePrefab.GetComponent<HorizontalLayoutGroup>();
             layout.childControlWidth = layout.childForceExpandWidth = false;
             var rect = _pointScorePrefab.GetComponent<RectTransform>();
-            rect.pivot = Vector2.zero;
-            rect.anchorMax = rect.anchorMin = new Vector2(.04f, .5f);
+            rect.pivot = new Vector2(0,1);
+            rect.anchorMax = rect.anchorMin = new Vector2(.04f, .926f);
             rect.sizeDelta = new Vector2(200, 30);
             _pointScorePrefab.SetActive(false);
 

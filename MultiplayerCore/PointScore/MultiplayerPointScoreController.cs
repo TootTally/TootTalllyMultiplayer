@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TootTallyAccounts;
 using UnityEngine;
 
 namespace TootTallyMultiplayer.MultiplayerCore.PointScore
@@ -24,7 +25,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
             _isInitialized = true;
         }
 
-        public static void AddScoreDebug() => AddScore(UnityEngine.Random.Range(1, 3000), UnityEngine.Random.Range(1, 1000000), UnityEngine.Random.value, UnityEngine.Random.Range(0, 1000), new int[] {0,1,2,3,4});
+        public static void AddScoreDebug() => AddScore(MultiplayerController.GetUserFromLobby(TootTallyUser.userInfo.id).id, UnityEngine.Random.Range(1, 1000000), UnityEngine.Random.value, UnityEngine.Random.Range(0, 1000), new int[] {0,1,2,3,4});
 
         public static void AddScore(int id, int score, float percent, int maxCombo, int[] noteTally)
         {

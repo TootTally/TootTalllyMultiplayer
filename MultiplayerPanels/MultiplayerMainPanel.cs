@@ -32,6 +32,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private static MultiplayerLobbyInfo _selectedLobby;
         private static GameObject _hoveredLobbyContainer;
         private static GameObject _selectedLobbyContainer;
+        private static int _previousLobbyCount;
 
         public MultiplayerMainPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "MainPanel")
         {
@@ -45,7 +46,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _lobbyInfoRowsList = new List<GameObject>();
             _savedCodeToPing = new Dictionary<string, int>();
 
-            panelFG.transform.Find("BottomMain/LeftPanel").GetComponent<Image>().enabled = false;
+            panelFG.transform.Find("BottomMain/LeftPanel").GetComponent<Image>().color = new Color(0,0,0, .01f);
 
             var connectLayout = lobbyConnectContainer.GetComponent<VerticalLayoutGroup>();
             connectLayout.childControlHeight = connectLayout.childControlWidth = false;
@@ -60,7 +61,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _slider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _slider.gameObject.SetActive(true);
-            _slider.onValueChanged.AddListener((value) => controller.OnSliderValueChangeScrollContainer(lobbyListContainer, value));
+            _slider.onValueChanged.AddListener(OnSliderValueChangeScrollContainer);
             _scrollingHandler = _slider.gameObject.AddComponent<ScrollableSliderHandler>();
             _scrollingHandler.enabled = false;
 
@@ -80,11 +81,17 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _connectButton.gameObject.SetActive(false);
         }
 
+        public void DisplayLobbyDebug()
+        {
+            MultiplayerManager.StopRecursiveRefresh();
+            DisplayLobby(new MultiplayerLobbyInfo() { id = "AAAAA", maxPlayerCount = 16, players = new List<MultiplayerUserInfo>(), songInfo = new MultiplayerSongInfo(), state = "SelectingSong", title = "TEST LOBBY" }, true);
+            UpdateScrolling(_lobbyInfoRowsList.Count);
+        }
+
         public void DisplayLobby(MultiplayerLobbyInfo lobbyinfo) => DisplayLobby(lobbyinfo, true);
 
         public void DisplayLobby(MultiplayerLobbyInfo lobbyInfo, bool shouldAnimate)
         {
-
             var lobbyContainer = MultiplayerGameObjectFactory.AddHorizontalBox(lobbyListContainer.transform);
             lobbyContainer.GetComponent<Image>().color = new Color(0, 1, 0, 1);
             lobbyContainer.GetComponent<HorizontalLayoutGroup>().spacing = -10; //removes the gap between the two other containers
@@ -98,7 +105,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             EventTrigger.Entry pointerClickEvent = new EventTrigger.Entry();
             pointerClickEvent.eventID = EventTriggerType.PointerClick;
-            pointerClickEvent.callback.AddListener((data) => OnMouseClickSelectLobby(lobbyInfo, lobbyContainer,true));
+            pointerClickEvent.callback.AddListener((data) => OnMouseClickSelectLobby(lobbyInfo, lobbyContainer, true));
             button.triggers.Add(pointerClickEvent);
 
             button.triggers.Add(_pointerExitLobbyContainerEvent);
@@ -160,12 +167,27 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             callback(pingSender.time);
         }
 
-
+        public void OnSliderValueChangeScrollContainer(float value)
+        {
+            var gridPanelRect = lobbyListContainer.GetComponent<RectTransform>();
+            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, value * (_lobbyInfoRowsList.Count - 8f) * 52.5f - 440f);
+        }
 
         public void UpdateScrolling(int lobbyCount)
         {
-            _scrollingHandler.enabled = lobbyCount > 7;
-            _slider.value = 0;
+            var enableScrolling = lobbyCount > 7;
+            if (!enableScrolling && _scrollingHandler.enabled)
+            {
+                _scrollingHandler.ResetAcceleration();
+                _slider.value = 0;
+            }
+            _scrollingHandler.enabled = enableScrolling;
+            _scrollingHandler.accelerationMult = enableScrolling ? 16f / lobbyCount : 1f;
+
+            if (_previousLobbyCount != 0 && _slider.value != 0 && enableScrolling)
+                _slider.value *= _previousLobbyCount / lobbyCount;
+
+            _previousLobbyCount = lobbyCount;
         }
 
         public void OnMouseEnterDisplayLobbyDetails(MultiplayerLobbyInfo lobbyInfo, GameObject lobbyContainer)
@@ -222,7 +244,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 }
                 else
                     _connectButton.transform.localScale = Vector3.one;
-                    
+
             }
 
         }
