@@ -9,10 +9,7 @@ using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.TextCore;
 using UnityEngine.UI;
-using static Mono.Security.X509.X520;
-using static TootTallyCore.APIServices.SerializableClass;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.MultiplayerPanels
@@ -31,6 +28,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _songDescText, _genreText, _bpmText, _gameSpeedText, _yearText, _modifiersText, _ratingText;
 
         private ProgressBar _downloadProgressBar;
+
+        private Slider _slider;
+        private ScrollableSliderHandler _scrollingHandler;
 
         private GameObject _dropdownMenu, _dropdownMenuContainer;
         private MultiplayerUserInfo _dropdownUserInfo;
@@ -56,6 +56,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             lobbyUserContainer.transform.parent.GetComponent<Image>().color = Color.black;
             lobbyUserContainer.GetComponent<VerticalLayoutGroup>().spacing = 8;
+
+            _slider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
+            _slider.gameObject.SetActive(true);
+            _slider.onValueChanged.AddListener(value => OnSliderValueChangeScrollContainer(lobbyUserContainer, value));
+            _scrollingHandler = _slider.gameObject.AddComponent<ScrollableSliderHandler>();
+            _scrollingHandler.enabled = false;
 
             rightPanelContainer.transform.parent.GetComponent<Image>().color = Color.black;
             rightPanelContainerBox.GetComponent<Image>().color = new Color(0, 1, 0);
@@ -208,6 +214,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _hostText.text = $"Current Host: {_hostInfo.username}";
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
+            _scrollingHandler.enabled = users.Count > 9;
 
             users.ForEach(DisplayUserInfo);
         }
@@ -254,7 +261,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             var outline = userCard.GetComponent<Outline>();
 
-            _readyCount = _userCardsDict.Values.Select(x => x.user.state == "Ready").Count();
+            _readyCount = _userCardsDict.Values.Where(x => x.user.state == "Ready" && !IsSelf(x.user.id)).Count() + 1;
 
             var color = UserStateToColor(userState);
             GameObjectFactory.TintImage(userCard.GetComponent<Image>(), color, .2f);
@@ -265,6 +272,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _startGameButton.textHolder.text = "Start Game";
                 else
                     _startGameButton.textHolder.text = $"{_readyCount}/{_userCardsDict.Count} Force Start";
+        }
+
+        public void OnSliderValueChangeScrollContainer(GameObject container, float value)
+        {
+            var gridPanelRect = container.GetComponent<RectTransform>();
+            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, Mathf.Min(value * (_userCardsDict.Count - 8f) * 82f - -387.5f, (_userCardsDict.Count - 9f) * 82f + 82f - -387.5f));
         }
 
         public void RemoveUserCard(int id)
