@@ -81,7 +81,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
             if (_position != position || _count != count)
             {
                 _animation?.Dispose();
-                _animation = TootTallyAnimationManager.AddNewPositionAnimation(gameObject, new Vector3(0, -32 * (count - position)), 1f, GetSecondDegreeAnimation(1.5f)); //Change position here
+                _animation = TootTallyAnimationManager.AddNewPositionAnimation(gameObject, new Vector3(0, -32 * (position - 1)), 1f, GetSecondDegreeAnimation(1.5f)); //Change position here
                 _positionText.text = $"#{position}";
                 _count = count;
                 _position = position;

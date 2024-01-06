@@ -381,24 +381,19 @@ namespace TootTallyMultiplayer
         public void StartLobbyGame()
         {
             _multiConnection.SendOptionInfo(OptionInfoType.StartGame);
-            StartGame();
         }
 
         public void StartGame()
         {
-            if (_hasSong)
+            if (_hasSong && CurrentInstance != null && !IsTransitioning)
             {
                 MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Playing);
                 Plugin.LogInfo("Starting Multiplayer for " + GlobalVariables.chosen_track_data.trackname_short + " - " + GlobalVariables.chosen_track_data.trackref);
-                if (CurrentInstance != null)
-                {
-                    CurrentInstance.sfx_ok.Play();
-                    CurrentInstance.fadepanel.gameObject.SetActive(true);
-                    MultiAudioController.PauseMusicSoft();
-                    LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
-                }
-                else
-                    LoadLoaderScene();
+                IsTransitioning = true;
+                CurrentInstance.sfx_ok.Play();
+                CurrentInstance.fadepanel.gameObject.SetActive(true);
+                MultiAudioController.PauseMusicSoft();
+                LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
 
             }
             else
@@ -411,9 +406,12 @@ namespace TootTallyMultiplayer
 
         public void GiveHostUser(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.GiveHost, new dynamic[] { userID });
 
+        public void SendQuickChat(QuickChat chat) => _multiConnection.SendOptionInfo(OptionInfoType.QuickChat, new dynamic[] { (int)chat });
+
         public void LoadLoaderScene()
         {
             CurrentInstance = null;
+            IsTransitioning = false;
             SceneManager.LoadScene("loader");
         }
 

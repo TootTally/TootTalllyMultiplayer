@@ -132,6 +132,20 @@ namespace TootTallyMultiplayer
             SetSong
         }
 
+        public enum QuickChat
+        {
+            Hello,
+            Welcome,
+            GoodLuck,
+            ReadyUp,
+            BeRightBack,
+            ImHere,
+            NicePlay,
+            GoodGame,
+
+
+        }
+
         public enum OptionInfoType
         {
             //Events
@@ -143,6 +157,7 @@ namespace TootTallyMultiplayer
             UpdateScore,
             SongFinished,
             FinalScore,
+            QuickChat,
 
             //Host Commands
             GiveHost,
