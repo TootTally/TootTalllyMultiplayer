@@ -19,6 +19,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject lobbyUserContainer, rightPanelContainer, rightPanelContainerBox;
         public GameObject bottomPanelContainer;
 
+        private GameObject _quickChatContainer;
+
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
         private CustomButton _selectSongButton, _lobbySettingsButton, _startGameButton, _readyUpButton;
@@ -38,14 +40,17 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private TootTallyAnimation _dropdownAnimation;
 
         private bool _isHost;
+
         private int _maxPlayerCount;
-        private float _savedGameSpeed;
         private int _readyCount;
         private float _previousUserCount;
+
+        private float _savedGameSpeed;
 
         private bool _canPressButton;
 
         private UserState _userState;
+        private int _quickChatPageIndex;
 
         public MultiplayerLobbyPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "LobbyPanel")
         {
@@ -57,6 +62,15 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             lobbyUserContainer.transform.parent.GetComponent<Image>().color = Color.black;
             lobbyUserContainer.GetComponent<VerticalLayoutGroup>().spacing = 8;
+
+            _quickChatContainer = MultiplayerGameObjectFactory.AddHorizontalBox(panelFG.transform);
+            _quickChatContainer.name = "QuickChat";
+            _quickChatContainer.AddComponent<LayoutElement>().ignoreLayout = true;
+            var quickChatRect = _quickChatContainer.GetComponent<RectTransform>();
+            quickChatRect.anchorMin = quickChatRect.anchorMax = new Vector2(.5f, .95f);
+            quickChatRect.sizeDelta = new Vector2(64, 64);
+
+            GameObjectFactory.CreateCustomButton(_quickChatContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
 
             _slider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _slider.gameObject.SetActive(true);
@@ -178,6 +192,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _startGameButton.gameObject.SetActive(false);
             _readyUpButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
             _downloadProgressBar = GameObjectFactory.CreateProgressBar(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), false, "DownloadProgressBar");
+            _quickChatPageIndex = 1;
             ResetData();
         }
 
@@ -348,6 +363,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _kickButton.gameObject.SetActive(showAllOptions);
             _giveHostButton.gameObject.SetActive(showAllOptions);
             _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, showAllOptions ? 180 : 60);
+        }
+
+        private void OnQuickChatOpenButtonClick()
+        {
+
         }
 
         private bool IsSelf(int userID) => TootTallyUser.userInfo.id == userID;
