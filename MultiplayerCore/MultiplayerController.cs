@@ -364,6 +364,7 @@ namespace TootTallyMultiplayer
             GlobalVariables.levelselect_index = savedTrackData.trackindex;
             GlobalVariables.chosen_track = savedTrackData.trackref;
             GlobalVariables.chosen_track_data = savedTrackData;
+            _hasSong = true;
             _savedDownloadLink = null;
             _savedTrackRef = null;
             Plugin.LogInfo("Selected: " + savedTrackData.trackref);
@@ -381,6 +382,7 @@ namespace TootTallyMultiplayer
         public void StartLobbyGame()
         {
             _multiConnection.SendOptionInfo(OptionInfoType.StartGame);
+            StartGame();
         }
 
         public void StartGame()
