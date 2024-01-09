@@ -7,6 +7,7 @@ using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
+using TootTallyLeaderboard;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -31,7 +32,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private ProgressBar _downloadProgressBar;
 
-        private Slider _slider;
+        private Slider _hiddenUserCardSlider, _scrollSpeedSlider;
         private ScrollableSliderHandler _scrollingHandler;
 
         private GameObject _dropdownMenu, _dropdownMenuContainer;
@@ -72,10 +73,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             GameObjectFactory.CreateCustomButton(_quickChatContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
 
-            _slider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
-            _slider.gameObject.SetActive(true);
-            _slider.onValueChanged.AddListener(value => OnSliderValueChangeScrollContainer(lobbyUserContainer, value));
-            _scrollingHandler = _slider.gameObject.AddComponent<ScrollableSliderHandler>();
+            _hiddenUserCardSlider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
+            _hiddenUserCardSlider.gameObject.SetActive(true);
+            _hiddenUserCardSlider.onValueChanged.AddListener(value => OnSliderValueChangeScrollContainer(lobbyUserContainer, value));
+            _scrollingHandler = _hiddenUserCardSlider.gameObject.AddComponent<ScrollableSliderHandler>();
             _scrollingHandler.enabled = false;
 
             rightPanelContainer.transform.parent.GetComponent<Image>().color = Color.black;
@@ -181,6 +182,21 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _modifiersText = GameObjectFactory.CreateSingleText(VBox2.transform, "ModsText", "-", Color.white);
             _ratingText = GameObjectFactory.CreateSingleText(VBox2.transform, "RatingText", "Diff: -", Color.white);
 
+            var HBox = MultiplayerGameObjectFactory.AddHorizontalBox(VBox2.transform);
+            _scrollSpeedSlider = GameObjectFactory.CreateSliderFromPrefab(HBox.transform, "ScrollSpeedSlider");
+            _scrollSpeedSlider.minValue = .05f;
+            _scrollSpeedSlider.maxValue = 2.5f;
+            _scrollSpeedSlider.value = 1f;
+
+            _scrollSpeedSlider.gameObject.SetActive(true);
+            _scrollSpeedSlider.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            _scrollSpeedSlider.transform.localScale = Vector3.one * 2f;
+            _scrollSpeedSlider.transform.localPosition = new Vector3(-185, 70, 200);
+            var sliderText = GameObjectFactory.CreateSingleText(_scrollSpeedSlider.handleRect, "ScrollSpeedSliderText", "100", Color.white);
+            sliderText.enableWordWrapping = false;
+            sliderText.fontSize = 12;
+
+            _scrollSpeedSlider.onValueChanged.AddListener((float value) => { sliderText.text = BetterScrollSpeedSliderPatcher.SliderValueToText(value); GlobalVariables.gamescrollspeed = value; });
             SetTextsParameters(_timeText, _bpmText, _yearText, _genreText, _gameSpeedText, _modifiersText, _ratingText);
 
             //BUTTONS
@@ -241,13 +257,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (!enableScrolling && _scrollingHandler.enabled)
             {
                 _scrollingHandler.ResetAcceleration();
-                _slider.value = 0;
+                _hiddenUserCardSlider.value = 0;
             }
             _scrollingHandler.enabled = enableScrolling;
             _scrollingHandler.accelerationMult = enableScrolling ? 20f / userCount : 1f;
 
-            if (_previousUserCount != 0 && _slider.value != 0 && enableScrolling)
-                _slider.value *= _previousUserCount / userCount;
+            if (_previousUserCount != 0 && _hiddenUserCardSlider.value != 0 && enableScrolling)
+                _hiddenUserCardSlider.value *= _previousUserCount / userCount;
 
             _previousUserCount = userCount;
         }

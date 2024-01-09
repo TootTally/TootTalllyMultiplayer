@@ -375,7 +375,7 @@ namespace TootTallyMultiplayer
 
         public void UpdateLobbySongDetails()
         {
-            if (savedTrackData != null)
+            if (savedTrackData != null && CurrentInstance != null)
                 _multLobbyPanel?.SetTrackDataDetails(savedTrackData);
         }
 
