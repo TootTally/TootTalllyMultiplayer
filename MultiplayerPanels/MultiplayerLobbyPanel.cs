@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -152,32 +153,39 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             //DETAILS
             //Top
             float iconSize = 32f;
-            GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("gamespeed32.png"), "TimeIcon");
-            _gameSpeedText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "GameSpeedText", ": -", Color.white);
-            GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("rating32.png"), "TimeIcon");
-            _ratingText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "RatingText", ": -", Color.white);
-            _modifiersText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "ModsText", "-", Color.white);
+            GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("gamespeed64.png"), "GameSpeedIcon");
+            _gameSpeedText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "GameSpeedText", " -", Color.white);
+            GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("stardiff64.png"), "RatingIcon");
+            _ratingText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "RatingText", " -", Color.white);
+            _modifiersText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "ModsText", "M ", Color.white);
 
             //Bottom
-            GameObjectFactory.CreateImageHolder(songInfoBottom.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("time32.png"), "TimeIcon");
-            _timeText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "TimeText", ": -", Color.white);
-            _bpmText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "BPMText", "BPM: -", Color.white);
+            GameObjectFactory.CreateImageHolder(songInfoBottom.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("time64.png"), "TimeIcon");
+            _timeText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "TimeText", " -", Color.white);
+            GameObjectFactory.CreateImageHolder(songInfoBottom.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("bpm64.png"), "BPMIcon");
+            _bpmText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "BPMText", " -", Color.white);
 
-            _timeText.rectTransform.sizeDelta = _gameSpeedText.rectTransform.sizeDelta = _modifiersText.rectTransform.sizeDelta = _ratingText.rectTransform.sizeDelta = _bpmText.rectTransform.sizeDelta = new Vector2(220, 0);
-            _ratingText.rectTransform.sizeDelta = new Vector2(170, 0);
+            _timeText.rectTransform.sizeDelta = _gameSpeedText.rectTransform.sizeDelta = _modifiersText.rectTransform.sizeDelta = _bpmText.rectTransform.sizeDelta = new Vector2(220, 0);
+            _ratingText.rectTransform.sizeDelta = new Vector2(180, 0);
+
+            BetterScrollSpeedSliderPatcher.SetSliderOption();
 
             _scrollSpeedSlider = GameObjectFactory.CreateSliderFromPrefab(songInfoBottom.transform, "ScrollSpeedSlider");
-            GameObjectFactory.CreateImageHolder(_scrollSpeedSlider.transform, new Vector2(-80, 0), Vector2.one * 22f, AssetManager.GetSprite("sspeed32.png"), "TimeIcon");
-            _scrollSpeedSlider.minValue = .05f;
-            _scrollSpeedSlider.maxValue = 2.5f;
-            _scrollSpeedSlider.value = 1f;
+            _scrollSpeedSlider.minValue = BetterScrollSpeedSliderPatcher.options.Min.Value / 100f;
+            _scrollSpeedSlider.maxValue = BetterScrollSpeedSliderPatcher.options.Max.Value / 100f;
+            _scrollSpeedSlider.value = BetterScrollSpeedSliderPatcher.options.LastValue.Value / 100f;
 
             _scrollSpeedSlider.gameObject.SetActive(true);
             _scrollSpeedSlider.transform.localScale = Vector3.one * 1.75f;
-            var sliderText = GameObjectFactory.CreateSingleText(_scrollSpeedSlider.handleRect, "ScrollSpeedSliderText", "100", Color.white);
+            var sliderText = GameObjectFactory.CreateSingleText(_scrollSpeedSlider.handleRect, "ScrollSpeedSliderText", BetterScrollSpeedSliderPatcher.SliderValueToText(_scrollSpeedSlider.value), Color.white);
             sliderText.enableWordWrapping = false;
             sliderText.fontSize = 12;
-            _scrollSpeedSlider.onValueChanged.AddListener((float value) => { sliderText.text = BetterScrollSpeedSliderPatcher.SliderValueToText(value); GlobalVariables.gamescrollspeed = value; });
+            _scrollSpeedSlider.onValueChanged.AddListener((float value) => 
+            { 
+                BetterScrollSpeedSliderPatcher.options.LastValue.Value = value * 100f; 
+                sliderText.text = BetterScrollSpeedSliderPatcher.SliderValueToText(value);
+                GlobalVariables.gamescrollspeed = value;
+            });
 
             SetTextsParameters(_timeText, _bpmText, _gameSpeedText, _modifiersText, _ratingText);
 
@@ -445,9 +453,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _savedGameSpeed = gamespeed;
 
             _songNameText.text = songName;
-            _gameSpeedText.text = $": <b>{gamespeed:0.00}x</b>";
-            _modifiersText.text = $"Mods: <b>{modifiers}</b>";
-            _ratingText.text = $": <b>{difficulty:0.00}</b>";
+            _gameSpeedText.text = $" <b>{gamespeed:0.00}x</b>";
+            _modifiersText.text = $"M <b>{modifiers}</b>";
+            _ratingText.text = $" <b>{difficulty:0.00}</b>";
             _startGameButton.gameObject.SetActive(_isHost);
         }
 
@@ -457,7 +465,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             _songArtistText.text = $"{trackData.artist}";
             _songDescText.text = $"{trackData.desc}";
-            _bpmText.text = $"BPM: <b>{trackData.tempo * _savedGameSpeed}</b>";
+            _bpmText.text = $" <b>{trackData.tempo * _savedGameSpeed}</b>";
 
             if (_savedGameSpeed == 0)
                 _savedGameSpeed = 1;
@@ -466,7 +474,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var time = TimeSpan.FromSeconds(trackData.length / _savedGameSpeed);
             var stringTime = $"{(time.Hours != 0 ? (time.Hours + ":") : "")}{(time.Minutes != 0 ? time.Minutes : "0")}:{(time.Seconds != 0 ? time.Seconds : "00"):00}";
 
-            _timeText.text = $": <b>{stringTime}</b>";
+            _timeText.text = $" <b>{stringTime}</b>";
         }
 
         private bool _isDownloadable;
@@ -478,8 +486,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _startGameButton.gameObject.SetActive(false);
             _songArtistText.text = $"-";
             _songDescText.text = $"-";
-            _bpmText.text = $"BPM: -";
-            _timeText.text = $": -";
+            _bpmText.text = $" -";
+            _timeText.text = $" -";
         }
 
         public void OnUserStateChange(UserState state)

@@ -55,6 +55,7 @@ namespace TootTallyMultiplayer
         private static void SetLiveScorePrefab()
         {
             _liveScorePrefab = GetHorizontalBox(new Vector2(160, 30), null);
+            _liveScorePrefab.GetComponent<Image>().enabled = true;
 
             var group = _liveScorePrefab.AddComponent<CanvasGroup>();
             group.alpha = .75f;
@@ -64,6 +65,7 @@ namespace TootTallyMultiplayer
             var rect = _liveScorePrefab.GetComponent<RectTransform>();
             rect.pivot = rect.anchorMax = rect.anchorMin = new Vector2(1,0);
             var mask = GameObject.Instantiate(_liveScorePrefab, _liveScorePrefab.transform);
+            mask.GetComponent<Image>().enabled = true; 
             mask.name = "Mask";
             mask.AddComponent<LayoutElement>().ignoreLayout = true;
             mask.AddComponent<Mask>().showMaskGraphic = false;
@@ -75,6 +77,7 @@ namespace TootTallyMultiplayer
         private static void SetPointScorePrefab()
         {
             _pointScorePrefab = GetHorizontalBox(new Vector2(200, 30), null);
+            _pointScorePrefab.GetComponent<Image>().enabled = true;
 
             var layout = _pointScorePrefab.GetComponent<HorizontalLayoutGroup>();
             layout.childControlWidth = layout.childForceExpandWidth = false;

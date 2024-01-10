@@ -56,8 +56,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _scrollingHandler.enabled = false;
 
             _lobbyPlayerListText = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, "LobbyDetailInfoText", "", Color.white);
+            _lobbyPlayerListText.rectTransform.sizeDelta = new Vector2(0, 680);
             _lobbyPlayerListText.enableAutoSizing = true;
-            _lobbyPlayerListText.fontSizeMax = 42;
+            _lobbyPlayerListText.fontSizeMax = 32;
             _lobbyPlayerListText.alignment = TextAlignmentOptions.TopLeft;
 
             _pointerExitLobbyContainerEvent = new EventTrigger.Entry();
