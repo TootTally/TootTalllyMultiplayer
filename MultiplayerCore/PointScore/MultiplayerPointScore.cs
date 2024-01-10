@@ -54,12 +54,10 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
             _percentText = GameObjectFactory.CreateSingleText(gameObject.transform, "Percent", "-%", Color.white);
             _percentText.rectTransform.sizeDelta = new Vector2(30, 0);
 
-            var vBox = MultiplayerGameObjectFactory.AddVerticalBox(gameObject.transform);
+            var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), gameObject.transform);
             vBox.GetComponent<Image>().enabled = false;
             var vBoxLayout = vBox.GetComponent<VerticalLayoutGroup>();
             vBoxLayout.childControlHeight = vBoxLayout.childForceExpandHeight = false;
-            var vBoxRect = vBox.GetComponent<RectTransform>();
-            vBoxRect.sizeDelta = new Vector2(60, 0);
             _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-", Color.white);
             _scoreText.rectTransform.sizeDelta = new Vector2(0, 12);
 

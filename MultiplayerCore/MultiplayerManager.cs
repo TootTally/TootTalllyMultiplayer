@@ -70,9 +70,12 @@ namespace TootTallyMultiplayer
         {
             if (!_isLevelSelectInit) return;
 
-            MultiplayerGameObjectFactory.Initialize();
+            __instance.logo_trect.gameObject.SetActive(false);
+            __instance.logo_crect.gameObject.SetActive(false);
 
+            MultiplayerGameObjectFactory.Initialize();
             MultiAudioController.InitMusic();
+
             if (!MultiAudioController.IsMusicLoaded)
                 MultiAudioController.LoadMusic("MultiplayerMusic.mp3", () => MultiAudioController.PlayMusicSoft());
             else if (MultiAudioController.IsPaused)
@@ -104,10 +107,7 @@ namespace TootTallyMultiplayer
             if (Input.GetKeyDown(KeyCode.Escape) && CanPressEscape())
             {
                 if (_state == MultiplayerController.MultiplayerState.Home)
-                {
-                    if (AllowExit) //Just skip changing state if now allow, but still enter this bracket
-                        UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
-                }
+                    ExitMultiplayer();
                 else if (_state == MultiplayerController.MultiplayerState.Lobby)
                     _multiController.DisconnectFromLobby();
                 else
@@ -539,6 +539,12 @@ namespace TootTallyMultiplayer
         #endregion
 
         #region MultiplayerState
+        public static void ExitMultiplayer()
+        {
+            if (!AllowExit) return;
+            UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
+        }
+
         public static void UpdateMultiplayerState(MultiplayerController.MultiplayerState newState)
         {
             _previousState = _state;

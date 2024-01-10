@@ -79,12 +79,10 @@ namespace TootTallyMultiplayer.MultiplayerCore
             _nameText = GameObjectFactory.CreateSingleText(transform, "Name", "Unknown", Color.white);
             _nameText.rectTransform.sizeDelta = new Vector2(66, 0);
 
-            var vBox = MultiplayerGameObjectFactory.AddVerticalBox(transform);
+            var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), transform);
             vBox.GetComponent<Image>().enabled = false;
             var vBoxLayout = vBox.GetComponent<VerticalLayoutGroup>();
             vBoxLayout.childControlHeight = vBoxLayout.childForceExpandHeight = false;
-            var vBoxRect = vBox.GetComponent<RectTransform>();
-            vBoxRect.sizeDelta = new Vector2(60, 0);
             _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-", Color.white);
             _scoreText.rectTransform.sizeDelta = new Vector2(0, 12);
 

@@ -66,10 +66,35 @@ namespace TootTallyMultiplayer
 
             var canvas = GameObject.Instantiate(AssetBundleManager.GetPrefab("multiplayercanvas"));
 
-            _multMainPanel = new MultiplayerMainPanel(canvas, this);
-            _multLobbyPanel = new MultiplayerLobbyPanel(canvas, this);
-            _multCreatePanel = new MultiplayerCreatePanel(canvas, this);
+            try
+            {
+                _multMainPanel = new MultiplayerMainPanel(canvas, this);
+            }
+            catch (Exception e)
+            {
+                Plugin.LogError(e.Message);
+                Plugin.LogError(e.StackTrace);
+            }
 
+            try
+            {
+                _multLobbyPanel = new MultiplayerLobbyPanel(canvas, this);
+            }
+            catch (Exception e)
+            {
+                Plugin.LogError(e.Message);
+                Plugin.LogError(e.StackTrace);
+            }
+
+            try
+            {
+                _multCreatePanel = new MultiplayerCreatePanel(canvas, this);
+            }
+            catch (Exception e)
+            {
+                Plugin.LogError(e.Message);
+                Plugin.LogError(e.StackTrace);
+            }
             _lobbyInfoList ??= new List<MultiplayerLobbyInfo>();
             _currentActivePanel = _multMainPanel;
 
