@@ -176,6 +176,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 _slider.value = 0;
             }
             _scrollingHandler.enabled = enableScrolling;
+            center.transform.Find("Left").GetComponent<HorizontalLayoutGroup>().enabled = enableScrolling; //only need this to initialize, else it causes scrolling bugs
             _scrollingHandler.accelerationMult = enableScrolling ? 16f / lobbyCount : 1f;
 
             if (_previousLobbyCount != 0 && _slider.value != 0 && enableScrolling)

@@ -56,6 +56,8 @@ namespace TootTallyMultiplayer
         public bool IsConnected => _multiConnection != null && _multiConnection.IsConnected;
         public bool IsAnybodyLoading => _currentLobby.players.Where(x => x.id != TootTallyUser.userInfo.id).Any(x => x.state == "Loading");
 
+        public bool IsRequestPending => _multCreatePanel.IsRequestPending || IsConnectionPending;
+
         public MultiplayerController(PlaytestAnims __instance)
         {
             CurrentInstance = __instance;
@@ -329,7 +331,7 @@ namespace TootTallyMultiplayer
             UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
 
             var optionalTrack = TrackLookup.tryLookup(songInfo.trackRef);
-            _hasSong = OptionModule.IsSome(optionalTrack);
+            _hasSong = songInfo.trackRef != "" && OptionModule.IsSome(optionalTrack);
 
             if (_hasSong)
             {

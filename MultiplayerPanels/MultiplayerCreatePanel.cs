@@ -14,7 +14,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private TMP_InputField _lobbyName, _lobbyDescription, _lobbyPassword, _lobbyMaxPlayer;
 
-        private bool _requestPending;
+        public bool IsRequestPending;
         public MultiplayerCreatePanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "CreateLayout")
         {
             panel.transform.localPosition = new Vector2(0, 2000);
@@ -34,8 +34,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private void OnBackButtonClick()
         {
+            if (controller.IsRequestPending) return;
+
             controller.MoveToMain();
             MultiplayerManager.UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
+
+
         }
 
         private bool ValidateInput()
@@ -54,7 +58,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 TootTallyNotifManager.DisplayNotif("Lobby name has to be\nshorter than 32 characters");
             }
 
-            if (_lobbyDescription.text.Length > 100) 
+            if (_lobbyDescription.text.Length > 100)
             {
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("Description has to be\nshorter than 32 characters");
@@ -71,9 +75,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private void OnCreateButtonClick()
         {
-            if (_requestPending || !ValidateInput() || controller.IsConnected || controller.IsConnectionPending) return;
+            if (IsRequestPending || !ValidateInput() || controller.IsConnected || controller.IsConnectionPending) return;
 
-            _requestPending = true;
+            IsRequestPending = true;
             TootTallyNotifManager.DisplayNotif("Creating lobby...");
             Plugin.Instance.StartCoroutine(MultiplayerAPIService.CreateMultiplayerServerRequest(_lobbyName.text, _lobbyDescription.text, _lobbyPassword.text, int.Parse(_lobbyMaxPlayer.text), serverCode =>
             {
@@ -82,7 +86,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     Plugin.LogInfo(serverCode);
                     controller.ConnectToLobby(serverCode);
                 }
-                _requestPending = false;
+                else
+                    TootTallyNotifManager.DisplayNotif("Lobby creation failed.");
+                IsRequestPending = false;
             }));
         }
     }

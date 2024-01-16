@@ -61,7 +61,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             panel.transform.localPosition = new Vector2(2000, 0);
             lobbyUserContainer = center.transform.Find("Left/UserContainer").gameObject;
-            center.transform.Find("Left").GetComponent<HorizontalLayoutGroup>().enabled = false; //only need this to initialize, else it causes scrolling bugs
 
             rightPanel = center.transform.Find("Right").gameObject;
             rightPanelContainer = rightPanel.transform.Find("InfoContainer").gameObject;

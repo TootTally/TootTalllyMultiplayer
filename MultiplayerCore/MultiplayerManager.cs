@@ -13,6 +13,7 @@ using TootTallyLeaderboard;
 using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
 using TootTallyMultiplayer.MultiplayerCore;
+using TootTallySpectator;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -52,6 +53,8 @@ namespace TootTallyMultiplayer
         [HarmonyPrefix]
         public static bool OnStartPrefixLoadLevelSelectIfNotInit(PlaytestAnims __instance)
         {
+            if (SpectatingManager.IsSpectating) SpectatingManager.StopAllSpectator();
+
             _currentInstance = __instance;
             if (!_isLevelSelectInit)
             {
@@ -69,6 +72,8 @@ namespace TootTallyMultiplayer
         public static void ChangePlayTestToMultiplayerScreen(PlaytestAnims __instance)
         {
             if (!_isLevelSelectInit) return;
+
+            Camera.main.transform.localPosition = Vector3.zero;
 
             __instance.logo_trect.gameObject.SetActive(false);
             __instance.logo_crect.gameObject.SetActive(false);
@@ -125,6 +130,7 @@ namespace TootTallyMultiplayer
         }
 
         private static bool CanPressEscape() => !_multiController.IsTransitioning
+                && !_multiController.IsRequestPending
                 && _state != MultiplayerController.MultiplayerState.ExitScene
                 && _state != MultiplayerController.MultiplayerState.SelectSong
                 && _state != MultiplayerController.MultiplayerState.Playing
@@ -534,6 +540,21 @@ namespace TootTallyMultiplayer
             });
 
             return false;
+        }
+
+        #endregion
+
+        #region SpectatorPatches
+        [HarmonyPatch(typeof(SpectatingManager), nameof(SpectatingManager.OnSpectateButtonPress))]
+        [HarmonyPrefix]
+        public static bool PreventSpectatingWhileInMultiplayer()
+        {
+            if (IsPlayingMultiplayer || IsConnectedToMultiplayer || _isSceneActive)
+            {
+                TootTallyNotifManager.DisplayNotif("Cannot spectate someone while in multiplayer.");
+                return false;
+            }
+            return true;
         }
 
         #endregion
