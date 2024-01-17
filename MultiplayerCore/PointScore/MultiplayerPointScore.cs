@@ -11,6 +11,8 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
     {
         private TMP_Text _positionText, _nameText, _percentText, _scoreText, _maxComboText;
 
+        private Image _outlineImage;
+
         private string _name;
         private int _id, _score, _maxCombo, _position, _count;
         private float _percent;
@@ -26,11 +28,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
         {
             _id = id;
             if (_IsSelf)
-            {
-                var outline = gameObject.AddComponent<Outline>();
-                outline.effectDistance = Vector2.one * 2f;
-                outline.effectColor = new Color(.2f, .2f, .2f);
-            }
+                _outlineImage.color = new Color(.95f, .2f, .95f, .5f);
             _name = name;
             _score = score;
             _percent = percent;
@@ -45,19 +43,23 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
 
         public void Awake()
         {
-            _positionText = GameObjectFactory.CreateSingleText(gameObject.transform, "Position", "#-", Color.white);
+            var container = transform.GetChild(0);
+            _outlineImage = GetComponent<Image>();
+
+            _positionText = GameObjectFactory.CreateSingleText(container, "Position", "#-", Color.white);
             _positionText.rectTransform.sizeDelta = new Vector2(18, 0);
 
-            _nameText = GameObjectFactory.CreateSingleText(gameObject.transform, "Name", "Unknown", Color.white);
+            _nameText = GameObjectFactory.CreateSingleText(container, "Name", "Unknown", Color.white);
             _nameText.rectTransform.sizeDelta = new Vector2(66, 0);
 
-            _percentText = GameObjectFactory.CreateSingleText(gameObject.transform, "Percent", "-%", Color.white);
+            _percentText = GameObjectFactory.CreateSingleText(container, "Percent", "-%", Color.white);
             _percentText.rectTransform.sizeDelta = new Vector2(30, 0);
 
-            var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), gameObject.transform);
+            var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), container);
             vBox.GetComponent<Image>().enabled = false;
             var vBoxLayout = vBox.GetComponent<VerticalLayoutGroup>();
-            vBoxLayout.childControlHeight = vBoxLayout.childForceExpandHeight = false;
+            vBoxLayout.childForceExpandHeight = false;
+            vBoxLayout.childControlHeight = true;
             _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-", Color.white);
             _scoreText.rectTransform.sizeDelta = new Vector2(0, 12);
 

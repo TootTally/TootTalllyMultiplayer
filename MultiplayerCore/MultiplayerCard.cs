@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,20 +18,28 @@ namespace TootTallyMultiplayer
         public MultiplayerUserInfo user;
         public TMP_Text textName, textState, textRank;
         public Image image;
-        private Color _defaultColor;
+        public Image containerImage;
+        public Transform container;
+        private Color _defaultColor, _defaultContainerColor;
 
         public void InitTexts()
         {
-            textName = transform.Find("Name").GetComponent<TMP_Text>();
-            textState = transform.Find("State").GetComponent<TMP_Text>();
-            textRank = transform.Find("Rank").GetComponent<TMP_Text>();
+            container = transform.GetChild(0);
+            textName = container.Find("Name").GetComponent<TMP_Text>();
+            textState = container.Find("State").GetComponent<TMP_Text>();
+            textRank = container.Find("Rank").GetComponent<TMP_Text>();
+
             image = gameObject.GetComponent<Image>();
             _defaultColor = image.color;
+
+            containerImage = container.GetComponent<Image>();
+            _defaultContainerColor = containerImage.color;
         }
 
         public void ResetImageColor()
         {
             image.color = _defaultColor;
+            containerImage.color = _defaultContainerColor;
         }
 
         public void UpdateUserInfo(MultiplayerUserInfo user, string state = null)

@@ -21,7 +21,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
         private TMP_Text _positionText, _nameText, _scoreText, _comboText;
         private TootTallyAnimation _positionAnimation;
         private GameObject _rainbowMask;
-        private Image _rainbow1, _rainbow2;
+        private Image _rainbow1, _rainbow2, _outlineImage;
         private RectTransform _rainbowMaskRect;
         private CanvasGroup _canvasGroup;
         private int _lastTween;
@@ -37,12 +37,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
         {
             _id = id;
             if (_IsSelf)
-            {
-                var outline = gameObject.AddComponent<Outline>();
-                outline.effectDistance = Vector2.one * 2f;
-                outline.effectColor = new Color(.2f, .2f, .2f);
-            }
-
+                _outlineImage.color = new Color(.95f, .2f, .95f, .5f);
             _name = name;
             _controller = controller;
         }
@@ -50,11 +45,13 @@ namespace TootTallyMultiplayer.MultiplayerCore
         public void Awake()
         {
             _lastTween = 0;
-            _rainbowMask = transform.Find("Mask").gameObject;
+            var container = transform.GetChild(0);
+            _rainbowMask = container.Find("Mask").gameObject;
             _rainbowMaskRect = _rainbowMask.GetComponent<RectTransform>();
             _rainbowMaskRect.anchorMin = _rainbowMaskRect.anchorMax = _rainbowMaskRect.pivot = new Vector2(0, 1);
 
             _canvasGroup = GetComponent<CanvasGroup>();
+            _outlineImage = GetComponent<Image>();
 
             var rainbowHolder1 = GameObjectFactory.CreateImageHolder(_rainbowMask.transform, Vector2.zero, new Vector2(180, 60), AssetManager.GetSprite("rainbow.png"), "Rainbow1");
             var rect = rainbowHolder1.GetComponent<RectTransform>();
@@ -73,16 +70,14 @@ namespace TootTallyMultiplayer.MultiplayerCore
             LeanTween.moveLocalX(rainbowHolder1, 0, 2).setLoopClamp();
             LeanTween.moveLocalX(rainbowHolder2, 180, 2).setLoopClamp();
 
-            _positionText = GameObjectFactory.CreateSingleText(transform, "Position", "#-", Color.white);
+            _positionText = GameObjectFactory.CreateSingleText(container, "Position", "#-", Color.white);
             _positionText.rectTransform.sizeDelta = new Vector2(18, 0);
 
-            _nameText = GameObjectFactory.CreateSingleText(transform, "Name", "Unknown", Color.white);
+            _nameText = GameObjectFactory.CreateSingleText(container, "Name", "Unknown", Color.white);
             _nameText.rectTransform.sizeDelta = new Vector2(66, 0);
 
-            var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), transform);
+            var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), container);
             vBox.GetComponent<Image>().enabled = false;
-            var vBoxLayout = vBox.GetComponent<VerticalLayoutGroup>();
-            vBoxLayout.childControlHeight = vBoxLayout.childForceExpandHeight = false;
             _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-", Color.white);
             _scoreText.rectTransform.sizeDelta = new Vector2(0, 12);
 

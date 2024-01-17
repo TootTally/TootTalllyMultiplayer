@@ -97,6 +97,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             //Menu when clicking on user pfp
             _dropdownMenu = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(300, 180), panel.transform);
+            _dropdownMenu = MultiplayerGameObjectFactory.GetBorderedVerticalBox(new Vector2(300, 180), 5, panel.transform);
             var dropdownLayout = _dropdownMenu.GetComponent<VerticalLayoutGroup>();
             _dropdownMenu.GetComponent<Image>().enabled = true;
             dropdownLayout.childControlHeight = dropdownLayout.childForceExpandHeight = true;
@@ -271,8 +272,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform);
             _userCardsDict.Add(user.id, userCard);
 
-            var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.transform, Vector2.zero, new Vector2(100, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
+            var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.container, Vector2.zero, new Vector2(100, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
             imageHolder.transform.localPosition = new Vector3(-305, 0, 0);
+            imageHolder.transform.localScale = Vector2.one * .9f;
             imageHolder.transform.SetAsFirstSibling();
             AssetManager.GetProfilePictureByID(user.id, sprite =>
             {
@@ -299,13 +301,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             userCard.UpdateUserInfo(user, displayedState);
 
-            var outline = userCard.GetComponent<Outline>();
 
             _readyCount = _userCardsDict.Values.Where(x => x.user.state == "Ready" && !IsSelf(x.user.id)).Count() + 1;
 
             var color = UserStateToColor(userState);
-            GameObjectFactory.TintImage(userCard.GetComponent<Image>(), color, .2f);
-            outline.effectColor = color;
+            GameObjectFactory.TintImage(userCard.container.GetComponent<Image>(), color, .2f);
+            userCard.image.color = color;
 
             if (_isHost)
                 if (_readyCount == _userCardsDict.Count)

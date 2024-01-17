@@ -4,9 +4,7 @@ using TootTallyCore.Graphics;
 using TootTallyCore.Utils.Assets;
 using TootTallySettings.TootTallySettingsObjects;
 using UnityEngine;
-using UnityEngine.TextCore;
 using UnityEngine.UI;
-using static TootTallyCore.APIServices.SerializableClass;
 
 namespace TootTallyMultiplayer
 {
@@ -30,42 +28,39 @@ namespace TootTallyMultiplayer
 
         private static void SetUserCardPrefab()
         {
-            _userCardPrefab = GameObject.Instantiate(GetHorizontalBox(new Vector2(705, 75)));
-            var horizontalLayout = _userCardPrefab.GetComponent<HorizontalLayoutGroup>();
+            _userCardPrefab = GameObject.Instantiate(GetBorderedHorizontalBox(new Vector2(700, 72), 3));
+            var container = _userCardPrefab.transform.GetChild(0).gameObject;
+            var horizontalLayout = container.GetComponent<HorizontalLayoutGroup>();
             horizontalLayout.childAlignment = TextAnchor.MiddleLeft;
-            horizontalLayout.childControlHeight = horizontalLayout.childControlWidth = false;
+            horizontalLayout.childControlWidth = false;
             horizontalLayout.childForceExpandHeight = horizontalLayout.childForceExpandWidth = false;
 
-            _userCardPrefab.GetComponent<Image>().enabled = true;
-
-            var textName = GameObjectFactory.CreateSingleText(_userCardPrefab.transform, $"Name", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
+            var textName = GameObjectFactory.CreateSingleText(container.transform, $"Name", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
             textName.alignment = TextAlignmentOptions.Left;
 
-            var textState = GameObjectFactory.CreateSingleText(_userCardPrefab.transform, $"State", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
+            var textState = GameObjectFactory.CreateSingleText(container.transform, $"State", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
             textState.alignment = TextAlignmentOptions.Right;
 
-            var textRank = GameObjectFactory.CreateSingleText(_userCardPrefab.transform, $"Rank", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
+            var textRank = GameObjectFactory.CreateSingleText(container.transform, $"Rank", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
             textRank.alignment = TextAlignmentOptions.Right;
 
-            var outline = _userCardPrefab.gameObject.AddComponent<Outline>();
-            outline.effectDistance = Vector2.one * 3f;
             GameObject.DontDestroyOnLoad(_userCardPrefab);
         }
 
         private static void SetLiveScorePrefab()
         {
-            _liveScorePrefab = GetHorizontalBox(new Vector2(160, 30), null);
-            _liveScorePrefab.GetComponent<Image>().enabled = true;
+            _liveScorePrefab = GetBorderedHorizontalBox(new Vector2(160, 28), 2);
 
             var group = _liveScorePrefab.AddComponent<CanvasGroup>();
             group.alpha = .75f;
 
-            var layout = _liveScorePrefab.GetComponent<HorizontalLayoutGroup>();
+            var container = _liveScorePrefab.transform.GetChild(0).gameObject;
+
+            var layout = container.GetComponent<HorizontalLayoutGroup>();
             layout.childControlWidth = layout.childForceExpandWidth = false;
             var rect = _liveScorePrefab.GetComponent<RectTransform>();
             rect.pivot = rect.anchorMax = rect.anchorMin = new Vector2(1,0);
-            var mask = GameObject.Instantiate(_liveScorePrefab, _liveScorePrefab.transform);
-            mask.GetComponent<Image>().enabled = true; 
+            var mask = GameObject.Instantiate(container, container.transform);
             mask.name = "Mask";
             mask.AddComponent<LayoutElement>().ignoreLayout = true;
             mask.AddComponent<Mask>().showMaskGraphic = false;
@@ -76,10 +71,11 @@ namespace TootTallyMultiplayer
 
         private static void SetPointScorePrefab()
         {
-            _pointScorePrefab = GetHorizontalBox(new Vector2(200, 30), null);
-            _pointScorePrefab.GetComponent<Image>().enabled = true;
+            _pointScorePrefab = GetBorderedHorizontalBox(new Vector2(200, 28), 2);
 
-            var layout = _pointScorePrefab.GetComponent<HorizontalLayoutGroup>();
+            var container = _pointScorePrefab.transform.GetChild(0).gameObject;
+
+            var layout = container.GetComponent<HorizontalLayoutGroup>();
             layout.childControlWidth = layout.childForceExpandWidth = false;
             var rect = _pointScorePrefab.GetComponent<RectTransform>();
             rect.pivot = new Vector2(0,1);
@@ -175,6 +171,22 @@ namespace TootTallyMultiplayer
         {
             var box = GameObject.Instantiate(AssetBundleManager.GetPrefab("horizontalbox"), parent);
             box.GetComponent<RectTransform>().sizeDelta = size;
+            return box;
+        }
+
+        public static GameObject GetBorderedVerticalBox(Vector2 size, int bordersize, Transform parent = null)
+        {
+            var box = GameObject.Instantiate(AssetBundleManager.GetPrefab("borderedverticalbox"), parent);
+            box.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(bordersize, bordersize, bordersize, bordersize);
+            box.GetComponent<RectTransform>().sizeDelta = size + (Vector2.one * 2f * bordersize);
+            return box;
+        }
+
+        public static GameObject GetBorderedHorizontalBox(Vector2 size, int bordersize, Transform parent = null)
+        {
+            var box = GameObject.Instantiate(AssetBundleManager.GetPrefab("borderedhorizontalbox"), parent);
+            box.GetComponent<HorizontalLayoutGroup>().padding = new RectOffset(bordersize, bordersize, bordersize, bordersize);
+            box.GetComponent<RectTransform>().sizeDelta = size + (Vector2.one * 2f * bordersize);
             return box;
         }
     }
