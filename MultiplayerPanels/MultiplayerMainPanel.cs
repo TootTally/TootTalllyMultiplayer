@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
+using TootTallyCore.Utils.Assets;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,8 +14,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 {
     public class MultiplayerMainPanel : MultiplayerPanelBase
     {
-        public GameObject topPanelContainer;
-        public GameObject lobbyListContainer, lobbyInfoContainer, lobbyConnectContainer;
+        public GameObject lobbyListContainer, lobbyInfoContainer;
         private List<GameObject> _lobbyInfoRowsList;
         private Dictionary<string, int> _savedCodeToPing;
         private string _lastSelectedLobby;
@@ -34,30 +34,20 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private static GameObject _selectedLobbyContainer;
         private static float _previousLobbyCount;
 
-        public MultiplayerMainPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "MainPanel")
+        public MultiplayerMainPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "MainLayout")
         {
-            topPanelContainer = panelFG.transform.Find("TopMain/TopMainContainer").gameObject;
-            lobbyListContainer = panelFG.transform.Find("BottomMain/LeftPanel/LeftPanelContainer").gameObject;
-            lobbyInfoContainer = panelFG.transform.Find("BottomMain/RightPanel/TopContainer").gameObject;
-            lobbyConnectContainer = panelFG.transform.Find("BottomMain/RightPanel/BottomContainer").gameObject;
-
-            panel.transform.localScale = Vector2.zero;
+            lobbyListContainer = center.transform.Find("Left/LobbyContainer").gameObject;
+            lobbyInfoContainer = center.transform.Find("Right/InfoContainer").gameObject;
 
             _lobbyInfoRowsList = new List<GameObject>();
             _savedCodeToPing = new Dictionary<string, int>();
 
-            panelFG.transform.Find("BottomMain/LeftPanel").GetComponent<Image>().color = new Color(0,0,0, .01f);
+            GameObjectFactory.CreateClickableImageHolder(headerLeft.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("gtfo.png"), "LobbyBackButton", MultiplayerManager.ExitMultiplayer);
 
-            var connectLayout = lobbyConnectContainer.GetComponent<VerticalLayoutGroup>();
-            connectLayout.childControlHeight = connectLayout.childControlWidth = false;
-            connectLayout.childAlignment = TextAnchor.MiddleCenter;
-
-            var titleText = GameObjectFactory.CreateSingleText(topPanelContainer.transform, "TitleText", "TootTally Multiplayer", Color.white);
+            var titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "TootTally Multiplayer", Color.white);
             titleText.enableAutoSizing = true;
-            titleText.alignment = TextAlignmentOptions.Left;
-            var serverText = GameObjectFactory.CreateSingleText(topPanelContainer.transform, "ServerText", "Server: Toronto", Color.white);
-            serverText.enableAutoSizing = true;
-            serverText.alignment = TextAlignmentOptions.Right;
+            var serverText = GameObjectFactory.CreateSingleText(headerRight.transform, "ServerText", "Server: Toronto", Color.white);
+            serverText.fontSize = 40;
 
             _slider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _slider.gameObject.SetActive(true);
@@ -66,18 +56,19 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _scrollingHandler.enabled = false;
 
             _lobbyPlayerListText = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, "LobbyDetailInfoText", "", Color.white);
+            _lobbyPlayerListText.rectTransform.sizeDelta = new Vector2(0, 680);
             _lobbyPlayerListText.enableAutoSizing = true;
-            _lobbyPlayerListText.fontSizeMax = 42;
+            _lobbyPlayerListText.fontSizeMax = 32;
             _lobbyPlayerListText.alignment = TextAlignmentOptions.TopLeft;
 
             _pointerExitLobbyContainerEvent = new EventTrigger.Entry();
             _pointerExitLobbyContainerEvent.eventID = EventTriggerType.PointerExit;
             _pointerExitLobbyContainerEvent.callback.AddListener((data) => OnMouseExitClearLobbyDetails());
 
-            _createLobbyButton = GameObjectFactory.CreateCustomButton(lobbyConnectContainer.transform, Vector2.zero, new Vector2(150, 75), "Create", "LobbyCreateButton", OnCreateLobbyButtonClick);
-            _refreshLobbyButton = GameObjectFactory.CreateCustomButton(lobbyConnectContainer.transform, Vector2.zero, new Vector2(150, 75), "Refresh", "RefreshLobbyButton", OnRefreshLobbyButtonClick);
+            _createLobbyButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Create", "LobbyCreateButton", OnCreateLobbyButtonClick);
+            _refreshLobbyButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Refresh", "RefreshLobbyButton", OnRefreshLobbyButtonClick);
 
-            _connectButton = GameObjectFactory.CreateCustomButton(lobbyConnectContainer.transform, Vector2.zero, new Vector2(150, 75), "Connect", "LobbyConnectButton", OnConnectButtonClick);
+            _connectButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Connect", "LobbyConnectButton", OnConnectButtonClick);
             _connectButton.gameObject.SetActive(false);
         }
 
@@ -92,9 +83,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void DisplayLobby(MultiplayerLobbyInfo lobbyInfo, bool shouldAnimate)
         {
-            var lobbyContainer = MultiplayerGameObjectFactory.AddHorizontalBox(lobbyListContainer.transform);
-            lobbyContainer.GetComponent<Image>().color = new Color(0, 1, 0, 1);
-            lobbyContainer.GetComponent<HorizontalLayoutGroup>().spacing = -10; //removes the gap between the two other containers
+            var lobbyContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0,120), lobbyListContainer.transform);
+            lobbyContainer.GetComponent<Image>().enabled = true;
             _lobbyInfoRowsList.Add(lobbyContainer);
             var button = lobbyContainer.AddComponent<EventTrigger>();
 
@@ -109,11 +99,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             button.triggers.Add(pointerClickEvent);
 
             button.triggers.Add(_pointerExitLobbyContainerEvent);
-            var test = MultiplayerGameObjectFactory.AddVerticalBox(lobbyContainer.transform);
+            var test = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(590, 0), lobbyContainer.transform);
+            var tLayout = test.GetComponent<VerticalLayoutGroup>();
+            tLayout.childForceExpandHeight = tLayout.childControlHeight = true;
 
             var t1 = GameObjectFactory.CreateSingleText(test.transform, "LobbyName", lobbyInfo.title, Color.white);
             t1.fontStyle = FontStyles.Bold;
-            t1.fontSizeMax = 64; t1.fontSizeMin = 32;
+            t1.fontSize = 28;
 
             var t2 = GameObjectFactory.CreateSingleText(test.transform, "LobbyState", lobbyInfo.state, Color.white);
             if (lobbyInfo.state == "Playing")
@@ -121,12 +113,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             t2.fontSizeMax = 36; t2.fontSizeMin = 18;
 
             t1.alignment = t2.alignment = TextAlignmentOptions.Left;
-            t1.enableAutoSizing = t2.enableAutoSizing = true;
 
             /*if (lobbyInfo.password != null)
                 GameObjectFactory.CreateImageHolder(lobbyContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("lock.png"), "LockedLobbyIcon");*/
 
-            var test2 = MultiplayerGameObjectFactory.AddVerticalBox(lobbyContainer.transform);
+            var test2 = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(590, 0), lobbyContainer.transform);
+            var t2Layout = test2.GetComponent<VerticalLayoutGroup>();
+            t2Layout.childForceExpandHeight = t2Layout.childControlHeight = true;
 
             var t3 = GameObjectFactory.CreateSingleText(test2.transform, "LobbyCount", $"{lobbyInfo.players.Count}/{lobbyInfo.maxPlayerCount}", Color.white);
             t3.fontSize = 32;
@@ -137,11 +130,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             if (shouldAnimate)
             {
-                lobbyContainer.transform.eulerAngles = new Vector3(270, 25, 0);
-                TootTallyAnimationManager.AddNewEulerAngleAnimation(lobbyContainer, new Vector3(25, 25, 0), 2f, new SecondDegreeDynamicsAnimation(1.25f, 1f, 1f));
+                lobbyContainer.transform.eulerAngles = new Vector3(270, 0, 0);
+                TootTallyAnimationManager.AddNewEulerAngleAnimation(lobbyContainer, Vector3.zero, 2f, new SecondDegreeDynamicsAnimation(1.25f, 1f, 1f));
             }
-            else
-                lobbyContainer.transform.eulerAngles = new Vector3(25, 25, 0);
 
             if (_lastSelectedLobby == lobbyInfo.id)
                 OnMouseClickSelectLobby(lobbyInfo, lobbyContainer, false);
@@ -167,24 +158,25 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             callback(pingSender.time);
         }
 
-        private float _posYJumpValue = 105f;
-        private float _posYOffset = -440f;
+        private float _posYJumpValue = 125f;
+        private float _posYOffset = 0f;
 
         public void OnSliderValueChangeScrollContainer(float value)
         {
             var gridPanelRect = lobbyListContainer.GetComponent<RectTransform>();
-            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, value * (_lobbyInfoRowsList.Count - 7f) * _posYJumpValue + _posYOffset);
+            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, value * (_lobbyInfoRowsList.Count - 5f) * _posYJumpValue + _posYOffset);
         }
 
         public void UpdateScrolling(int lobbyCount)
         {
-            var enableScrolling = lobbyCount > 7;
+            var enableScrolling = lobbyCount > 4;
             if (!enableScrolling && _scrollingHandler.enabled)
             {
                 _scrollingHandler.ResetAcceleration();
                 _slider.value = 0;
             }
             _scrollingHandler.enabled = enableScrolling;
+            center.transform.Find("Left").GetComponent<HorizontalLayoutGroup>().enabled = enableScrolling; //only need this to initialize, else it causes scrolling bugs
             _scrollingHandler.accelerationMult = enableScrolling ? 16f / lobbyCount : 1f;
 
             if (_previousLobbyCount != 0 && _slider.value != 0 && enableScrolling)
@@ -202,7 +194,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             {
                 controller.GetInstance.sfx_hover.Play();
                 _hoveredLobbyContainer = lobbyContainer;
-                _hoveredLobbyContainer.GetComponent<Image>().color = new Color(.8f, .8f, .95f);
+                _hoveredLobbyContainer.GetComponent<Image>().color = new Color(.15f, .15f, .15f, .58f);
             }
 
         }
@@ -215,7 +207,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 _lobbyPlayerListText.text = "";
 
             if (_hoveredLobbyContainer != null)
-                _hoveredLobbyContainer.GetComponent<Image>().color = new Color(0, 1f, 0f);
+                _hoveredLobbyContainer.GetComponent<Image>().color = new Color(0, 0, 0, .58f);
             _hoveredLobbyContainer = null;
         }
 
@@ -224,13 +216,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_selectedLobby == lobbyInfo) return;
 
             if (_selectedLobbyContainer != null)
-                _selectedLobbyContainer.GetComponent<Image>().color = new Color(0, 1f, 0f);
+                _selectedLobbyContainer.GetComponent<Image>().color = new Color(0, 0, 0, .58f);
 
             _selectedLobby = lobbyInfo;
             _lastSelectedLobby = lobbyInfo.id;
             _selectedLobbyContainer = lobbyContainer;
 
-            _selectedLobbyContainer.GetComponent<Image>().color = new Color(1f, 0f, 0f);
+            _selectedLobbyContainer.GetComponent<Image>().color = new Color(0, .35f, 0, .58f);
             _hoveredLobbyContainer = null;
 
             _connectButtonScaleAnimation?.Dispose();

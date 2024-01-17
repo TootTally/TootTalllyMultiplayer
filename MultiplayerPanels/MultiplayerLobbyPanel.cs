@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,18 +18,21 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 {
     public class MultiplayerLobbyPanel : MultiplayerPanelBase
     {
-        public GameObject lobbyUserContainer, rightPanelContainer, rightPanelContainerBox;
-        public GameObject bottomPanelContainer;
+        public GameObject lobbyUserContainer, rightPanel, rightPanelContainer, middlePanel;
+        public GameObject titleContainer, songDescContainer, buttonContainer;
+        public GameObject songInfoContainer, songInfoTop, songInfoBottom;
 
         private GameObject _quickChatContainer;
 
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
-        private CustomButton _selectSongButton, _lobbySettingsButton, _startGameButton, _readyUpButton;
+        private CustomButton _selectSongButton, _startGameButton, _readyUpButton;
         private CustomButton _profileButton, _giveHostButton, _kickButton;
 
-        private TMP_Text _titleText, _maxPlayerText, _hostText, _songNameText, _songArtistText, _timeText,
-            _songDescText, _genreText, _bpmText, _gameSpeedText, _yearText, _modifiersText, _ratingText;
+        private GameObject _lobbySettingButton;
+
+        private TMP_Text _titleText, _maxPlayerText, _songNameText, _songArtistText, _timeText,
+            _songDescText, _bpmText, _gameSpeedText, _modifiersText, _ratingText;
 
         private ProgressBar _downloadProgressBar;
 
@@ -53,23 +57,27 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private UserState _userState;
         private int _quickChatPageIndex;
 
-        public MultiplayerLobbyPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "LobbyPanel")
+        public MultiplayerLobbyPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "LobbyLayout")
         {
-            lobbyUserContainer = panelFG.transform.Find("TopMain/LeftPanel/LeftPanelContainer").gameObject;
+            panel.transform.localPosition = new Vector2(2000, 0);
+            lobbyUserContainer = center.transform.Find("Left/UserContainer").gameObject;
 
-            rightPanelContainer = panelFG.transform.Find("TopMain/RightPanel/RightPanelContainer").gameObject;
-            rightPanelContainerBox = rightPanelContainer.transform.Find("ContainerBoxVertical").gameObject;
-            bottomPanelContainer = panelFG.transform.Find("BottomMain/BottomMainContainer").gameObject;
+            rightPanel = center.transform.Find("Right").gameObject;
+            rightPanelContainer = rightPanel.transform.Find("InfoContainer").gameObject;
 
-            lobbyUserContainer.transform.parent.GetComponent<Image>().color = Color.black;
-            lobbyUserContainer.GetComponent<VerticalLayoutGroup>().spacing = 8;
+            middlePanel = center.transform.Find("Middle").gameObject;
 
-            _quickChatContainer = MultiplayerGameObjectFactory.AddHorizontalBox(panelFG.transform);
+            titleContainer = rightPanelContainer.transform.GetChild(0).gameObject;
+
+            songInfoContainer = rightPanelContainer.transform.GetChild(1).gameObject;
+            songInfoTop = songInfoContainer.transform.GetChild(0).gameObject;
+            songInfoBottom = songInfoContainer.transform.GetChild(1).gameObject;
+
+            songDescContainer = rightPanelContainer.transform.GetChild(2).gameObject;
+            buttonContainer = rightPanelContainer.transform.GetChild(3).gameObject;
+
+            _quickChatContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(64, 64), middlePanel.transform);
             _quickChatContainer.name = "QuickChat";
-            _quickChatContainer.AddComponent<LayoutElement>().ignoreLayout = true;
-            var quickChatRect = _quickChatContainer.GetComponent<RectTransform>();
-            quickChatRect.anchorMin = quickChatRect.anchorMax = new Vector2(.5f, .95f);
-            quickChatRect.sizeDelta = new Vector2(64, 64);
 
             GameObjectFactory.CreateCustomButton(_quickChatContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
 
@@ -79,17 +87,20 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _scrollingHandler = _hiddenUserCardSlider.gameObject.AddComponent<ScrollableSliderHandler>();
             _scrollingHandler.enabled = false;
 
-            rightPanelContainer.transform.parent.GetComponent<Image>().color = Color.black;
-            rightPanelContainerBox.GetComponent<Image>().color = new Color(0, 1, 0);
-
             _userCardsDict = new Dictionary<int, MultiplayerCard>();
 
-            GameObjectFactory.CreateCustomButton(bottomPanelContainer.transform, Vector2.zero, new Vector2(150, 75), "Back", "LobbyBackButton", OnBackButtonClick);
-            _selectSongButton = GameObjectFactory.CreateCustomButton(bottomPanelContainer.transform, Vector2.zero, new Vector2(150, 75), "SelectSong", "SelectSongButton", OnSelectSongButtonClick);
-            _selectSongButton.gameObject.SetActive(false);
+            //_lobbySettingsButton = GameObjectFactory.CreateCustomButton(headerRight.transform, Vector2.zero, new Vector2(150, 65), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingsButton");
+            _lobbySettingButton = GameObjectFactory.CreateClickableImageHolder(headerRight.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingButton", null).gameObject;
+            _lobbySettingButton.gameObject.SetActive(false);
+
+            GameObjectFactory.CreateClickableImageHolder(headerLeft.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("gtfo.png"), "LobbyBackButton", OnBackButtonClick);
 
             //Menu when clicking on user pfp
-            _dropdownMenu = MultiplayerGameObjectFactory.AddVerticalBox(panelFG.transform);
+            _dropdownMenu = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(300, 180), panel.transform);
+            _dropdownMenu = MultiplayerGameObjectFactory.GetBorderedVerticalBox(new Vector2(300, 180), 5, panel.transform);
+            var dropdownLayout = _dropdownMenu.GetComponent<VerticalLayoutGroup>();
+            _dropdownMenu.GetComponent<Image>().enabled = true;
+            dropdownLayout.childControlHeight = dropdownLayout.childForceExpandHeight = true;
 
             var trigger = _dropdownMenu.AddComponent<EventTrigger>();
             EventTrigger.Entry pointerExitEvent = new EventTrigger.Entry();
@@ -98,49 +109,29 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             trigger.triggers.Add(pointerExitEvent);
 
             _dropdownMenu.AddComponent<LayoutElement>().ignoreLayout = true;
-            _dropdownMenu.GetComponent<Image>().color = Color.white;
             var rect = _dropdownMenu.GetComponent<RectTransform>();
             rect.pivot = new Vector2(0, 1);
-            rect.sizeDelta = new Vector2(300, 180);
-            _dropdownMenuContainer = MultiplayerGameObjectFactory.AddVerticalBox(_dropdownMenu.transform);
+            _dropdownMenuContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(300, 180), _dropdownMenu.transform);
             _profileButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Profile", "DropdownProfile", OnProfileButtonClick);
             _giveHostButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Give Host", "DropdownGiveHost", OnGiveHostButtonClick);
             _kickButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Kick", "DropdownKick", OnKickUserButtonClick);
             _dropdownMenu.SetActive(false);
 
-            //Variable names my beloved
-            var verticalLayout = rightPanelContainerBox.GetComponent<VerticalLayoutGroup>();
-            verticalLayout.childControlHeight = false;
-            verticalLayout.childForceExpandHeight = false;
-
             //TITLE
-            var titleVBox = MultiplayerGameObjectFactory.AddVerticalBox(rightPanelContainerBox.transform);
-            titleVBox.GetComponent<VerticalLayoutGroup>().childForceExpandHeight = titleVBox.GetComponent<VerticalLayoutGroup>().childControlHeight = false;
-            titleVBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 120);
-            var topHBox = MultiplayerGameObjectFactory.AddHorizontalBox(titleVBox.transform);
-            topHBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 75);
-
-            _titleText = GameObjectFactory.CreateSingleText(topHBox.transform, "TitleText", "-", Color.white);
+            _titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "-", Color.white);
             _titleText.enableAutoSizing = true;
-            _titleText.alignment = TextAlignmentOptions.TopLeft;
+            _titleText.alignment = TextAlignmentOptions.Left;
             _titleText.fontStyle = TMPro.FontStyles.Bold;
             _titleText.fontSizeMax = 60;
 
-            _maxPlayerText = GameObjectFactory.CreateSingleText(topHBox.transform, "MaxPlayer", "-/-", Color.white);
-            _maxPlayerText.alignment = TextAlignmentOptions.TopRight;
+            _maxPlayerText = GameObjectFactory.CreateSingleText(headerCenter.transform, "MaxPlayer", "-/-", Color.white);
+            _maxPlayerText.alignment = TextAlignmentOptions.Right;
+            _titleText.fontStyle = TMPro.FontStyles.Bold;
             _maxPlayerText.fontSize = 32;
             _maxPlayerText.enableWordWrapping = false;
 
-            _hostText = GameObjectFactory.CreateSingleText(titleVBox.transform, "HostText", "Current Host: -", Color.white);
-            _hostText.alignment = TextAlignmentOptions.Left;
-            _hostText.enableAutoSizing = true;
-            _hostText.rectTransform.sizeDelta = new Vector2(0, 30);
-
             //SONG INFO
-            var songVBox = MultiplayerGameObjectFactory.AddVerticalBox(rightPanelContainerBox.transform);
-            songVBox.GetComponent<VerticalLayoutGroup>().childForceExpandHeight = songVBox.GetComponent<VerticalLayoutGroup>().childControlHeight = false;
-            songVBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 360);
-            _songNameText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongNameText", "-", Color.white);
+            _songNameText = GameObjectFactory.CreateSingleText(titleContainer.transform, "SongNameText", "-", Color.white);
             _songNameText.rectTransform.sizeDelta = new Vector2(0, 60);
             _songNameText.enableAutoSizing = true;
             _songNameText.fontSizeMax = 60;
@@ -148,66 +139,63 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _songNameText.overflowMode = TextOverflowModes.Ellipsis;
             _songNameText.fontStyle = TMPro.FontStyles.Bold;
 
-            _songArtistText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongArtistText", "-", Color.white);
+            _songArtistText = GameObjectFactory.CreateSingleText(titleContainer.transform, "SongArtistText", "-", Color.white);
             _songArtistText.rectTransform.sizeDelta = new Vector2(0, 75);
             _songArtistText.fontSizeMax = 30;
 
-            _songDescText = GameObjectFactory.CreateSingleText(songVBox.transform, "SongDescText", "-", Color.white);
-            _songDescText.rectTransform.sizeDelta = new Vector2(0, 150);
+            _songDescText = GameObjectFactory.CreateSingleText(songDescContainer.transform, "SongDescText", "-", Color.white);
+            _songDescText.alignment = TextAlignmentOptions.TopLeft;
             _songDescText.fontSizeMax = 22;
 
-            _songArtistText.overflowMode = _songDescText.overflowMode = TextOverflowModes.Ellipsis;
-            _songNameText.alignment = _songDescText.alignment = _songArtistText.alignment = TextAlignmentOptions.Left;
+            _songArtistText.overflowMode = _songDescText.overflowMode = TextOverflowModes.Overflow;
+            _songNameText.alignment = _songArtistText.alignment = TextAlignmentOptions.Left;
 
             //DETAILS
-            var detailHBox = MultiplayerGameObjectFactory.AddHorizontalBox(rightPanelContainerBox.transform);
-            var hLayout = detailHBox.GetComponent<HorizontalLayoutGroup>();
-            hLayout.childForceExpandHeight = hLayout.childControlHeight = false;
-            hLayout.childAlignment = TextAnchor.UpperLeft;
-            detailHBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 200);
+            //Top
+            float iconSize = 32f;
+            GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("gamespeed64.png"), "GameSpeedIcon");
+            _gameSpeedText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "GameSpeedText", " -", Color.white);
+            GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("stardiff64.png"), "RatingIcon");
+            _ratingText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "RatingText", " -", Color.white);
+            _modifiersText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "ModsText", "M ", Color.white);
 
-            //Left side
-            var VBox1 = MultiplayerGameObjectFactory.AddVerticalBox(detailHBox.transform);
-            VBox1.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 180);
-            _genreText = GameObjectFactory.CreateSingleText(VBox1.transform, "GenreText", "Genre: -", Color.white);
-            _yearText = GameObjectFactory.CreateSingleText(VBox1.transform, "YearText", "Year: -", Color.white);
-            _bpmText = GameObjectFactory.CreateSingleText(VBox1.transform, "BPMText", "BPM: -", Color.white);
-            _timeText = GameObjectFactory.CreateSingleText(VBox1.transform, "TimeText", "Time: -", Color.white);
+            //Bottom
+            GameObjectFactory.CreateImageHolder(songInfoBottom.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("time64.png"), "TimeIcon");
+            _timeText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "TimeText", " -", Color.white);
+            GameObjectFactory.CreateImageHolder(songInfoBottom.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("bpm64.png"), "BPMIcon");
+            _bpmText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "BPMText", " -", Color.white);
 
-            //Right side
-            var VBox2 = MultiplayerGameObjectFactory.AddVerticalBox(detailHBox.transform);
-            VBox2.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 145);
-            VBox2.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(50, 5, 5, 5);
-            _gameSpeedText = GameObjectFactory.CreateSingleText(VBox2.transform, "GameSpeedText", "Game Speed: -", Color.white);
-            _modifiersText = GameObjectFactory.CreateSingleText(VBox2.transform, "ModsText", "-", Color.white);
-            _ratingText = GameObjectFactory.CreateSingleText(VBox2.transform, "RatingText", "Diff: -", Color.white);
+            _timeText.rectTransform.sizeDelta = _gameSpeedText.rectTransform.sizeDelta = _modifiersText.rectTransform.sizeDelta = _bpmText.rectTransform.sizeDelta = new Vector2(220, 0);
+            _ratingText.rectTransform.sizeDelta = new Vector2(180, 0);
 
-            var HBox = MultiplayerGameObjectFactory.AddHorizontalBox(VBox2.transform);
-            _scrollSpeedSlider = GameObjectFactory.CreateSliderFromPrefab(HBox.transform, "ScrollSpeedSlider");
-            _scrollSpeedSlider.minValue = .05f;
-            _scrollSpeedSlider.maxValue = 2.5f;
-            _scrollSpeedSlider.value = 1f;
+            BetterScrollSpeedSliderPatcher.SetSliderOption();
+
+            _scrollSpeedSlider = GameObjectFactory.CreateSliderFromPrefab(songInfoBottom.transform, "ScrollSpeedSlider");
+            _scrollSpeedSlider.minValue = BetterScrollSpeedSliderPatcher.options.Min.Value / 100f;
+            _scrollSpeedSlider.maxValue = BetterScrollSpeedSliderPatcher.options.Max.Value / 100f;
+            _scrollSpeedSlider.value = BetterScrollSpeedSliderPatcher.options.LastValue.Value / 100f;
 
             _scrollSpeedSlider.gameObject.SetActive(true);
-            _scrollSpeedSlider.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
-            _scrollSpeedSlider.transform.localScale = Vector3.one * 2f;
-            _scrollSpeedSlider.transform.localPosition = new Vector3(-185, 70, 200);
-            var sliderText = GameObjectFactory.CreateSingleText(_scrollSpeedSlider.handleRect, "ScrollSpeedSliderText", "100", Color.white);
+            _scrollSpeedSlider.transform.localScale = Vector3.one * 1.75f;
+            var sliderText = GameObjectFactory.CreateSingleText(_scrollSpeedSlider.handleRect, "ScrollSpeedSliderText", BetterScrollSpeedSliderPatcher.SliderValueToText(_scrollSpeedSlider.value), Color.white);
             sliderText.enableWordWrapping = false;
             sliderText.fontSize = 12;
+            _scrollSpeedSlider.onValueChanged.AddListener((float value) => 
+            { 
+                BetterScrollSpeedSliderPatcher.options.LastValue.Value = value * 100f; 
+                sliderText.text = BetterScrollSpeedSliderPatcher.SliderValueToText(value);
+                GlobalVariables.gamescrollspeed = value;
+            });
 
-            _scrollSpeedSlider.onValueChanged.AddListener((float value) => { sliderText.text = BetterScrollSpeedSliderPatcher.SliderValueToText(value); GlobalVariables.gamescrollspeed = value; });
-            SetTextsParameters(_timeText, _bpmText, _yearText, _genreText, _gameSpeedText, _modifiersText, _ratingText);
+            SetTextsParameters(_timeText, _bpmText, _gameSpeedText, _modifiersText, _ratingText);
 
             //BUTTONS
-            var buttonsHBox = MultiplayerGameObjectFactory.AddHorizontalBox(rightPanelContainerBox.transform);
-            buttonsHBox.GetComponent<RectTransform>().sizeDelta = new Vector2(0, 60);
-            _lobbySettingsButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Lobby Settings", "LobbySettingsButton");
-            _lobbySettingsButton.gameObject.SetActive(false);
-            _startGameButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Start Game", "StartGameButton", OnStartGameButtonClick);
+            _selectSongButton = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(170, 65), "SelectSong", "SelectSongButton", OnSelectSongButtonClick);
+            _selectSongButton.gameObject.SetActive(false);
+            _startGameButton = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(170, 65), "Start Game", "StartGameButton", OnStartGameButtonClick);
             _startGameButton.gameObject.SetActive(false);
-            _readyUpButton = GameObjectFactory.CreateCustomButton(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
-            _downloadProgressBar = GameObjectFactory.CreateProgressBar(buttonsHBox.transform, Vector2.zero, new Vector2(35, 35), false, "DownloadProgressBar");
+            _readyUpButton = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(220, 100), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
+            _downloadProgressBar = GameObjectFactory.CreateProgressBar(buttonContainer.transform, Vector2.zero, new Vector2(550, 35), false, "DownloadProgressBar");
             _quickChatPageIndex = 1;
             ResetData();
         }
@@ -223,9 +211,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             for (int i = 0; i < texts.Length; i++)
             {
                 var t = texts[i];
-                t.fontSize = t.fontSizeMax = 32;
+                t.fontSize = 22;
                 t.alignment = TextAlignmentOptions.Left;
-                t.enableAutoSizing = true;
                 t.enableWordWrapping = false;
             }
         }
@@ -238,13 +225,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _hostInfo = users.First();
             _isHost = _hostInfo.id == TootTallyUser.userInfo.id;
-            _lobbySettingsButton.gameObject.SetActive(_isHost);
+            _lobbySettingButton.SetActive(_isHost);
             _startGameButton.gameObject.SetActive(_isHost);
             _selectSongButton.gameObject.SetActive(_isHost);
 
             _readyUpButton.gameObject.SetActive(!_isHost);
 
-            _hostText.text = $"Current Host: {_hostInfo.username}";
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
             UpdateScrolling(_userCardsDict.Count);
 
@@ -253,7 +239,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void UpdateScrolling(int userCount)
         {
-            var enableScrolling = userCount > 9;
+            var enableScrolling = userCount > 6;
             if (!enableScrolling && _scrollingHandler.enabled)
             {
                 _scrollingHandler.ResetAcceleration();
@@ -286,8 +272,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform);
             _userCardsDict.Add(user.id, userCard);
 
-            var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.transform, Vector2.zero, new Vector2(100, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
+            var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.container, Vector2.zero, new Vector2(100, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
             imageHolder.transform.localPosition = new Vector3(-305, 0, 0);
+            imageHolder.transform.localScale = Vector2.one * .9f;
             imageHolder.transform.SetAsFirstSibling();
             AssetManager.GetProfilePictureByID(user.id, sprite =>
             {
@@ -314,13 +301,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             userCard.UpdateUserInfo(user, displayedState);
 
-            var outline = userCard.GetComponent<Outline>();
 
             _readyCount = _userCardsDict.Values.Where(x => x.user.state == "Ready" && !IsSelf(x.user.id)).Count() + 1;
 
             var color = UserStateToColor(userState);
-            GameObjectFactory.TintImage(userCard.GetComponent<Image>(), color, .2f);
-            outline.effectColor = color;
+            GameObjectFactory.TintImage(userCard.container.GetComponent<Image>(), color, .2f);
+            userCard.image.color = color;
 
             if (_isHost)
                 if (_readyCount == _userCardsDict.Count)
@@ -330,12 +316,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         }
 
         private float _posYJumpValue = 83f;
-        private float _posYOffset = -387.5f;
+        private float _posYOffset = -340f;
 
         public void OnSliderValueChangeScrollContainer(GameObject container, float value)
         {
             var gridPanelRect = container.GetComponent<RectTransform>();
-            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, value * (_userCardsDict.Count - 9f) * _posYJumpValue + _posYOffset);
+            gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, value * (_userCardsDict.Count - 7f) * _posYJumpValue + _posYOffset);
         }
 
         public void RemoveUserCard(int id)
@@ -467,9 +453,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _savedGameSpeed = gamespeed;
 
             _songNameText.text = songName;
-            _gameSpeedText.text = $"Game Speed: <b>{gamespeed:0.00}x</b>";
-            _modifiersText.text = $"Mods: <b>{modifiers}</b>";
-            _ratingText.text = $"diff: <b>{difficulty:0.00}</b>";
+            _gameSpeedText.text = $" <b>{gamespeed:0.00}x</b>";
+            _modifiersText.text = $"M <b>{modifiers}</b>";
+            _ratingText.text = $" <b>{difficulty:0.00}</b>";
             _startGameButton.gameObject.SetActive(_isHost);
         }
 
@@ -479,9 +465,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             _songArtistText.text = $"{trackData.artist}";
             _songDescText.text = $"{trackData.desc}";
-            _genreText.text = $"Genre: <b>{trackData.genre}</b>";
-            _yearText.text = $"Year: <b>{trackData.year}</b>";
-            _bpmText.text = $"BPM: <b>{trackData.tempo * _savedGameSpeed}</b>";
+            _bpmText.text = $" <b>{trackData.tempo * _savedGameSpeed}</b>";
 
             if (_savedGameSpeed == 0)
                 _savedGameSpeed = 1;
@@ -490,7 +474,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var time = TimeSpan.FromSeconds(trackData.length / _savedGameSpeed);
             var stringTime = $"{(time.Hours != 0 ? (time.Hours + ":") : "")}{(time.Minutes != 0 ? time.Minutes : "0")}:{(time.Seconds != 0 ? time.Seconds : "00"):00}";
 
-            _timeText.text = $"Time: <b>{stringTime}</b>";
+            _timeText.text = $" <b>{stringTime}</b>";
         }
 
         private bool _isDownloadable;
@@ -502,10 +486,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _startGameButton.gameObject.SetActive(false);
             _songArtistText.text = $"-";
             _songDescText.text = $"-";
-            _genreText.text = $"Genre: -";
-            _yearText.text = $"Year: -";
-            _bpmText.text = $"BPM: -";
-            _timeText.text = $"Time: -";
+            _bpmText.text = $" -";
+            _timeText.text = $" -";
         }
 
         public void OnUserStateChange(UserState state)
@@ -539,6 +521,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             yield return new WaitForSeconds(delay);
             AllowButtonClick();
         }
+
+        private static string ColorText(string text, Color color) => $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{text}</color>";
 
         private void AllowButtonClick() => _canPressButton = true;
     }

@@ -13,6 +13,7 @@ using TootTallyLeaderboard;
 using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
 using TootTallyMultiplayer.MultiplayerCore;
+using TootTallySpectator;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -52,6 +53,8 @@ namespace TootTallyMultiplayer
         [HarmonyPrefix]
         public static bool OnStartPrefixLoadLevelSelectIfNotInit(PlaytestAnims __instance)
         {
+            if (SpectatingManager.IsSpectating) SpectatingManager.StopAllSpectator();
+
             _currentInstance = __instance;
             if (!_isLevelSelectInit)
             {
@@ -70,9 +73,14 @@ namespace TootTallyMultiplayer
         {
             if (!_isLevelSelectInit) return;
 
-            MultiplayerGameObjectFactory.Initialize();
+            Camera.main.transform.localPosition = Vector3.zero;
 
+            __instance.logo_trect.gameObject.SetActive(false);
+            __instance.logo_crect.gameObject.SetActive(false);
+
+            MultiplayerGameObjectFactory.Initialize();
             MultiAudioController.InitMusic();
+
             if (!MultiAudioController.IsMusicLoaded)
                 MultiAudioController.LoadMusic("MultiplayerMusic.mp3", () => MultiAudioController.PlayMusicSoft());
             else if (MultiAudioController.IsPaused)
@@ -86,7 +94,10 @@ namespace TootTallyMultiplayer
             AllowExit = false;
 
             if (_multiController.IsConnected && _state == MultiplayerController.MultiplayerState.SelectSong || _state == MultiplayerController.MultiplayerState.PointScene || _state == MultiplayerController.MultiplayerState.Quitting)
+            {
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
+                _multiController.UpdateLobbySongDetails();
+            }
             else
             {
                 _previousState = MultiplayerController.MultiplayerState.None;
@@ -104,10 +115,7 @@ namespace TootTallyMultiplayer
             if (Input.GetKeyDown(KeyCode.Escape) && CanPressEscape())
             {
                 if (_state == MultiplayerController.MultiplayerState.Home)
-                {
-                    if (AllowExit) //Just skip changing state if now allow, but still enter this bracket
-                        UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
-                }
+                    ExitMultiplayer();
                 else if (_state == MultiplayerController.MultiplayerState.Lobby)
                     _multiController.DisconnectFromLobby();
                 else
@@ -125,6 +133,7 @@ namespace TootTallyMultiplayer
         }
 
         private static bool CanPressEscape() => !_multiController.IsTransitioning
+                && !_multiController.IsRequestPending
                 && _state != MultiplayerController.MultiplayerState.ExitScene
                 && _state != MultiplayerController.MultiplayerState.SelectSong
                 && _state != MultiplayerController.MultiplayerState.Playing
@@ -538,7 +547,28 @@ namespace TootTallyMultiplayer
 
         #endregion
 
+        #region SpectatorPatches
+        [HarmonyPatch(typeof(SpectatingManager), nameof(SpectatingManager.OnSpectateButtonPress))]
+        [HarmonyPrefix]
+        public static bool PreventSpectatingWhileInMultiplayer()
+        {
+            if (IsPlayingMultiplayer || IsConnectedToMultiplayer || _isSceneActive)
+            {
+                TootTallyNotifManager.DisplayNotif("Cannot spectate someone while in multiplayer.");
+                return false;
+            }
+            return true;
+        }
+
+        #endregion
+
         #region MultiplayerState
+        public static void ExitMultiplayer()
+        {
+            if (!AllowExit) return;
+            UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
+        }
+
         public static void UpdateMultiplayerState(MultiplayerController.MultiplayerState newState)
         {
             _previousState = _state;

@@ -10,41 +10,36 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 {
     public class MultiplayerCreatePanel : MultiplayerPanelBase
     {
-        public GameObject leftPanelContainer, leftPanelContainerBox, rightPanelContainer, rightPanelContainerBox;
+        private GameObject _centerContainer;
 
         private TMP_InputField _lobbyName, _lobbyDescription, _lobbyPassword, _lobbyMaxPlayer;
 
-        private CustomButton _backButton, _createLobbyButton;
-
-        private bool _requestPending;
-        public MultiplayerCreatePanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "CreatePanel")
+        public bool IsRequestPending;
+        public MultiplayerCreatePanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "CreateLayout")
         {
-            leftPanelContainer = panelFG.transform.Find("Main/LeftPanel/LeftPanelContainer").gameObject;
-            leftPanelContainerBox = leftPanelContainer.transform.Find("ContainerBoxVertical").gameObject;
-            rightPanelContainer = panelFG.transform.Find("Main/RightPanel/RightPanelContainer").gameObject;
-            rightPanelContainerBox = rightPanelContainer.transform.Find("ContainerBoxVertical").gameObject;
+            panel.transform.localPosition = new Vector2(0, 2000);
+            _centerContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(300, 0), center.transform);
+            _centerContainer.GetComponent<VerticalLayoutGroup>().spacing = 50;
 
-            var leftLayout = leftPanelContainerBox.GetComponent<VerticalLayoutGroup>();
-            leftLayout.childControlHeight = leftLayout.childControlWidth = false;
-            leftLayout.childAlignment = TextAnchor.LowerCenter;
+            var titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "Create Lobby", Color.white);
+            titleText.enableAutoSizing = true;
+            _lobbyName = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyNameInputField", new Vector2(300, 30), 24, $"{TootTallyUser.userInfo.username}'s Lobby", false);
+            _lobbyDescription = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyDescriptionInputField", new Vector2(300, 30), 24, "Welcome to my lobby!", false);
+            _lobbyPassword = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyPasswordInputField", new Vector2(300, 30), 24, "", true);
+            _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, "16", false);
 
-            var rightLayout = rightPanelContainerBox.GetComponent<VerticalLayoutGroup>();
-            rightLayout.childControlHeight = rightLayout.childControlWidth = false;
-            rightLayout.childAlignment = TextAnchor.LowerCenter;
-
-            _lobbyName = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyNameInputField", new Vector2(300, 30), 24, $"{TootTallyUser.userInfo.username}'s Lobby", false);
-            _lobbyDescription = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyDescriptionInputField", new Vector2(300, 30), 24, "Welcome to my lobby!", false);
-            _lobbyPassword = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyPasswordInputField", new Vector2(300, 30), 24, "", true);
-            _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(rightPanelContainerBox.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, "16", false);
-
-            _backButton = GameObjectFactory.CreateCustomButton(leftPanelContainerBox.transform, Vector2.zero, new Vector2(150, 75), "Back", "CreateBackButton", OnBackButtonClick);
-            _createLobbyButton = GameObjectFactory.CreateCustomButton(rightPanelContainerBox.transform, Vector2.zero, new Vector2(150, 75), "Create", "CreateLobbyButton", OnCreateButtonClick);
+            GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Back", "CreateBackButton", OnBackButtonClick);
+            GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Create", "CreateLobbyButton", OnCreateButtonClick);
         }
 
         private void OnBackButtonClick()
         {
+            if (controller.IsRequestPending) return;
+
             controller.MoveToMain();
             MultiplayerManager.UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
+
+
         }
 
         private bool ValidateInput()
@@ -63,7 +58,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 TootTallyNotifManager.DisplayNotif("Lobby name has to be\nshorter than 32 characters");
             }
 
-            if (_lobbyDescription.text.Length > 100) 
+            if (_lobbyDescription.text.Length > 100)
             {
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("Description has to be\nshorter than 32 characters");
@@ -80,9 +75,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private void OnCreateButtonClick()
         {
-            if (_requestPending || !ValidateInput() || controller.IsConnected || controller.IsConnectionPending) return;
+            if (IsRequestPending || !ValidateInput() || controller.IsConnected || controller.IsConnectionPending) return;
 
-            _requestPending = true;
+            IsRequestPending = true;
             TootTallyNotifManager.DisplayNotif("Creating lobby...");
             Plugin.Instance.StartCoroutine(MultiplayerAPIService.CreateMultiplayerServerRequest(_lobbyName.text, _lobbyDescription.text, _lobbyPassword.text, int.Parse(_lobbyMaxPlayer.text), serverCode =>
             {
@@ -91,7 +86,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     Plugin.LogInfo(serverCode);
                     controller.ConnectToLobby(serverCode);
                 }
-                _requestPending = false;
+                else
+                    TootTallyNotifManager.DisplayNotif("Lobby creation failed.");
+                IsRequestPending = false;
             }));
         }
     }

@@ -39,6 +39,7 @@ namespace TootTallyMultiplayer.APIService
         public class MultiplayerSongInfo
         {
             public float difficulty;
+            public string charter;
             public string mirror;
             public string fileHash;
             public float gameSpeed;

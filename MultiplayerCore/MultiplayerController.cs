@@ -1,5 +1,6 @@
 ﻿using BaboonAPI.Hooks.Tracks;
 using BepInEx;
+using JetBrains.Annotations;
 using Microsoft.FSharp.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,6 +22,7 @@ using TootTallyMultiplayer.MultiplayerCore;
 using TootTallyMultiplayer.MultiplayerCore.PointScore;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
+using UnityEngine.Bindings;
 using UnityEngine.SceneManagement;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
@@ -56,6 +58,8 @@ namespace TootTallyMultiplayer
         public bool IsConnected => _multiConnection != null && _multiConnection.IsConnected;
         public bool IsAnybodyLoading => _currentLobby.players.Where(x => x.id != TootTallyUser.userInfo.id).Any(x => x.state == "Loading");
 
+        public bool IsRequestPending => _multCreatePanel.IsRequestPending || IsConnectionPending;
+
         public MultiplayerController(PlaytestAnims __instance)
         {
             CurrentInstance = __instance;
@@ -66,10 +70,35 @@ namespace TootTallyMultiplayer
 
             var canvas = GameObject.Instantiate(AssetBundleManager.GetPrefab("multiplayercanvas"));
 
-            _multMainPanel = new MultiplayerMainPanel(canvas, this);
-            _multLobbyPanel = new MultiplayerLobbyPanel(canvas, this);
-            _multCreatePanel = new MultiplayerCreatePanel(canvas, this);
+            try
+            {
+                _multMainPanel = new MultiplayerMainPanel(canvas, this);
+            }
+            catch (Exception e)
+            {
+                Plugin.LogError(e.Message);
+                Plugin.LogError(e.StackTrace);
+            }
 
+            try
+            {
+                _multLobbyPanel = new MultiplayerLobbyPanel(canvas, this);
+            }
+            catch (Exception e)
+            {
+                Plugin.LogError(e.Message);
+                Plugin.LogError(e.StackTrace);
+            }
+
+            try
+            {
+                _multCreatePanel = new MultiplayerCreatePanel(canvas, this);
+            }
+            catch (Exception e)
+            {
+                Plugin.LogError(e.Message);
+                Plugin.LogError(e.StackTrace);
+            }
             _lobbyInfoList ??= new List<MultiplayerLobbyInfo>();
             _currentActivePanel = _multMainPanel;
 
@@ -277,11 +306,13 @@ namespace TootTallyMultiplayer
             TootTallyAnimationManager.AddNewPositionAnimation(nextPanel.panel, Vector2.zero, 0.9f, new SecondDegreeDynamicsAnimation(1.5f, 0.89f, 1.1f), sender => IsTransitioning = false);
         }
 
+        public static MultiplayerSongInfo savedSongInfo;
         public static SingleTrackData savedTrackData;
 
         public void OnSongInfoReceived(SocketSongInfo socketSongInfo) => OnSongInfoReceived(socketSongInfo.songInfo);
         public void OnSongInfoReceived(MultiplayerSongInfo songInfo)
         {
+            savedSongInfo = songInfo;
             ReplaySystemManager.gameSpeedMultiplier = songInfo.gameSpeed;
             GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
 
@@ -304,7 +335,7 @@ namespace TootTallyMultiplayer
             UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
 
             var optionalTrack = TrackLookup.tryLookup(songInfo.trackRef);
-            _hasSong = OptionModule.IsSome(optionalTrack);
+            _hasSong = songInfo.trackRef != "" && OptionModule.IsSome(optionalTrack);
 
             if (_hasSong)
             {
@@ -370,19 +401,23 @@ namespace TootTallyMultiplayer
             Plugin.LogInfo("Selected: " + savedTrackData.trackref);
         }
 
-        public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers, float difficulty) => _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers, difficulty);
+        public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers, float difficulty) =>
+                _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers, difficulty);
 
 
         public void UpdateLobbySongDetails()
         {
-            if (savedTrackData != null && CurrentInstance != null)
+            if (CurrentInstance == null) return;
+
+            if (savedTrackData != null)
                 _multLobbyPanel?.SetTrackDataDetails(savedTrackData);
+            if (savedSongInfo != null)
+                _multLobbyPanel?.OnSongInfoChanged(savedSongInfo);
         }
 
         public void StartLobbyGame()
         {
             _multiConnection.SendOptionInfo(OptionInfoType.StartGame);
-            StartGame();
         }
 
         public void StartGame()
@@ -396,12 +431,10 @@ namespace TootTallyMultiplayer
                 CurrentInstance.fadepanel.gameObject.SetActive(true);
                 MultiAudioController.PauseMusicSoft();
                 LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
+                return;
+            }
 
-            }
-            else
-            {
-                TootTallyNotifManager.DisplayNotif("Chart not owned. Cannot start the game.");
-            }
+            TootTallyNotifManager.DisplayNotif($"Cannot start the game. {(!_hasSong ? "Chart not owned." : "")}");
         }
 
         public void KickUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.KickFromLobby, new dynamic[] { userID });
@@ -413,6 +446,7 @@ namespace TootTallyMultiplayer
         public void LoadLoaderScene()
         {
             CurrentInstance = null;
+            _multLobbyPanel = null;
             IsTransitioning = false;
             SceneManager.LoadScene("loader");
         }
