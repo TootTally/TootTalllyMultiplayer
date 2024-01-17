@@ -212,6 +212,8 @@ namespace TootTallyMultiplayer
         {
             IsConnectionPending = false;
             TootTallyNotifManager.DisplayNotif("Connected to " + _multiConnection.GetServerID);
+            MultiplayerLogger.ClearLogs();
+            MultiplayerLogger.ServerLog($"Connected to {_multiConnection.GetServerID}");
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
             OnLobbyConnectionSuccess();
         }
@@ -312,6 +314,9 @@ namespace TootTallyMultiplayer
         public void OnSongInfoReceived(SocketSongInfo socketSongInfo) => OnSongInfoReceived(socketSongInfo.songInfo);
         public void OnSongInfoReceived(MultiplayerSongInfo songInfo)
         {
+            if (savedSongInfo != songInfo && songInfo.trackRef != "")
+                MultiplayerLogger.ServerLog($"Song \"{songInfo.songName}\" was selected.");
+
             savedSongInfo = songInfo;
             ReplaySystemManager.gameSpeedMultiplier = songInfo.gameSpeed;
             GameModifierManager.LoadModifiersFromString(songInfo.modifiers);

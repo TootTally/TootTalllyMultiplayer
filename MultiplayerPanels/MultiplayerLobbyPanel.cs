@@ -9,6 +9,7 @@ using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using TootTallyLeaderboard;
+using TootTallyMultiplayer.MultiplayerCore;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -33,6 +34,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private TMP_Text _titleText, _maxPlayerText, _songNameText, _songArtistText, _timeText,
             _songDescText, _bpmText, _gameSpeedText, _modifiersText, _ratingText;
+
+        private TMP_Text _lobbyLogText;
 
         private ProgressBar _downloadProgressBar;
 
@@ -198,6 +201,14 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _downloadProgressBar = GameObjectFactory.CreateProgressBar(buttonContainer.transform, Vector2.zero, new Vector2(550, 35), false, "DownloadProgressBar");
             _quickChatPageIndex = 1;
             ResetData();
+
+            footer.AddComponent<Mask>();
+            _lobbyLogText = GameObjectFactory.CreateSingleText(footer.transform, "LogText", MultiplayerLogger.GetFormattedLogs(), Color.white);
+            _lobbyLogText.alignment = TextAlignmentOptions.BottomLeft;
+            _lobbyLogText.overflowMode = TextOverflowModes.Masking;
+            _lobbyLogText.lineSpacing = 22;
+            _lobbyLogText.margin = Vector4.one * 2f;
+            MultiplayerLogger.OnLogReceivedUpdate = UpdateLogText;
         }
 
         public void ResetData()
@@ -300,7 +311,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 OnUserStateChange(parsedState);
 
             userCard.UpdateUserInfo(user, displayedState);
-
 
             _readyCount = _userCardsDict.Values.Where(x => x.user.state == "Ready" && !IsSelf(x.user.id)).Count() + 1;
 
@@ -523,6 +533,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         }
 
         private static string ColorText(string text, Color color) => $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{text}</color>";
+
+        private void UpdateLogText(string text) => _lobbyLogText.text = text;
 
         private void AllowButtonClick() => _canPressButton = true;
     }
