@@ -35,13 +35,13 @@ namespace TootTallyMultiplayer
             horizontalLayout.childControlWidth = false;
             horizontalLayout.childForceExpandHeight = horizontalLayout.childForceExpandWidth = false;
 
-            var textName = GameObjectFactory.CreateSingleText(container.transform, $"Name", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
+            var textName = GameObjectFactory.CreateSingleText(container.transform, $"Name", $"", Vector2.one / 2f, new Vector2(190, 75), Theme.colors.leaderboard.text);
             textName.alignment = TextAlignmentOptions.Left;
 
-            var textState = GameObjectFactory.CreateSingleText(container.transform, $"State", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
+            var textState = GameObjectFactory.CreateSingleText(container.transform, $"State", $"", Vector2.one / 2f, new Vector2(190, 75), Theme.colors.leaderboard.text);
             textState.alignment = TextAlignmentOptions.Right;
 
-            var textRank = GameObjectFactory.CreateSingleText(container.transform, $"Rank", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
+            var textRank = GameObjectFactory.CreateSingleText(container.transform, $"Rank", $"", Vector2.one / 2f, new Vector2(190, 75), Theme.colors.leaderboard.text);
             textRank.alignment = TextAlignmentOptions.Right;
 
             GameObject.DontDestroyOnLoad(_userCardPrefab);

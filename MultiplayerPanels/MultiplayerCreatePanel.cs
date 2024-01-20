@@ -21,7 +21,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _centerContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(300, 0), center.transform);
             _centerContainer.GetComponent<VerticalLayoutGroup>().spacing = 50;
 
-            var titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "Create Lobby", Color.white);
+            var titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "Create Lobby");
             titleText.enableAutoSizing = true;
             _lobbyName = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyNameInputField", new Vector2(300, 30), 24, $"{TootTallyUser.userInfo.username}'s Lobby", false);
             _lobbyDescription = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyDescriptionInputField", new Vector2(300, 30), 24, "Welcome to my lobby!", false);

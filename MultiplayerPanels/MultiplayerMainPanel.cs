@@ -44,9 +44,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             GameObjectFactory.CreateClickableImageHolder(headerLeft.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("gtfo.png"), "LobbyBackButton", MultiplayerManager.ExitMultiplayer);
 
-            var titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "TootTally Multiplayer", Color.white);
+            var titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "TootTally Multiplayer");
             titleText.enableAutoSizing = true;
-            var serverText = GameObjectFactory.CreateSingleText(headerRight.transform, "ServerText", "Server: Toronto", Color.white);
+            var serverText = GameObjectFactory.CreateSingleText(headerRight.transform, "ServerText", "Server: Toronto");
             serverText.fontSize = 40;
 
             _slider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
@@ -55,7 +55,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _scrollingHandler = _slider.gameObject.AddComponent<ScrollableSliderHandler>();
             _scrollingHandler.enabled = false;
 
-            _lobbyPlayerListText = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, "LobbyDetailInfoText", "", Color.white);
+            _lobbyPlayerListText = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, "LobbyDetailInfoText", "");
             _lobbyPlayerListText.rectTransform.sizeDelta = new Vector2(0, 680);
             _lobbyPlayerListText.enableAutoSizing = true;
             _lobbyPlayerListText.fontSizeMax = 32;
@@ -103,11 +103,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var tLayout = test.GetComponent<VerticalLayoutGroup>();
             tLayout.childForceExpandHeight = tLayout.childControlHeight = true;
 
-            var t1 = GameObjectFactory.CreateSingleText(test.transform, "LobbyName", lobbyInfo.title, Color.white);
+            var t1 = GameObjectFactory.CreateSingleText(test.transform, "LobbyName", lobbyInfo.title);
             t1.fontStyle = FontStyles.Bold;
             t1.fontSize = 28;
 
-            var t2 = GameObjectFactory.CreateSingleText(test.transform, "LobbyState", lobbyInfo.state, Color.white);
+            var t2 = GameObjectFactory.CreateSingleText(test.transform, "LobbyState", lobbyInfo.state);
             if (lobbyInfo.state == "Playing")
                 t2.text += $": {lobbyInfo.songInfo.songShortName}";
             t2.fontSizeMax = 36; t2.fontSizeMin = 18;
@@ -121,11 +121,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var t2Layout = test2.GetComponent<VerticalLayoutGroup>();
             t2Layout.childForceExpandHeight = t2Layout.childControlHeight = true;
 
-            var t3 = GameObjectFactory.CreateSingleText(test2.transform, "LobbyCount", $"{lobbyInfo.players.Count}/{lobbyInfo.maxPlayerCount}", Color.white);
+            var t3 = GameObjectFactory.CreateSingleText(test2.transform, "LobbyCount", $"{lobbyInfo.players.Count}/{lobbyInfo.maxPlayerCount}");
             t3.fontSize = 32;
             t3.fontStyle = FontStyles.Bold;
 
-            var t4 = GameObjectFactory.CreateSingleText(test2.transform, "LobbyPing", $"-ms", Color.white);
+            var t4 = GameObjectFactory.CreateSingleText(test2.transform, "LobbyPing", $"-ms");
             t3.alignment = t4.alignment = TextAlignmentOptions.Right;
 
             if (shouldAnimate)

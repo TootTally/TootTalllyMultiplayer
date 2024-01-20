@@ -121,20 +121,20 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _dropdownMenu.SetActive(false);
 
             //TITLE
-            _titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "-", Color.white);
+            _titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "-");
             _titleText.enableAutoSizing = true;
             _titleText.alignment = TextAlignmentOptions.Left;
             _titleText.fontStyle = TMPro.FontStyles.Bold;
             _titleText.fontSizeMax = 60;
 
-            _maxPlayerText = GameObjectFactory.CreateSingleText(headerCenter.transform, "MaxPlayer", "-/-", Color.white);
+            _maxPlayerText = GameObjectFactory.CreateSingleText(headerCenter.transform, "MaxPlayer", "-/-");
             _maxPlayerText.alignment = TextAlignmentOptions.Right;
             _titleText.fontStyle = TMPro.FontStyles.Bold;
             _maxPlayerText.fontSize = 32;
             _maxPlayerText.enableWordWrapping = false;
 
             //SONG INFO
-            _songNameText = GameObjectFactory.CreateSingleText(titleContainer.transform, "SongNameText", "-", Color.white);
+            _songNameText = GameObjectFactory.CreateSingleText(titleContainer.transform, "SongNameText", "-");
             _songNameText.rectTransform.sizeDelta = new Vector2(0, 60);
             _songNameText.enableAutoSizing = true;
             _songNameText.fontSizeMax = 60;
@@ -142,11 +142,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _songNameText.overflowMode = TextOverflowModes.Ellipsis;
             _songNameText.fontStyle = TMPro.FontStyles.Bold;
 
-            _songArtistText = GameObjectFactory.CreateSingleText(titleContainer.transform, "SongArtistText", "-", Color.white);
+            _songArtistText = GameObjectFactory.CreateSingleText(titleContainer.transform, "SongArtistText", "-");
             _songArtistText.rectTransform.sizeDelta = new Vector2(0, 75);
             _songArtistText.fontSizeMax = 30;
 
-            _songDescText = GameObjectFactory.CreateSingleText(songDescContainer.transform, "SongDescText", "-", Color.white);
+            _songDescText = GameObjectFactory.CreateSingleText(songDescContainer.transform, "SongDescText", "-");
             _songDescText.alignment = TextAlignmentOptions.TopLeft;
             _songDescText.fontSizeMax = 22;
 
@@ -157,16 +157,16 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             //Top
             float iconSize = 32f;
             GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("gamespeed64.png"), "GameSpeedIcon");
-            _gameSpeedText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "GameSpeedText", " -", Color.white);
+            _gameSpeedText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "GameSpeedText", " -");
             GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("stardiff64.png"), "RatingIcon");
-            _ratingText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "RatingText", " -", Color.white);
-            _modifiersText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "ModsText", "M ", Color.white);
+            _ratingText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "RatingText", " -");
+            _modifiersText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "ModsText", "M ");
 
             //Bottom
             GameObjectFactory.CreateImageHolder(songInfoBottom.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("time64.png"), "TimeIcon");
-            _timeText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "TimeText", " -", Color.white);
+            _timeText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "TimeText", " -");
             GameObjectFactory.CreateImageHolder(songInfoBottom.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("bpm64.png"), "BPMIcon");
-            _bpmText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "BPMText", " -", Color.white);
+            _bpmText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "BPMText", " -");
 
             _timeText.rectTransform.sizeDelta = _gameSpeedText.rectTransform.sizeDelta = _modifiersText.rectTransform.sizeDelta = _bpmText.rectTransform.sizeDelta = new Vector2(220, 0);
             _ratingText.rectTransform.sizeDelta = new Vector2(180, 0);
@@ -180,7 +180,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _scrollSpeedSlider.gameObject.SetActive(true);
             _scrollSpeedSlider.transform.localScale = Vector3.one * 1.75f;
-            var sliderText = GameObjectFactory.CreateSingleText(_scrollSpeedSlider.handleRect, "ScrollSpeedSliderText", BetterScrollSpeedSliderPatcher.SliderValueToText(_scrollSpeedSlider.value), Color.white);
+            var sliderText = GameObjectFactory.CreateSingleText(_scrollSpeedSlider.handleRect, "ScrollSpeedSliderText", BetterScrollSpeedSliderPatcher.SliderValueToText(_scrollSpeedSlider.value));
             sliderText.enableWordWrapping = false;
             sliderText.fontSize = 12;
             _scrollSpeedSlider.onValueChanged.AddListener((float value) => 
@@ -203,7 +203,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             ResetData();
 
             footer.AddComponent<Mask>();
-            _lobbyLogText = GameObjectFactory.CreateSingleText(footer.transform, "LogText", MultiplayerLogger.GetFormattedLogs(), Color.white);
+            _lobbyLogText = GameObjectFactory.CreateSingleText(footer.transform, "LogText", MultiplayerLogger.GetFormattedLogs());
             _lobbyLogText.alignment = TextAlignmentOptions.BottomLeft;
             _lobbyLogText.overflowMode = TextOverflowModes.Masking;
             _lobbyLogText.lineSpacing = 22;

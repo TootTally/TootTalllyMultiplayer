@@ -183,7 +183,7 @@ namespace TootTallyMultiplayer
                 __instance.playSfx(3);
                 if (TootTallyUser.userInfo == null || TootTallyUser.userInfo.id == 0)
                 {
-                    TootTallyNotifManager.DisplayNotif("Please login on TootTally to play online.", Theme.colors.notification.errorText);
+                    TootTallyNotifManager.DisplayError("Please login on TootTally to play online.");
                     return;
                 }
 

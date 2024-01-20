@@ -70,18 +70,18 @@ namespace TootTallyMultiplayer.MultiplayerCore
             LeanTween.moveLocalX(rainbowHolder1, 0, 2).setLoopClamp();
             LeanTween.moveLocalX(rainbowHolder2, 180, 2).setLoopClamp();
 
-            _positionText = GameObjectFactory.CreateSingleText(container, "Position", "#-", Color.white);
+            _positionText = GameObjectFactory.CreateSingleText(container, "Position", "#-");
             _positionText.rectTransform.sizeDelta = new Vector2(18, 0);
 
-            _nameText = GameObjectFactory.CreateSingleText(container, "Name", "Unknown", Color.white);
+            _nameText = GameObjectFactory.CreateSingleText(container, "Name", "Unknown");
             _nameText.rectTransform.sizeDelta = new Vector2(66, 0);
 
             var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), container);
             vBox.GetComponent<Image>().enabled = false;
-            _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-", Color.white);
+            _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-");
             _scoreText.rectTransform.sizeDelta = new Vector2(0, 12);
 
-            _comboText = GameObjectFactory.CreateSingleText(vBox.transform, "Combo", "-", Color.white);
+            _comboText = GameObjectFactory.CreateSingleText(vBox.transform, "Combo", "-");
             _comboText.rectTransform.sizeDelta = new Vector2(0, 4);
 
             SetTextProperties(_positionText, _nameText, _scoreText, _comboText);
