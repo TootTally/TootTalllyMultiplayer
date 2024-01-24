@@ -21,6 +21,7 @@ namespace TootTallyMultiplayer
         private const string CONFIG_NAME = "Multiplayer.cfg";
         private Harmony _harmony;
         public ConfigEntry<bool> ModuleConfigEnabled { get; set; }
+        public ConfigEntry<bool> ShowLiveScore { get; set; }
         public bool IsConfigInitialized { get; set; }
 
         //Change this name to whatever you want
@@ -52,6 +53,9 @@ namespace TootTallyMultiplayer
 
         public void LoadModule()
         {
+            Config.SaveOnConfigSet = true;
+            ShowLiveScore = Config.Bind("Gameplay", nameof(ShowLiveScore), true, "Show the live score while playing in multiplayer.");
+
             string bundlePath = Path.Combine(Path.GetDirectoryName(Plugin.Instance.Info.Location), "multiplayerassetbundle");
             AssetBundleManager.LoadAssets(bundlePath);
 

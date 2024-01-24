@@ -99,11 +99,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             GameObjectFactory.CreateClickableImageHolder(headerLeft.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("gtfo.png"), "LobbyBackButton", OnBackButtonClick);
 
             //Menu when clicking on user pfp
-            _dropdownMenu = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(300, 180), panel.transform);
             _dropdownMenu = MultiplayerGameObjectFactory.GetBorderedVerticalBox(new Vector2(300, 180), 5, panel.transform);
-            var dropdownLayout = _dropdownMenu.GetComponent<VerticalLayoutGroup>();
-            _dropdownMenu.GetComponent<Image>().enabled = true;
-            dropdownLayout.childControlHeight = dropdownLayout.childForceExpandHeight = true;
+            _dropdownMenu.GetComponent<Image>().enabled = false;
 
             var trigger = _dropdownMenu.AddComponent<EventTrigger>();
             EventTrigger.Entry pointerExitEvent = new EventTrigger.Entry();
@@ -114,7 +111,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _dropdownMenu.AddComponent<LayoutElement>().ignoreLayout = true;
             var rect = _dropdownMenu.GetComponent<RectTransform>();
             rect.pivot = new Vector2(0, 1);
-            _dropdownMenuContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(300, 180), _dropdownMenu.transform);
+            _dropdownMenuContainer = _dropdownMenu.transform.GetChild(0).gameObject;
             _profileButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Profile", "DropdownProfile", OnProfileButtonClick);
             _giveHostButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Give Host", "DropdownGiveHost", OnGiveHostButtonClick);
             _kickButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Kick", "DropdownKick", OnKickUserButtonClick);
