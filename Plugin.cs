@@ -12,7 +12,7 @@ namespace TootTallyMultiplayer
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("TootTallyAccounts", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("TootTallyWebsocketLibs", BepInDependency.DependencyFlags.HardDependency)]
-    [BepInDependency("TootTallyLeaderboard", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("TootTallyGameModifiers", BepInDependency.DependencyFlags.HardDependency)]
     [BepInIncompatibility("Tooter")]
     public class Plugin : BaseUnityPlugin, ITootTallyModule
     {

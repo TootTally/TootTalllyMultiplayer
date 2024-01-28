@@ -14,15 +14,14 @@ using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.Helpers;
+using TootTallyCore.Utils.TootTallyGlobals;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
-using TootTallyLeaderboard.Replays;
 using TootTallyMultiplayer.APIService;
 using TootTallyMultiplayer.MultiplayerCore;
 using TootTallyMultiplayer.MultiplayerCore.PointScore;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
-using UnityEngine.Bindings;
 using UnityEngine.SceneManagement;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
@@ -318,7 +317,7 @@ namespace TootTallyMultiplayer
                 MultiplayerLogger.ServerLog($"Song \"{songInfo.songName}\" was selected.");
 
             savedSongInfo = songInfo;
-            ReplaySystemManager.gameSpeedMultiplier = songInfo.gameSpeed;
+            TootTallyGlobalVariables.gameSpeedMultiplier = songInfo.gameSpeed;
             GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
 
             float diffIndex = (int)((songInfo.gameSpeed - .5f) / .25f);

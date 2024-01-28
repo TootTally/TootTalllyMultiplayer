@@ -7,6 +7,7 @@ using TootTallyCore;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Helpers;
+using TootTallyCore.Utils.TootTallyGlobals;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
 using TootTallyLeaderboard;
@@ -387,7 +388,7 @@ namespace TootTallyMultiplayer
             GlobalVariables.chosen_track = trackData.trackref;
             GlobalVariables.chosen_track_data = trackData;
 
-            _multiController.SendSongHashToLobby(songHash, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
+            _multiController.SendSongHashToLobby(songHash, TootTallyGlobalVariables.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
 
             OnMultiplayerSelectSongExit(__instance);
             return false;
