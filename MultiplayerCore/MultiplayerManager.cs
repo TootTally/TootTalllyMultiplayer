@@ -17,6 +17,7 @@ using TootTallyMultiplayer.MultiplayerCore;
 using TootTallySpectator;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Localization.Components;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -166,8 +167,9 @@ namespace TootTallyMultiplayer
             multiplayerButton.name = "MULTIContainer";
             multiplayerHitbox.name = "MULTIButton";
             multiplayerText.name = "MULTIText";
+            GameObject.DestroyImmediate(multiplayerText.transform.GetChild(1).GetComponent<LocalizeStringEvent>());
+            multiplayerText.transform.GetChild(1).GetComponent<Text>().text = multiplayerText.transform.GetChild(1).GetChild(0).GetComponent<Text>().text = "MULTI";
             ThemeManager.OverwriteGameObjectSpriteAndColor(multiplayerButton.transform.Find("FG").gameObject, "MultiplayerButtonV2.png", Color.white);
-            ThemeManager.OverwriteGameObjectSpriteAndColor(multiplayerText, "MultiText.png", Color.white);
             multiplayerButton.transform.SetSiblingIndex(0);
             multiplayerText.transform.SetSiblingIndex(21);
             multiplayerHitbox.transform.SetSiblingIndex(22);
@@ -264,7 +266,8 @@ namespace TootTallyMultiplayer
             ThemeManager.OverwriteGameObjectSpriteAndColor(collectOutline, "CollectButtonOutline.png", Color.white);
             RectTransform collectOutlineRectTransform = collectOutline.GetComponent<RectTransform>();
             collectOutlineRectTransform.sizeDelta = new Vector2(351, 217.2f);
-            GameObject textCollect = __instance.allpaneltxt.transform.Find("imgCOLLECT").gameObject;
+            GameObject textCollect = __instance.paneltxts[(int)HomeScreenButtonIndexes.Collect];
+            textCollect.transform.GetChild(1).localScale = Vector3.one * .6f;
             textCollect.GetComponent<RectTransform>().anchoredPosition = new Vector2(790, 430);
             textCollect.GetComponent<RectTransform>().sizeDelta = new Vector2(285, 48);
             textCollect.GetComponent<RectTransform>().pivot = Vector2.one / 2;
@@ -277,7 +280,8 @@ namespace TootTallyMultiplayer
             GameObject improvOutline = __instance.allbtnoutlines[(int)HomeScreenButtonIndexes.Improv];
             RectTransform improvOutlineRectTransform = improvOutline.GetComponent<RectTransform>();
             improvOutlineRectTransform.sizeDelta = new Vector2(470, 230);
-            GameObject textImprov = __instance.allpaneltxt.transform.Find("imgImprov").gameObject;
+            GameObject textImprov = __instance.paneltxts[(int)HomeScreenButtonIndexes.Improv];
+            textImprov.transform.GetChild(0).localScale = textImprov.transform.GetChild(1).localScale = Vector3.one * .7f;
             textImprov.GetComponent<RectTransform>().anchoredPosition = new Vector2(305, 385);
             textImprov.GetComponent<RectTransform>().sizeDelta = new Vector2(426, 54);
             #endregion
