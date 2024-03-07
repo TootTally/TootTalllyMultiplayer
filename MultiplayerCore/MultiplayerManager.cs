@@ -194,22 +194,13 @@ namespace TootTallyMultiplayer
                 return;*/
 
                 //Yoinked from DNSpy KEKW
+                Plugin.LogInfo("Entering Multiplayer...");
                 __instance.musobj.Stop();
                 __instance.quickFlash(2);
-                __instance.fadeAndLoadScene(18);
+                LeanTween.scale(__instance.fullcanvas, new Vector3(0.001f, 0.001f, 1f), 0.5f).setEaseInQuart();
+                __instance.screenfade.alpha = 0f;
+                LeanTween.alphaCanvas(__instance.screenfade, 1f, 0.45f).setDelay(0.25f).setOnComplete(new Action(LoadPlayTestScene));
                 //SceneManager.MoveGameObjectToScene(GameObject.Instantiate(multiplayerButton), scene);
-
-                //1 is HomeScreen
-                //6 and 7 cards collection
-                //9 is LoadController
-                //10 is GameController
-                //11 is PointSceneController
-                //12 is some weird ass fucking notes
-                //13 is intro
-                //14 is boss fail animation
-                //15 is how to play
-                //16 is end scene
-                //17 is the demo scene
             });
 
             EventTrigger multiBtnEvents = multiplayerHitbox.GetComponent<EventTrigger>();
@@ -300,6 +291,8 @@ namespace TootTallyMultiplayer
             #endregion
 
         }
+
+        private static void LoadPlayTestScene() => SceneManager.LoadScene(PLAYTEST_SCENE_NAME);      
 
         [HarmonyPatch(typeof(HomeController), nameof(HomeController.Update))]
         [HarmonyPostfix]
