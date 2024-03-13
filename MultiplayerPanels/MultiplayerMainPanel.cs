@@ -269,10 +269,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnRefreshLobbyButtonClick()
         {
-            _refreshLobbyButton.gameObject.SetActive(false);
+            _refreshLobbyButton.enabled = false;
             controller.RefreshAllLobbyInfo();
         }
 
-        public void ShowRefreshLobbyButton() => _refreshLobbyButton.gameObject.SetActive(true);
+        public void ShowRefreshLobbyButton() => _refreshLobbyButton.enabled = true;
     }
 }

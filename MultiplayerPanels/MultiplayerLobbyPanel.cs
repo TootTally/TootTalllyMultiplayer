@@ -131,6 +131,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _maxPlayerText.enableWordWrapping = false;
 
             //SONG INFO
+            titleContainer.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(15, 15, 15, 15);
+            songInfoContainer.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(15, 15, 15, 15);
             _songNameText = GameObjectFactory.CreateSingleText(titleContainer.transform, "SongNameText", "-");
             _songNameText.rectTransform.sizeDelta = new Vector2(0, 60);
             _songNameText.enableAutoSizing = true;
@@ -153,6 +155,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             //DETAILS
             //Top
             float iconSize = 32f;
+            songDescContainer.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(15, 15, 15, 15);
             GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("gamespeed64.png"), "GameSpeedIcon");
             _gameSpeedText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "GameSpeedText", " -");
             GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("stardiff64.png"), "RatingIcon");
@@ -165,8 +168,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             GameObjectFactory.CreateImageHolder(songInfoBottom.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("bpm64.png"), "BPMIcon");
             _bpmText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "BPMText", " -");
 
-            _timeText.rectTransform.sizeDelta = _gameSpeedText.rectTransform.sizeDelta = _modifiersText.rectTransform.sizeDelta = _bpmText.rectTransform.sizeDelta = new Vector2(220, 0);
-            _ratingText.rectTransform.sizeDelta = new Vector2(180, 0);
+            _timeText.rectTransform.sizeDelta = _gameSpeedText.rectTransform.sizeDelta = _modifiersText.rectTransform.sizeDelta = _bpmText.rectTransform.sizeDelta = new Vector2(200, 0);
+            _ratingText.rectTransform.sizeDelta = new Vector2(170, 0);
 
             BetterScrollSpeedSliderPatcher.SetSliderOption();
 

@@ -37,7 +37,6 @@ namespace TootTallyMultiplayer
             if (Instance != null) return;
             Instance = this;
             _harmony = new Harmony(Info.Metadata.GUID);
-
             GameInitializationEvent.Register(Info, TryInitialize);
         }
 
