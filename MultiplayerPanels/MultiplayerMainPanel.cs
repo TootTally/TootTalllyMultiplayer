@@ -27,6 +27,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private static EventTrigger.Entry _pointerExitLobbyContainerEvent;
 
         private TMP_Text _lobbyPlayerListText;
+        private TMP_Text _noLobbyText;
 
         private static CustomButton _connectButton, _createLobbyButton, _refreshLobbyButton;
         private static TootTallyAnimation _connectButtonScaleAnimation;
@@ -67,6 +68,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _pointerExitLobbyContainerEvent.eventID = EventTriggerType.PointerExit;
             _pointerExitLobbyContainerEvent.callback.AddListener((data) => OnMouseExitClearLobbyDetails());
 
+            _noLobbyText = GameObjectFactory.CreateSingleText(lobbyListContainer.transform, "NoLobbyText", "No lobby found.\nTry creating your own lobby!");
+            _noLobbyText.rectTransform.sizeDelta = Vector2.one * 200f;
+            _noLobbyText.fontSize = 32;
+            _noLobbyText.color = new Color(1, 1, 1, .5f);
+
             _createLobbyButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Create", "LobbyCreateButton", OnCreateLobbyButtonClick);
             _refreshLobbyButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Refresh", "RefreshLobbyButton", OnRefreshLobbyButtonClick);
 
@@ -80,6 +86,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             DisplayLobby(new MultiplayerLobbyInfo() { id = "AAAAA", maxPlayerCount = 16, players = new List<MultiplayerUserInfo>(), songInfo = new MultiplayerSongInfo(), state = "SelectingSong", title = "TEST LOBBY" }, true);
             UpdateScrolling(_lobbyInfoRowsList.Count);
         }
+
+        public void ShowNoLobbyText() => _noLobbyText.gameObject.SetActive(true);
+        public void HideNoLobbyText() => _noLobbyText.gameObject.SetActive(false);
 
         public void DisplayLobby(MultiplayerLobbyInfo lobbyinfo) => DisplayLobby(lobbyinfo, true);
 

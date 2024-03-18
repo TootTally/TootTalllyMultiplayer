@@ -146,6 +146,12 @@ namespace TootTallyMultiplayer
 
         public void UpdateLobbyInfo()
         {
+            if (_lobbyInfoList.Count == 0)
+            {
+                _multMainPanel.ShowNoLobbyText();
+                return;
+            }
+            _multMainPanel.HideNoLobbyText();
             for (int i = 0; i < _lobbyInfoList.Count; i++)
             {
                 var doAnimation = _newLobbyCodeList.Contains(_lobbyInfoList[i].id);
@@ -213,10 +219,10 @@ namespace TootTallyMultiplayer
         public void UpdateConnection()
         {
             IsConnectionPending = false;
-            var serverName = _multiConnection.GetServerID.Split('?')[0];
+            var serverName = _multiConnection.GetServerID.Split('?')[0]; //Crop the password part of the lobby
             TootTallyNotifManager.DisplayNotif("Connected to " + serverName);
             MultiplayerLogger.ClearLogs();
-            MultiplayerLogger.ServerLog($"Connected to {serverName}"); //Crop the password part of the lobby
+            MultiplayerLogger.ServerLog($"Connected to {serverName}"); 
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
             OnLobbyConnectionSuccess();
         }
