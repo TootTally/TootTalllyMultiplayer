@@ -4,6 +4,7 @@ using TMPro;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
+using TootTallyCore.Utils.TootTallyNotifs;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -15,6 +16,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
     public class MultiplayerMainPanel : MultiplayerPanelBase
     {
         public GameObject lobbyListContainer, lobbyInfoContainer;
+        private GameObject _currentInputPrompt;
         private List<GameObject> _lobbyInfoRowsList;
         private Dictionary<string, int> _savedCodeToPing;
         private string _lastSelectedLobby;
@@ -83,7 +85,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void DisplayLobby(MultiplayerLobbyInfo lobbyInfo, bool shouldAnimate)
         {
-            var lobbyContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0,120), lobbyListContainer.transform);
+            var lobbyContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0, 120), lobbyListContainer.transform);
             lobbyContainer.GetComponent<Image>().enabled = true;
             _lobbyInfoRowsList.Add(lobbyContainer);
             var button = lobbyContainer.AddComponent<EventTrigger>();
@@ -263,8 +265,50 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             if (_selectedLobby == null) return;
 
-            controller.ConnectToLobby(_selectedLobby.code);
+            if (_selectedLobby.hasPassword)
+                ShowPasswordInputPrompt();
+            else
+                controller.ConnectToLobby(_selectedLobby.code);
+        }
+
+        public void ShowPasswordInputPrompt()
+        {
+            _currentInputPrompt = MultiplayerGameObjectFactory.CreatePasswordInputPrompt(canvas.transform, "Enter lobby password", OnConfirmPasswordInputPrompt, OnCancelInputPrompt);
+        }
+
+        public void OnConfirmPasswordInputPrompt(string password)
+        {
+            controller.ConnectToLobby(_selectedLobby.code, password);
+        }
+
+        public void OnCancelInputPrompt()
+        {
+            if (controller.IsConnectionPending) return;
+            DestroyInputPrompt();
+        }
+
+        public void DestroyInputPrompt()
+        {
+            GameObject.DestroyImmediate(_currentInputPrompt);
+            _currentInputPrompt = null;
+        }
+
+        public void OnLobbyConnectSuccess()
+        {
+            if (_currentInputPrompt != null)
+                DestroyInputPrompt();
             _lastSelectedLobby = null; _selectedLobby = null;
+
+        }
+
+        public void OnLobbyDisconnectError()
+        {
+            if (_currentInputPrompt != null)
+            {
+                TootTallyNotifManager.DisplayNotif("Password is incorrect.");
+                return;
+            }
+            TootTallyNotifManager.DisplayNotif("Unexpected error occured.");
         }
 
         public void OnRefreshLobbyButtonClick()

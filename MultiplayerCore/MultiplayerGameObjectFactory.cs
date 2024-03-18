@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using TootTallyCore;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.Assets;
@@ -91,8 +92,8 @@ namespace TootTallyMultiplayer
             var rectHolder = inputHolder.AddComponent<RectTransform>();
             rectHolder.anchoredPosition = Vector2.zero;
             rectHolder.sizeDelta = new Vector2(350, 50);
-            var inputImageHolder = Object.Instantiate(inputHolder, inputHolder.transform);
-            var inputTextHolder = Object.Instantiate(inputImageHolder, inputHolder.transform);
+            var inputImageHolder = GameObject.Instantiate(inputHolder, inputHolder.transform);
+            var inputTextHolder = GameObject.Instantiate(inputImageHolder, inputHolder.transform);
             inputImageHolder.name = "Image";
             inputTextHolder.name = "Text";
 
@@ -118,12 +119,12 @@ namespace TootTallyMultiplayer
             _inputFieldPrefab.textComponent.enableWordWrapping = true;
             _inputFieldPrefab.textViewport = _inputFieldPrefab.textComponent.rectTransform;
 
-            Object.DontDestroyOnLoad(_inputFieldPrefab);
+            GameObject.DontDestroyOnLoad(_inputFieldPrefab);
         }
 
         public static TMP_InputField CreateInputField(Transform canvasTransform, string name, Vector2 size, float fontSize, string text, bool isPassword)
         {
-            var inputField = Object.Instantiate(_inputFieldPrefab, canvasTransform);
+            var inputField = GameObject.Instantiate(_inputFieldPrefab, canvasTransform);
             inputField.name = name;
             inputField.GetComponent<RectTransform>().sizeDelta = size;
             inputField.transform.Find("Image").GetComponent<RectTransform>().sizeDelta = new Vector2(size.x, 2);
@@ -159,6 +160,35 @@ namespace TootTallyMultiplayer
             var userCard = GameObject.Instantiate(_userCardPrefab, canvasTransform).AddComponent<MultiplayerCard>();
             userCard.InitTexts();
             return userCard;
+        }
+
+        public static GameObject CreatePasswordInputPrompt(Transform canvasTransform, string titleText, Action<string> OnConfirm, Action OnCancel)
+        {
+            var borderedBox = GetBorderedVerticalBox(new Vector2(900,250), 4, canvasTransform);
+            var promptRect = borderedBox.GetComponent<RectTransform>();
+            promptRect.anchorMin = promptRect.anchorMax = promptRect.pivot = Vector2.one / 2f;
+
+            var borderedBoxContainer = borderedBox.transform.GetChild(0).gameObject;
+            var title = GameObjectFactory.CreateSingleText(borderedBoxContainer.transform, "TitleText", titleText);
+            title.rectTransform.sizeDelta = new Vector2(0, 65);
+
+            var inputHorizontalBox = GetHorizontalBox(new Vector2(0, 65), borderedBoxContainer.transform);
+            var hlayout = inputHorizontalBox.GetComponent<HorizontalLayoutGroup>();
+            hlayout.spacing = 8f;
+            hlayout.padding = new RectOffset(0, 0, 3, 0);
+            var inputFieldLabel = GameObjectFactory.CreateSingleText(inputHorizontalBox.transform, "InputFieldLabel", "Password:");
+            inputFieldLabel.rectTransform.sizeDelta = new Vector2(115, 65);
+            inputFieldLabel.alignment = TextAlignmentOptions.BottomRight;
+            var inputField = CreateInputField(inputHorizontalBox.transform, "InputField", new Vector2(275, 30), 24, "", true);
+
+            var buttonHorizontalBox = GetHorizontalBox(new Vector2(0, 100), borderedBoxContainer.transform);
+            var hLayout2 = buttonHorizontalBox.GetComponent<HorizontalLayoutGroup>();
+            hLayout2.spacing = 100f;
+            hLayout2.childControlHeight = hLayout2.childForceExpandHeight = false;
+            var confirmButton = GameObjectFactory.CreateCustomButton(buttonHorizontalBox.transform, Vector2.zero, new Vector2(170, 65), "Confirm", "ConfirmButton", delegate { OnConfirm?.Invoke(inputField.text); });
+            var cancelButton = GameObjectFactory.CreateCustomButton(buttonHorizontalBox.transform, Vector2.zero, new Vector2(170, 65), "Cancel", "CancelButton", OnCancel);
+
+            return borderedBox;
         }
 
         public static GameObject GetVerticalBox(Vector2 size, Transform parent = null)

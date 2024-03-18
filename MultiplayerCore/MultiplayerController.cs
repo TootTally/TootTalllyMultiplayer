@@ -172,6 +172,7 @@ namespace TootTallyMultiplayer
             {
                 OnWebSocketOpenCallback = delegate
                 {
+                    _multMainPanel.OnLobbyConnectSuccess();
                     _multiConnection.OnWebSocketCloseCallback = null;
                     _multiConnection.OnSocketSongInfoReceived = OnSongInfoReceived;
                     _multiConnection.OnSocketOptionReceived = OnOptionInfoReceived;
@@ -191,7 +192,7 @@ namespace TootTallyMultiplayer
                 MoveToMain();
             }
             else
-                TootTallyNotifManager.DisplayNotif("Unexpected error occured.");
+                _multMainPanel.OnLobbyDisconnectError();
             _currentLobby = null;
             IsConnectionPending = false;
             RefreshAllLobbyInfo();
@@ -316,7 +317,7 @@ namespace TootTallyMultiplayer
         public void OnSongInfoReceived(MultiplayerSongInfo songInfo)
         {
             if ((savedSongInfo == null || savedSongInfo.trackRef != songInfo.trackRef) && songInfo.trackRef != "")
-                MultiplayerLogger.HostLog(_currentLobby.players[0].username ,$"Song \"{songInfo.songName}\" was selected.");
+                MultiplayerLogger.HostLog(_currentLobby.players[0].username, $"Song \"{songInfo.songName}\" was selected.");
 
             savedSongInfo = songInfo;
             TootTallyGlobalVariables.gameSpeedMultiplier = songInfo.gameSpeed;
