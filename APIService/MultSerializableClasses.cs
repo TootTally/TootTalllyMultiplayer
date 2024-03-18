@@ -29,7 +29,7 @@ namespace TootTallyMultiplayer.APIService
             public string id;
             public int maxPlayerCount;
             public string title;
-            //public string password;
+            public bool hasPassword;
             public string state;
             public List<MultiplayerUserInfo> players;
             public MultiplayerSongInfo songInfo;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static Mono.Security.X509.X520;
 
 namespace TootTallyMultiplayer.MultiplayerCore
 {
@@ -16,9 +17,12 @@ namespace TootTallyMultiplayer.MultiplayerCore
             if (logList.Count > 69)
                 logList.Dequeue();
         }
+        
+        public static void UserLog(string user, string message) =>
+            LogInfo($"[{ColorText("User", Color.yellow)}] {user}: {message}");
 
         public static void HostLog(string name, string message) =>
-            LogInfo($"{name}[{ColorText("Host", new Color(.95f, .2f, .95f))}]: {message}");
+            LogInfo($"[{ColorText("Host", new Color(.95f, .2f, .95f))}] {name}: {message}");
 
         public static void ServerLog(string message) =>
             LogInfo($"[{ColorText("Server", Color.green)}]: {message}");

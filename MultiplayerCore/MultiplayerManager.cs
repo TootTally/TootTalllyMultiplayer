@@ -470,6 +470,18 @@ namespace TootTallyMultiplayer
             }
             return true;
         }
+
+        [HarmonyPatch(typeof(GameController), nameof(GameController.pauseRetryLevel))]
+        [HarmonyPrefix]
+        private static bool PreventRetryInMultiplayer()
+        {
+            if (IsPlayingMultiplayer)
+            {
+                TootTallyNotifManager.DisplayNotif("Can't retry in multiplayer.");
+                return false;
+            }
+            return true;
+        }
         #endregion
 
         #region GameController Patches
@@ -504,6 +516,8 @@ namespace TootTallyMultiplayer
                     _syncTimeoutTimer += Time.deltaTime;
             }
 
+            if (IsPlayingMultiplayer)
+                __instance.restarttimer = 0.01f;
         }
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.startSong))]

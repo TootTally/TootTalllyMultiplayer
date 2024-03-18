@@ -13,6 +13,7 @@ using TootTallyMultiplayer.MultiplayerCore;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static TootTallyCore.APIServices.SerializableClass;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.MultiplayerPanels
@@ -23,7 +24,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject titleContainer, songDescContainer, buttonContainer;
         public GameObject songInfoContainer, songInfoTop, songInfoBottom;
 
-        private GameObject _quickChatContainer;
+        //private GameObject _quickChatContainer;
 
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
@@ -58,7 +59,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private bool _canPressButton;
 
         private UserState _userState;
-        private int _quickChatPageIndex;
+        //private int _quickChatPageIndex;
 
         public MultiplayerLobbyPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "LobbyLayout")
         {
@@ -79,10 +80,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             songDescContainer = rightPanelContainer.transform.GetChild(2).gameObject;
             buttonContainer = rightPanelContainer.transform.GetChild(3).gameObject;
 
-            _quickChatContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(64, 64), middlePanel.transform);
-            _quickChatContainer.name = "QuickChat";
+            //_quickChatContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(64, 64), middlePanel.transform);
+            //_quickChatContainer.name = "QuickChat";
 
-            GameObjectFactory.CreateCustomButton(_quickChatContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
+            //GameObjectFactory.CreateCustomButton(_quickChatContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
 
             _hiddenUserCardSlider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _hiddenUserCardSlider.gameObject.SetActive(true);
@@ -183,9 +184,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var sliderText = GameObjectFactory.CreateSingleText(_scrollSpeedSlider.handleRect, "ScrollSpeedSliderText", BetterScrollSpeedSliderPatcher.SliderValueToText(_scrollSpeedSlider.value));
             sliderText.enableWordWrapping = false;
             sliderText.fontSize = 12;
-            _scrollSpeedSlider.onValueChanged.AddListener((float value) => 
-            { 
-                BetterScrollSpeedSliderPatcher.options.LastValue.Value = value * 100f; 
+            _scrollSpeedSlider.onValueChanged.AddListener((float value) =>
+            {
+                BetterScrollSpeedSliderPatcher.options.LastValue.Value = value * 100f;
                 sliderText.text = BetterScrollSpeedSliderPatcher.SliderValueToText(value);
                 GlobalVariables.gamescrollspeed = value;
             });
@@ -199,7 +200,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _startGameButton.gameObject.SetActive(false);
             _readyUpButton = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(220, 100), "Ready Up", "ReadyUpButton", OnReadyButtonClick);
             _downloadProgressBar = GameObjectFactory.CreateProgressBar(buttonContainer.transform, Vector2.zero, new Vector2(550, 35), false, "DownloadProgressBar");
-            _quickChatPageIndex = 1;
+            //_quickChatPageIndex = 1;
             ResetData();
 
             footer.AddComponent<Mask>();
@@ -229,9 +230,21 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         }
 
         private MultiplayerUserInfo _hostInfo;
-
+        private List<MultiplayerUserInfo> _lastUsers;
         public void DisplayAllUserInfo(List<MultiplayerUserInfo> users)
         {
+            if (_lastUsers != null)
+            {
+                users.FindAll(x => !_lastUsers.Any(l => x.id == l.id)).ToList().ForEach(u => 
+                {
+                    MultiplayerLogger.ServerLog($"{u.username} joined the lobby.");
+                });
+                _lastUsers.FindAll(l => !users.Any(x => l.id == x.id)).ToList().ForEach(u =>
+                {
+                    MultiplayerLogger.ServerLog($"{u.username} left the lobby.");
+                });
+            }
+
             ClearAllUserRows();
 
             _hostInfo = users.First();
@@ -246,6 +259,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             UpdateScrolling(_userCardsDict.Count);
 
             users.ForEach(DisplayUserInfo);
+            _lastUsers = users;
         }
 
         public void UpdateScrolling(int userCount)

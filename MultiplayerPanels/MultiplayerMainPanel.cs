@@ -99,7 +99,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             button.triggers.Add(pointerClickEvent);
 
             button.triggers.Add(_pointerExitLobbyContainerEvent);
-            var test = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(590, 0), lobbyContainer.transform);
+            var test = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(lobbyInfo.hasPassword ? 1020 : 1084, 0), lobbyContainer.transform);
             var tLayout = test.GetComponent<VerticalLayoutGroup>();
             tLayout.childForceExpandHeight = tLayout.childControlHeight = true;
 
@@ -114,10 +114,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             t1.alignment = t2.alignment = TextAlignmentOptions.Left;
 
-            /*if (lobbyInfo.password != null)
-                GameObjectFactory.CreateImageHolder(lobbyContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("lock.png"), "LockedLobbyIcon");*/
+            var lockedIcon = GameObjectFactory.CreateImageHolder(lobbyContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("lock.png"), "LockedLobbyIcon");
+            lockedIcon.SetActive(lobbyInfo.hasPassword);
 
-            var test2 = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(590, 0), lobbyContainer.transform);
+            var test2 = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(90, 0), lobbyContainer.transform);
             var t2Layout = test2.GetComponent<VerticalLayoutGroup>();
             t2Layout.childForceExpandHeight = t2Layout.childControlHeight = true;
 

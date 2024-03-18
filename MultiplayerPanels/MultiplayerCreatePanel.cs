@@ -84,7 +84,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 if (serverCode != null)
                 {
                     Plugin.LogInfo(serverCode);
-                    controller.ConnectToLobby(serverCode);
+                    controller.ConnectToLobby(serverCode, _lobbyPassword.text);
                 }
                 else
                     TootTallyNotifManager.DisplayNotif("Lobby creation failed.");

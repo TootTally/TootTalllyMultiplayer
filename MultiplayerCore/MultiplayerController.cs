@@ -158,7 +158,7 @@ namespace TootTallyMultiplayer
             _multMainPanel.UpdateScrolling(_lobbyInfoList.Count);
         }
 
-        public void ConnectToLobby(string code)
+        public void ConnectToLobby(string code, string password = "")
         {
             RefreshAllLobbyInfo();
             if (_multiConnection != null && _multiConnection.ConnectionPending) return;
@@ -166,6 +166,8 @@ namespace TootTallyMultiplayer
             _multiConnection?.Disconnect();
             Plugin.LogInfo("Connecting to " + code);
             IsConnectionPending = true;
+            if (password != "")
+                code += $"?Password={password}";
             _multiConnection = new MultiplayerSystem(code, false)
             {
                 OnWebSocketOpenCallback = delegate
@@ -212,7 +214,7 @@ namespace TootTallyMultiplayer
             IsConnectionPending = false;
             TootTallyNotifManager.DisplayNotif("Connected to " + _multiConnection.GetServerID);
             MultiplayerLogger.ClearLogs();
-            MultiplayerLogger.ServerLog($"Connected to {_multiConnection.GetServerID}");
+            MultiplayerLogger.ServerLog($"Connected to {_multiConnection.GetServerID.Split('?')[0]}"); //Crop the password part of the lobby
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
             OnLobbyConnectionSuccess();
         }
@@ -313,8 +315,8 @@ namespace TootTallyMultiplayer
         public void OnSongInfoReceived(SocketSongInfo socketSongInfo) => OnSongInfoReceived(socketSongInfo.songInfo);
         public void OnSongInfoReceived(MultiplayerSongInfo songInfo)
         {
-            if (savedSongInfo != songInfo && songInfo.trackRef != "")
-                MultiplayerLogger.ServerLog($"Song \"{songInfo.songName}\" was selected.");
+            if ((savedSongInfo == null || savedSongInfo.trackRef != songInfo.trackRef) && songInfo.trackRef != "")
+                MultiplayerLogger.HostLog(_currentLobby.players[0].username ,$"Song \"{songInfo.songName}\" was selected.");
 
             savedSongInfo = songInfo;
             TootTallyGlobalVariables.gameSpeedMultiplier = songInfo.gameSpeed;
