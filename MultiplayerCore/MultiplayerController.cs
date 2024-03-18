@@ -213,9 +213,10 @@ namespace TootTallyMultiplayer
         public void UpdateConnection()
         {
             IsConnectionPending = false;
-            TootTallyNotifManager.DisplayNotif("Connected to " + _multiConnection.GetServerID);
+            var serverName = _multiConnection.GetServerID.Split('?')[0];
+            TootTallyNotifManager.DisplayNotif("Connected to " + serverName);
             MultiplayerLogger.ClearLogs();
-            MultiplayerLogger.ServerLog($"Connected to {_multiConnection.GetServerID.Split('?')[0]}"); //Crop the password part of the lobby
+            MultiplayerLogger.ServerLog($"Connected to {serverName}"); //Crop the password part of the lobby
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
             OnLobbyConnectionSuccess();
         }
