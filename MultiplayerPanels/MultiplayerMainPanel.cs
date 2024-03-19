@@ -79,11 +79,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _connectButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Connect", "LobbyConnectButton", OnConnectButtonClick);
             _connectButton.gameObject.SetActive(false);
         }
-
+        bool debugPassword = false;
         public void DisplayLobbyDebug()
         {
             MultiplayerManager.StopRecursiveRefresh();
-            DisplayLobby(new MultiplayerLobbyInfo() { id = "AAAAA", maxPlayerCount = 16, players = new List<MultiplayerUserInfo>(), songInfo = new MultiplayerSongInfo(), state = "SelectingSong", title = "TEST LOBBY" }, true);
+            DisplayLobby(new MultiplayerLobbyInfo() { id = "AAAAA", maxPlayerCount = 16, players = new List<MultiplayerUserInfo>(), songInfo = new MultiplayerSongInfo(), state = "SelectingSong", title = "TEST LOBBY", hasPassword = debugPassword }, true);
+            debugPassword = !debugPassword;
             UpdateScrolling(_lobbyInfoRowsList.Count);
         }
 

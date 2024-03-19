@@ -531,6 +531,12 @@ namespace TootTallyMultiplayer
             _multiConnection?.Disconnect();
         }
 
+        #region DEBUG
+        public void DebugFakeLobby() => _multMainPanel?.DisplayLobbyDebug();
+        public void DebugFakeUser() => _multLobbyPanel?.DisplayUserInfoDebug();
+
+        #endregion
+
         public enum MultiplayerState
         {
             None,

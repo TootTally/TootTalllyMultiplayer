@@ -674,6 +674,10 @@ namespace TootTallyMultiplayer
         }
         #endregion
 
+        #region DEBUG
+        public static void DebugFakeLobby() => _multiController?.DebugFakeLobby();
+        public static void DebugFakeUser() => _multiController?.DebugFakeUser();
+        #endregion
         public enum HomeScreenButtonIndexes
         {
             Play = 0,

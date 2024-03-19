@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using TMPro;
 using TootTallyCore;
 using TootTallyCore.Graphics;
@@ -164,24 +165,30 @@ namespace TootTallyMultiplayer
 
         public static GameObject CreatePasswordInputPrompt(Transform canvasTransform, string titleText, Action<string> OnConfirm, Action OnCancel)
         {
-            var borderedBox = GetBorderedVerticalBox(new Vector2(900,250), 4, canvasTransform);
+            var borderedBox = GetBorderedVerticalBox(new Vector2(520,235), 4, canvasTransform);
             var promptRect = borderedBox.GetComponent<RectTransform>();
             promptRect.anchorMin = promptRect.anchorMax = promptRect.pivot = Vector2.one / 2f;
 
             var borderedBoxContainer = borderedBox.transform.GetChild(0).gameObject;
+            var vlayout = borderedBoxContainer.GetComponent<VerticalLayoutGroup>();
+            vlayout.childAlignment = TextAnchor.UpperCenter;
+            vlayout.spacing = 21;
+            vlayout.padding = new RectOffset(5, 5, 35, 5);
             var title = GameObjectFactory.CreateSingleText(borderedBoxContainer.transform, "TitleText", titleText);
-            title.rectTransform.sizeDelta = new Vector2(0, 65);
+            title.fontSize = 26;
+            title.fontStyle = FontStyles.Bold;
+            title.rectTransform.sizeDelta = new Vector2(0, 32);
 
-            var inputHorizontalBox = GetHorizontalBox(new Vector2(0, 65), borderedBoxContainer.transform);
+            var inputHorizontalBox = GetHorizontalBox(new Vector2(0, 30), borderedBoxContainer.transform);
             var hlayout = inputHorizontalBox.GetComponent<HorizontalLayoutGroup>();
             hlayout.spacing = 8f;
             hlayout.padding = new RectOffset(0, 0, 3, 0);
             var inputFieldLabel = GameObjectFactory.CreateSingleText(inputHorizontalBox.transform, "InputFieldLabel", "Password:");
-            inputFieldLabel.rectTransform.sizeDelta = new Vector2(115, 65);
+            inputFieldLabel.rectTransform.sizeDelta = new Vector2(115, 30);
             inputFieldLabel.alignment = TextAlignmentOptions.BottomRight;
             var inputField = CreateInputField(inputHorizontalBox.transform, "InputField", new Vector2(275, 30), 24, "", true);
 
-            var buttonHorizontalBox = GetHorizontalBox(new Vector2(0, 100), borderedBoxContainer.transform);
+            var buttonHorizontalBox = GetHorizontalBox(new Vector2(0, 66), borderedBoxContainer.transform);
             var hLayout2 = buttonHorizontalBox.GetComponent<HorizontalLayoutGroup>();
             hLayout2.spacing = 100f;
             hLayout2.childControlHeight = hLayout2.childForceExpandHeight = false;
