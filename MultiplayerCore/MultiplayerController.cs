@@ -151,7 +151,7 @@ namespace TootTallyMultiplayer
                 _multMainPanel.ShowNoLobbyText();
                 return;
             }
-            _multMainPanel.HideNoLobbyText();
+            _multMainPanel.SetupForLobbyDisplay();
             for (int i = 0; i < _lobbyInfoList.Count; i++)
             {
                 var doAnimation = _newLobbyCodeList.Contains(_lobbyInfoList[i].id);

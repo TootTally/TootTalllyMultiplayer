@@ -19,7 +19,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private GameObject _currentInputPrompt;
         private List<GameObject> _lobbyInfoRowsList;
         private Dictionary<string, int> _savedCodeToPing;
-        private string _lastSelectedLobby;
+        private string _lastSelectedLobbyID;
 
         private Slider _slider;
         private ScrollableSliderHandler _scrollingHandler;
@@ -88,8 +88,18 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             UpdateScrolling(_lobbyInfoRowsList.Count);
         }
 
-        public void ShowNoLobbyText() => _noLobbyText.gameObject.SetActive(true);
-        public void HideNoLobbyText() => _noLobbyText.gameObject.SetActive(false);
+        public void ShowNoLobbyText()
+        {
+            _noLobbyText.gameObject.SetActive(true);
+            ClearLobbyDetailsText();
+            
+        }
+
+        public void SetupForLobbyDisplay()
+        {
+            _selectedLobby = null;
+            _noLobbyText.gameObject.SetActive(false);
+        }
 
         public void DisplayLobby(MultiplayerLobbyInfo lobbyinfo) => DisplayLobby(lobbyinfo, true);
 
@@ -146,8 +156,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 TootTallyAnimationManager.AddNewEulerAngleAnimation(lobbyContainer, Vector3.zero, 2f, new SecondDegreeDynamicsAnimation(1.25f, 1f, 1f));
             }
 
-            if (_lastSelectedLobby == lobbyInfo.id)
+            if (_lastSelectedLobbyID == lobbyInfo.id)
+            {
+                _selectedLobby = lobbyInfo;
                 OnMouseClickSelectLobby(lobbyInfo, lobbyContainer, false);
+            }
 
             if (_savedCodeToPing.ContainsKey(lobbyInfo.id))
                 t4.text = $"{_savedCodeToPing[lobbyInfo.id]}ms";
@@ -197,15 +210,18 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _previousLobbyCount = lobbyCount;
         }
 
+        private MultiplayerLobbyInfo _lastHoveredLobbyInfo;
+
         public void OnMouseEnterDisplayLobbyDetails(MultiplayerLobbyInfo lobbyInfo, GameObject lobbyContainer)
         {
             _lobbyPlayerListText.text = "<u>Player List</u>\n";
             lobbyInfo.players.ForEach(u => _lobbyPlayerListText.text += $"{u.username}\n");
 
-            if (_selectedLobbyContainer == null || _hoveredLobbyContainer != lobbyContainer && lobbyContainer != _selectedLobbyContainer)
+            if (_hoveredLobbyContainer != lobbyContainer && _hoveredLobbyContainer != _selectedLobbyContainer && _lastHoveredLobbyInfo != null && _lastHoveredLobbyInfo.id != lobbyInfo.id)
             {
                 controller.GetInstance.sfx_hover.Play();
                 _hoveredLobbyContainer = lobbyContainer;
+                _lastHoveredLobbyInfo = lobbyInfo;
                 _hoveredLobbyContainer.GetComponent<Image>().color = new Color(.15f, .15f, .15f, .58f);
             }
 
@@ -216,11 +232,17 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_selectedLobby != null)
                 OnMouseEnterDisplayLobbyDetails(_selectedLobby, _selectedLobbyContainer);
             else
-                _lobbyPlayerListText.text = "";
+                ClearLobbyDetailsText();
 
             if (_hoveredLobbyContainer != null)
                 _hoveredLobbyContainer.GetComponent<Image>().color = new Color(0, 0, 0, .58f);
+            _lastHoveredLobbyInfo = null;
             _hoveredLobbyContainer = null;
+        }
+
+        public void ClearLobbyDetailsText()
+        {
+            _lobbyPlayerListText.text = "";
         }
 
         public void OnMouseClickSelectLobby(MultiplayerLobbyInfo lobbyInfo, GameObject lobbyContainer, bool animateConnect)
@@ -231,7 +253,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 _selectedLobbyContainer.GetComponent<Image>().color = new Color(0, 0, 0, .58f);
 
             _selectedLobby = lobbyInfo;
-            _lastSelectedLobby = lobbyInfo.id;
+            _lastSelectedLobbyID = lobbyInfo.id;
             _selectedLobbyContainer = lobbyContainer;
 
             _selectedLobbyContainer.GetComponent<Image>().color = new Color(0, .35f, 0, .58f);
@@ -307,7 +329,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             if (_currentInputPrompt != null)
                 DestroyInputPrompt();
-            _lastSelectedLobby = null; _selectedLobby = null;
+            _lastSelectedLobbyID = null; _selectedLobby = null;
 
         }
 

@@ -149,9 +149,9 @@ namespace TootTallyMultiplayer
 
         public static GameObject CreatePointScoreCard(Transform canvasTransform, Vector2 position, string name)
         {
-            var pointScoreObject = GameObject.Instantiate(_pointScorePrefab,canvasTransform);
+            var pointScoreObject = GameObject.Instantiate(_pointScorePrefab ,canvasTransform);
             pointScoreObject.SetActive(true);
-            pointScoreObject.GetComponent <RectTransform>().anchoredPosition = position;
+            pointScoreObject.GetComponent<RectTransform>().anchoredPosition = position;
             pointScoreObject.name = name;
             return pointScoreObject;
         }
