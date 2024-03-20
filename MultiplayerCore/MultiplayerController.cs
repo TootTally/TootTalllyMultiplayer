@@ -359,7 +359,7 @@ namespace TootTallyMultiplayer
             }
             else
             {
-                _savedDownloadLink = songInfo.mirror;
+                _savedDownloadLink = FileHelper.GetDownloadLinkFromSongData(new SerializableClass.SongDataFromDB { mirror = songInfo.mirror, download = songInfo.download });
                 _savedTrackRef = songInfo.trackRef;
                 SendUserState(UserState.NoSong);
                 _multLobbyPanel.SetNullTrackDataDetails(_savedDownloadLink != null);

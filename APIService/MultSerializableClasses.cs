@@ -40,6 +40,7 @@ namespace TootTallyMultiplayer.APIService
         {
             public float difficulty;
             public string charter;
+            public string download;
             public string mirror;
             public string fileHash;
             public float gameSpeed;
