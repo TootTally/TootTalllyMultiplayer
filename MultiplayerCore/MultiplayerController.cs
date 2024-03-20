@@ -376,20 +376,29 @@ namespace TootTallyMultiplayer
                     IsDownloadPending = false;
                     if (data != null)
                     {
-                        string downloadDir = Path.Combine(Path.GetDirectoryName(Plugin.Instance.Info.Location), "Downloads/");
-                        string fileName = $"{_savedDownloadLink.Split('/').Last()}";
-                        if (!Directory.Exists(downloadDir))
-                            Directory.CreateDirectory(downloadDir);
-                        FileHelper.WriteBytesToFile(downloadDir, fileName, data);
+                        try
+                        {
+                            string downloadDir = Path.Combine(Path.GetDirectoryName(Plugin.Instance.Info.Location), "Downloads/");
+                            string fileName = $"{_savedDownloadLink.Split('/').Last()}";
+                            if (!Directory.Exists(downloadDir))
+                                Directory.CreateDirectory(downloadDir);
+                            FileHelper.WriteBytesToFile(downloadDir, fileName, data);
 
-                        string source = Path.Combine(downloadDir, fileName);
-                        string destination = Path.Combine(Paths.BepInExRootPath, "CustomSongs/");
-                        FileHelper.ExtractZipToDirectory(source, destination);
+                            string source = Path.Combine(downloadDir, fileName);
+                            string destination = Path.Combine(Paths.BepInExRootPath, "CustomSongs/");
+                            FileHelper.ExtractZipToDirectory(source, destination);
 
-                        FileHelper.DeleteFile(downloadDir, fileName);
-                        TootTallyCore.Plugin.Instance.ReloadTracks();
-                        SelectSongFromTrackref(_savedTrackRef);
-                        SendUserState(UserState.NotReady);
+                            FileHelper.DeleteFile(downloadDir, fileName);
+                            TootTallyCore.Plugin.Instance.ReloadTracks();
+                            SelectSongFromTrackref(_savedTrackRef);
+                            SendUserState(UserState.NotReady);
+                        } 
+                        catch (Exception ex)
+                        {
+                            _multLobbyPanel.OnUserStateChange(_currentUserState);
+                            TootTallyNotifManager.DisplayNotif("Download failed. Unexpected error occured.");
+                        }
+                        
                     }
                     else
                     {
