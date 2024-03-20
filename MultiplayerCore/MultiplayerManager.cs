@@ -475,9 +475,21 @@ namespace TootTallyMultiplayer
         [HarmonyPrefix]
         private static bool PreventRetryInMultiplayer()
         {
-            if (IsPlayingMultiplayer)
+            if (_multiController != null && _state == MultiplayerController.MultiplayerState.Quitting)
             {
-                TootTallyNotifManager.DisplayNotif("Can't retry in multiplayer.");
+                TootTallyNotifManager.DisplayNotif("Can't quick retry in multiplayer.");
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(GameController), nameof(GameController.pauseQuitLevel))]
+        [HarmonyPrefix]
+        private static bool PreventQuickQuittingInMultiplayer()
+        {
+            if (_multiController != null && _state == MultiplayerController.MultiplayerState.Quitting)
+            {
+                TootTallyNotifManager.DisplayNotif("Can't fast quit in multiplayer.");
                 return false;
             }
             return true;
@@ -543,11 +555,13 @@ namespace TootTallyMultiplayer
         public static bool OnGamePause(PauseCanvasController __instance)
         {
             if (!IsPlayingMultiplayer) return true;
-
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.Quitting);
-            __instance.gc.sfxrefs.backfromfreeplay.Play();
-            __instance.gc.pausecanvas.SetActive(false);
-            __instance.gc.curtainc.closeCurtain(false);
+            var gameController = __instance.gc;
+            gameController.paused = true;
+            gameController.quitting = true;
+            gameController.sfxrefs.backfromfreeplay.Play();
+            gameController.pausecanvas.SetActive(false);
+            gameController.curtainc.closeCurtain(false);
             LeanTween.alphaCanvas(__instance.curtaincontroller.fullfadeblack, 1f, 0.5f).setDelay(0.6f).setEaseInOutQuint().setOnComplete(() =>
             {
                 __instance.curtaincontroller.unloadAssets();

@@ -8,6 +8,7 @@ using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
+using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyLeaderboard;
 using TootTallyMultiplayer.MultiplayerCore;
 using UnityEngine;
@@ -93,8 +94,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _userCardsDict = new Dictionary<int, MultiplayerCard>();
 
-            //_lobbySettingsButton = GameObjectFactory.CreateCustomButton(headerRight.transform, Vector2.zero, new Vector2(150, 65), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingsButton");
-            _lobbySettingButton = GameObjectFactory.CreateClickableImageHolder(headerRight.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingButton", null).gameObject;
+            _lobbySettingButton = GameObjectFactory.CreateClickableImageHolder(headerRight.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingButton", OnSettingsButtonClick).gameObject;
             _lobbySettingButton.gameObject.SetActive(false);
 
             GameObjectFactory.CreateClickableImageHolder(headerLeft.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("gtfo.png"), "LobbyBackButton", OnBackButtonClick);
@@ -423,6 +423,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     DisableButton(.8f);
                     break;
             }
+        }
+
+        public void OnSettingsButtonClick()
+        {
+            TootTallyNotifManager.DisplayNotif("Setting change not supported yet.");
         }
 
         public void OnBackButtonClick()
