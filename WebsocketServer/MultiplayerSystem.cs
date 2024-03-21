@@ -163,6 +163,7 @@ namespace TootTallyMultiplayer
             GiveHost,
             KickFromLobby,
             StartGame,
+            AbortGame,
 
             //Lobby Updates
             LobbyInfoChanged,

@@ -50,10 +50,14 @@ namespace TootTallyMultiplayer
         private MultiplayerLobbyPanel _multLobbyPanel;
         private MultiplayerCreatePanel _multCreatePanel;
 
+        private float _startGameTimer;
+        private float _startGameTimerMaxTime;
+        private float _nextStartTimerTick;
 
         public bool IsUpdating;
         public bool IsConnectionPending;
         public bool IsDownloadPending;
+        public bool IsTimerStarted;
         public bool IsConnected => _multiConnection != null && _multiConnection.IsConnected;
         public bool IsAnybodyLoading => _currentLobby.players.Where(x => x.id != TootTallyUser.userInfo.id).Any(x => x.state == "Loading");
 
@@ -212,7 +216,11 @@ namespace TootTallyMultiplayer
                 if (IsConnectionPending)
                     UpdateConnection();
                 else
+                {
                     _multiConnection.UpdateStacks();
+                    if (IsTimerStarted)
+                        UpdateTimer();
+                }
             }
         }
 
@@ -222,7 +230,7 @@ namespace TootTallyMultiplayer
             var serverName = _multiConnection.GetServerID.Split('?')[0]; //Crop the password part of the lobby
             TootTallyNotifManager.DisplayNotif("Connected to " + serverName);
             MultiplayerLogger.ClearLogs();
-            MultiplayerLogger.ServerLog($"Connected to {serverName}"); 
+            MultiplayerLogger.ServerLog($"Connected to {serverName}");
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
             OnLobbyConnectionSuccess();
         }
@@ -392,13 +400,13 @@ namespace TootTallyMultiplayer
                             TootTallyCore.Plugin.Instance.ReloadTracks();
                             SelectSongFromTrackref(_savedTrackRef);
                             SendUserState(UserState.NotReady);
-                        } 
+                        }
                         catch (Exception ex)
                         {
                             _multLobbyPanel.OnUserStateChange(_currentUserState);
                             TootTallyNotifManager.DisplayNotif("Download failed. Unexpected error occured.");
                         }
-                        
+
                     }
                     else
                     {
@@ -440,7 +448,10 @@ namespace TootTallyMultiplayer
 
         public void StartLobbyGame()
         {
-            _multiConnection.SendOptionInfo(OptionInfoType.StartGame);
+            if (IsTimerStarted)
+                _multiConnection.SendOptionInfo(OptionInfoType.AbortGame);
+            else
+                _multiConnection.SendOptionInfo(OptionInfoType.StartGame);
         }
 
         public void StartGame()
@@ -449,6 +460,7 @@ namespace TootTallyMultiplayer
             {
                 MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Playing);
                 Plugin.LogInfo("Starting Multiplayer for " + GlobalVariables.chosen_track_data.trackname_short + " - " + GlobalVariables.chosen_track_data.trackref);
+                MultiplayerLogger.ServerLog($"Song starting now.");
                 IsTransitioning = true;
                 CurrentInstance.sfx_ok.Play();
                 CurrentInstance.fadepanel.gameObject.SetActive(true);
@@ -458,6 +470,41 @@ namespace TootTallyMultiplayer
             }
 
             TootTallyNotifManager.DisplayNotif($"Cannot start the game. {(!_hasSong ? "Chart not owned." : "")}");
+        }
+
+        public void AbortTimer()
+        {
+            StopTimer();
+            MultiplayerLogger.ServerLog($"Song start in aborted.");
+        }
+
+        public void StopTimer()
+        {
+            IsTimerStarted = false;
+            _startGameTimer = _startGameTimerMaxTime = _nextStartTimerTick;
+        }
+
+        public void StartTimer(float time)
+        {
+            _startGameTimer = _startGameTimerMaxTime = _startGameTimer = _nextStartTimerTick = time;
+            IsTimerStarted = true;
+        }
+
+        public void UpdateTimer()
+        {
+            _startGameTimer -= Time.deltaTime;
+            if (_startGameTimer <= 0)
+            {
+                StopTimer();
+                StartGame();
+                return;
+            }
+            else if (_startGameTimer < _nextStartTimerTick)
+            {
+                MultiplayerLogger.ServerLog($"Song starting in {Mathf.RoundToInt(_startGameTimer)}s");
+                _nextStartTimerTick--;
+                CurrentInstance.sfx_hover.Play();
+            }
         }
 
         public void KickUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.KickFromLobby, new dynamic[] { userID });
@@ -484,7 +531,9 @@ namespace TootTallyMultiplayer
             switch (Enum.Parse(typeof(OptionInfoType), optionInfo.optionType))
             {
                 case OptionInfoType.StartGame:
-                    StartGame(); break;
+                    StartTimer(5); break;
+                case OptionInfoType.AbortGame:
+                    AbortTimer(); break;
                 case OptionInfoType.KickFromLobby:
                     if (TootTallyAccounts.TootTallyUser.userInfo.id == (int)optionInfo.values[0])
                         DisconnectFromLobby();
