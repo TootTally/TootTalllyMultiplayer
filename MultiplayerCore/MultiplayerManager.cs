@@ -595,6 +595,15 @@ namespace TootTallyMultiplayer
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
         }
 
+        public static void UpdateMultiplayerStateIfChanged(MultiplayerController.MultiplayerState newState)
+        {
+            if (_state == newState) return;
+
+            _previousState = _state;
+            _state = newState;
+            ResolveMultiplayerState();
+        }
+
         public static void UpdateMultiplayerState(MultiplayerController.MultiplayerState newState)
         {
             _previousState = _state;

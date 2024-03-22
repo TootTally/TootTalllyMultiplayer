@@ -101,6 +101,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _noLobbyText.gameObject.SetActive(false);
         }
 
+        public void FinalizeLobbyDisplay()
+        {
+            if (_selectedLobby == null && _currentInputPrompt != null)
+                DestroyInputPrompt();
+        }
+
         public void DisplayLobby(MultiplayerLobbyInfo lobbyinfo) => DisplayLobby(lobbyinfo, true);
 
         public void DisplayLobby(MultiplayerLobbyInfo lobbyInfo, bool shouldAnimate)

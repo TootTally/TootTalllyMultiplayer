@@ -153,6 +153,7 @@ namespace TootTallyMultiplayer
             if (_lobbyInfoList.Count == 0)
             {
                 _multMainPanel.ShowNoLobbyText();
+                _multMainPanel.FinalizeLobbyDisplay();
                 return;
             }
             _multMainPanel.SetupForLobbyDisplay();
@@ -164,6 +165,7 @@ namespace TootTallyMultiplayer
                 else
                     _multMainPanel.DisplayLobby(_lobbyInfoList[i], false);
             }
+            _multMainPanel.FinalizeLobbyDisplay();
             _newLobbyCodeList.Clear();
             _multMainPanel.UpdateScrolling(_lobbyInfoList.Count);
         }
@@ -198,13 +200,13 @@ namespace TootTallyMultiplayer
             {
                 _multiConnection.Disconnect();
                 _multLobbyPanel.ResetData();
-                MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Home);
-                MoveToMain();
             }
             else
                 _multMainPanel.OnLobbyDisconnectError();
             _currentLobby = null;
             IsConnectionPending = false;
+            MultiplayerManager.UpdateMultiplayerStateIfChanged(MultiplayerState.Home);
+            MoveToMain();
             RefreshAllLobbyInfo();
         }
 
@@ -482,11 +484,13 @@ namespace TootTallyMultiplayer
         {
             IsTimerStarted = false;
             _startGameTimer = _startGameTimerMaxTime = _nextStartTimerTick;
+            _multLobbyPanel.EnableButton();
         }
 
         public void StartTimer(float time)
         {
             _startGameTimer = _startGameTimerMaxTime = _startGameTimer = _nextStartTimerTick = time;
+            _multLobbyPanel.DisableButton();
             IsTimerStarted = true;
         }
 

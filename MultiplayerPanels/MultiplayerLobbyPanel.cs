@@ -545,6 +545,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             Plugin.Instance.StartCoroutine(DelayAllowButtonClick(delay));
         }
 
+        public void DisableButton() { _canPressButton = false; }
+        public void EnableButton() { _canPressButton = true; }
+
         private IEnumerator<WaitForSeconds> DelayAllowButtonClick(float delay)
         {
             yield return new WaitForSeconds(delay);

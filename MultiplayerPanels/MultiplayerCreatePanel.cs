@@ -51,6 +51,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("MaxPlayer must be a number.");
             }
+            else if (value <= 1 || value >= 33)
+            {
+                isValid = false;
+                TootTallyNotifManager.DisplayNotif("MaxPlayer must be between 2 and 32.");
+            }
 
             if (_lobbyName.text.Length > 32)
             {
