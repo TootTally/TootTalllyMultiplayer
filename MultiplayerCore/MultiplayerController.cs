@@ -170,7 +170,7 @@ namespace TootTallyMultiplayer
             _multMainPanel.UpdateScrolling(filteredLobbies.Count);
         }
 
-        public void ConnectToLobby(string code, string password = "")
+        public void ConnectToLobby(string code, string password = "", bool forceEntry = false)
         {
             RefreshAllLobbyInfo();
             if (_multiConnection != null && _multiConnection.ConnectionPending) return;
@@ -178,8 +178,11 @@ namespace TootTallyMultiplayer
             _multiConnection?.Disconnect();
             Plugin.LogInfo("Connecting to " + code);
             IsConnectionPending = true;
-            if (password != "")
+            if (forceEntry)
+                code += $"?ForceEntry";
+            else if (password != "")
                 code += $"?Password={password}";
+            
             _multiConnection = new MultiplayerSystem(code, false)
             {
                 OnWebSocketOpenCallback = delegate

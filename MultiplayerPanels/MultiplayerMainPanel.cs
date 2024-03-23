@@ -31,13 +31,14 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private TMP_Text _noLobbyText;
         private TMP_InputField _searchInputField;
 
-        private static CustomButton _connectButton, _createLobbyButton, _refreshLobbyButton, _shutdownButton;
+        private static CustomButton _connectButton, _createLobbyButton, _refreshLobbyButton, _shutdownButton, _forceConnectButton;
         private static TootTallyAnimation _connectButtonScaleAnimation;
 
         private static MultiplayerLobbyInfo _selectedLobby;
         private static GameObject _hoveredLobbyContainer;
         private static GameObject _selectedLobbyContainer;
         private static float _previousLobbyCount;
+        private bool _isDevModeEnabled;
 
         public MultiplayerMainPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "MainLayout")
         {
@@ -102,8 +103,18 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private void EnableDevMode()
         {
+            _forceConnectButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Force Connect", "FCButton", OnForceConnectButtonClick);
             _shutdownButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Shutdown", "SDButton", OnShutdownButtonClick);
-            _shutdownButton.gameObject.SetActive(false);
+            _isDevModeEnabled = true;
+            ToggleEnableDevButtons(false);
+        }
+
+        private void ToggleEnableDevButtons(bool isEnabled)
+        {
+            if (!_isDevModeEnabled) return;
+
+            _forceConnectButton.enabled = isEnabled;
+            _shutdownButton.enabled = isEnabled;
         }
 
         bool debugPassword = false;
@@ -293,7 +304,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _hoveredLobbyContainer = null;
 
             _connectButtonScaleAnimation?.Dispose();
-            _shutdownButton?.gameObject.SetActive(true);
+            ToggleEnableDevButtons(true);
             if (lobbyInfo.players.Count < lobbyInfo.maxPlayerCount)
             {
                 _connectButton.gameObject.SetActive(true);
@@ -312,7 +323,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnShutdownButtonClick()
         {
-            if (_selectedLobby == null) return;
+            if (_selectedLobby == null || !TootTallyAccounts.TootTallyUser.userInfo.dev) return;
 
             Plugin.LogInfo($"Shutting down lobby {_selectedLobby.code}");
             TootTallyNotifManager.DisplayNotif($"Shutting down lobby {_selectedLobby.code}");
@@ -323,7 +334,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             _selectedLobby = null; _selectedLobbyContainer = null; _hoveredLobbyContainer = null;
             _connectButton.gameObject.SetActive(false);
-            _shutdownButton?.gameObject.SetActive(false);
+            ToggleEnableDevButtons(false);
             _lobbyInfoRowsList.ForEach(GameObject.DestroyImmediate);
             _lobbyInfoRowsList.Clear();
         }
@@ -343,6 +354,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 ShowPasswordInputPrompt();
             else
                 controller.ConnectToLobby(_selectedLobby.code);
+        }
+
+        public void OnForceConnectButtonClick()
+        {
+            if (_selectedLobby == null || !TootTallyAccounts.TootTallyUser.userInfo.dev) return;
+
+            controller.ConnectToLobby(_selectedLobby.code, "", true);
         }
 
         public void ShowPasswordInputPrompt()
