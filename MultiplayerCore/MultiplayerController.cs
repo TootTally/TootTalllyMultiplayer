@@ -534,7 +534,7 @@ namespace TootTallyMultiplayer
 
         public void OpenSongLink()
         {
-            if (savedSongInfo == null) return;
+            if (savedSongInfo == null || savedSongInfo.songID != 0) return;
 
             Application.OpenURL($"https://toottally.com/song/{savedSongInfo.songID}/");
         }

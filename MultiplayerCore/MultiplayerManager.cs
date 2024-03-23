@@ -420,6 +420,15 @@ namespace TootTallyMultiplayer
                 _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
             }));
         }
+
+        //This is so dumb lmfao
+        [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.hoverPlay))]
+        [HarmonyPrefix]
+        public static bool PreventHoverPlayLeanTweenWhenTransitioning(LevelSelectController __instance) => IsConnectedToMultiplayer && !__instance.back_clicked;
+
+        [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.unHoverPlay))]
+        [HarmonyPrefix]
+        public static bool PreventUnhoverPlayLeanTweenWhenTransitioning(LevelSelectController __instance) => IsConnectedToMultiplayer && !__instance.back_clicked;
         #endregion
 
         #region PointScene Patches
