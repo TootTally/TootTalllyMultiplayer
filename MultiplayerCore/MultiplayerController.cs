@@ -180,7 +180,7 @@ namespace TootTallyMultiplayer
             Plugin.LogInfo("Connecting to " + code);
             IsConnectionPending = true;
             if (forceEntry)
-                code += $"?ForceEntry";
+                code += $"?ForceEntry=true";
             else if (password != "")
                 code += $"?Password={password}";
 
