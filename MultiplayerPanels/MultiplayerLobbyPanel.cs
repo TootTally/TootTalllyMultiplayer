@@ -488,6 +488,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnGiveHostButtonClick()
         {
             HideDropdown();
+            _userState = UserState.NotReady;
             controller.GiveHostUser(_dropdownUserInfo.id);
             controller.OnGiveHostSetUserState();
             controller.RefreshCurrentLobbyInfo();
