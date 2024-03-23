@@ -99,7 +99,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
             _combo = combo;
             _health = health;
 
-            _rainbowMaskRect.sizeDelta = new Vector2(160 * (health / 100f), 30);
+            _rainbowMaskRect.sizeDelta = new Vector2(160 * (health / 100f), 28);
 
             if (_previousHealth != _health && (_previousHealth == 100 || _health == 100))
                 _rainbow1.color = _rainbow2.color = new Color(1, 1, 1, health == 100 ? .85f : .25f);
