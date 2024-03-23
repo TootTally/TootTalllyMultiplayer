@@ -370,6 +370,8 @@ namespace TootTallyMultiplayer
                 SelectSongFromTrackref(optionalTrack.Value.trackref);
                 if (_currentUserState == UserState.NoSong)
                     SendUserState(UserState.NotReady);
+                _savedDownloadLink = null;
+                _savedTrackRef = "";
             }
             else
             {
@@ -382,7 +384,7 @@ namespace TootTallyMultiplayer
 
         public void OnGiveHostSetUserState()
         {
-            SendUserState(_hasSong ? UserState.NotReady : UserState.NoSong);
+            SendUserState(_savedTrackRef != "" && OptionModule.IsSome(TrackLookup.tryLookup(_savedTrackRef)) ? UserState.NotReady : UserState.NoSong);
         }
 
         public void DownloadSavedChart(ProgressBar bar)
