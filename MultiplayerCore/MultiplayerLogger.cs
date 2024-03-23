@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static Mono.Security.X509.X520;
 
 namespace TootTallyMultiplayer.MultiplayerCore
 {

@@ -16,16 +16,16 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             panel = canvas.transform.Find($"{name}").gameObject;
 
             //Header
-            header = panel.transform.GetChild(0).gameObject;
+            header = panel.transform.Find("Header").gameObject;
             headerLeft = header.transform.GetChild(0).gameObject;
             headerCenter = header.transform.GetChild(1).gameObject;
             headerRight = header.transform.GetChild(2).gameObject;
 
             //Center
-            center = panel.transform.GetChild(1).gameObject;
+            center = panel.transform.Find("Center").gameObject;
 
             //Footer
-            footer = panel.transform.GetChild(2).gameObject;
+            footer = panel.transform.Find("Footer").gameObject;
         }
     }
 }

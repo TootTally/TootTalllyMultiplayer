@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using TMPro;
 using TootTallyCore;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.Assets;
-using TootTallySettings.TootTallySettingsObjects;
 using UnityEngine;
 using UnityEngine.UI;
 

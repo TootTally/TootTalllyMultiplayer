@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,6 @@ using TootTallyMultiplayer.MultiplayerCore;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using static TootTallyCore.APIServices.SerializableClass;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.MultiplayerPanels
@@ -30,7 +28,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
         private CustomButton _selectSongButton, _startGameButton, _readyUpButton;
-        private CustomButton _profileButton, _giveHostButton, _kickButton;
+        private CustomButton _profileButton, _giveHostButton, _kickButton, _reportButton;
 
         private GameObject _lobbySettingButton;
 
@@ -56,6 +54,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private float _previousUserCount;
 
         private float _savedGameSpeed;
+
+        private float _lastLobbyContainerPosY;
+        private Vector3 _lobbyContainerScrollingDistance;
 
         private bool _canPressButton;
 
@@ -102,6 +103,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             //Menu when clicking on user pfp
             _dropdownMenu = MultiplayerGameObjectFactory.GetBorderedVerticalBox(new Vector2(300, 180), 5, panel.transform);
             _dropdownMenu.GetComponent<Image>().enabled = false;
+            _lobbyContainerScrollingDistance = Vector3.zero;
 
             var trigger = _dropdownMenu.AddComponent<EventTrigger>();
             EventTrigger.Entry pointerExitEvent = new EventTrigger.Entry();
@@ -116,6 +118,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _profileButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Profile", "DropdownProfile", OnProfileButtonClick);
             _giveHostButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Give Host", "DropdownGiveHost", OnGiveHostButtonClick);
             _kickButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Kick", "DropdownKick", OnKickUserButtonClick);
+            _reportButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Report", "DropdownReport", OnReportButtonClick);
             _dropdownMenu.SetActive(false);
 
             //TITLE
@@ -272,6 +275,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             }
             _scrollingHandler.enabled = enableScrolling;
             _scrollingHandler.accelerationMult = enableScrolling ? 20f / userCount : 1f;
+            center.transform.Find("Left").GetComponent<HorizontalLayoutGroup>().enabled = !enableScrolling; //only need this to initialize, else it causes scrolling bugs
 
             if (_previousUserCount != 0 && _hiddenUserCardSlider.value != 0 && enableScrolling)
                 _hiddenUserCardSlider.value *= _previousUserCount / userCount;
@@ -346,6 +350,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             var gridPanelRect = container.GetComponent<RectTransform>();
             gridPanelRect.anchoredPosition = new Vector2(gridPanelRect.anchoredPosition.x, value * (_userCardsDict.Count - 7f) * _posYJumpValue + _posYOffset);
+            _lobbyContainerScrollingDistance.y = _lastLobbyContainerPosY - gridPanelRect.anchoredPosition.y;
+            _dropdownMenu.transform.localPosition -= _lobbyContainerScrollingDistance;
+            _lastLobbyContainerPosY = gridPanelRect.anchoredPosition.y;
         }
 
         public void RemoveUserCard(int id)
@@ -388,7 +395,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var showAllOptions = _isHost && !isSelf;
             _kickButton.gameObject.SetActive(showAllOptions);
             _giveHostButton.gameObject.SetActive(showAllOptions);
-            _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, showAllOptions ? 180 : 60);
+            _reportButton.gameObject.SetActive(showAllOptions);
+            _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, showAllOptions ? 240 : 60);
         }
 
         private void OnQuickChatOpenButtonClick()
@@ -456,6 +464,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             controller.RefreshCurrentLobbyInfo();
         }
 
+        public void OnReportButtonClick()
+        {
+            TootTallyNotifManager.DisplayNotif("Report not implemented yet.");
+        }
+
         public void OnProfileButtonClick()
         {
             HideDropdown();
@@ -466,7 +479,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             HideDropdown();
             controller.GiveHostUser(_dropdownUserInfo.id);
-            controller.SendUserState(UserState.NotReady);
+            controller.OnGiveHostSetUserState();
             controller.RefreshCurrentLobbyInfo();
         }
 

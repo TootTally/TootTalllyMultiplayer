@@ -1,9 +1,6 @@
 ﻿using BaboonAPI.Hooks.Tracks;
 using BepInEx;
-using JetBrains.Annotations;
 using Microsoft.FSharp.Core;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -45,6 +42,7 @@ namespace TootTallyMultiplayer
         private bool _hasSong;
         private UserState _currentUserState;
         private static string _savedDownloadLink, _savedTrackRef;
+        private string _searchFilter;
 
         private MultiplayerMainPanel _multMainPanel;
         private MultiplayerLobbyPanel _multLobbyPanel;
@@ -150,24 +148,26 @@ namespace TootTallyMultiplayer
 
         public void UpdateLobbyInfo()
         {
-            if (_lobbyInfoList.Count == 0)
+            var filteredLobbies = _lobbyInfoList.Where(x => x.title.Contains(_searchFilter)).ToList();
+
+            if (filteredLobbies.Count == 0)
             {
                 _multMainPanel.ShowNoLobbyText();
                 _multMainPanel.FinalizeLobbyDisplay();
                 return;
             }
             _multMainPanel.SetupForLobbyDisplay();
-            for (int i = 0; i < _lobbyInfoList.Count; i++)
+            for (int i = 0; i < filteredLobbies.Count; i++)
             {
-                var doAnimation = _newLobbyCodeList.Contains(_lobbyInfoList[i].id);
+                var doAnimation = _newLobbyCodeList.Contains(filteredLobbies[i].id);
                 if (doAnimation)
-                    Plugin.Instance.StartCoroutine(DelayDisplayLobbyInfo(i * .1f, _lobbyInfoList[i], _multMainPanel.DisplayLobby));
+                    Plugin.Instance.StartCoroutine(DelayDisplayLobbyInfo(i * .1f, filteredLobbies[i], _multMainPanel.DisplayLobby));
                 else
-                    _multMainPanel.DisplayLobby(_lobbyInfoList[i], false);
+                    _multMainPanel.DisplayLobby(filteredLobbies[i], false);
             }
             _multMainPanel.FinalizeLobbyDisplay();
             _newLobbyCodeList.Clear();
-            _multMainPanel.UpdateScrolling(_lobbyInfoList.Count);
+            _multMainPanel.UpdateScrolling(filteredLobbies.Count);
         }
 
         public void ConnectToLobby(string code, string password = "")
@@ -376,6 +376,11 @@ namespace TootTallyMultiplayer
             }
         }
 
+        public void OnGiveHostSetUserState()
+        {
+            SendUserState(_hasSong ? UserState.NotReady : UserState.NoSong);
+        }
+
         public void DownloadSavedChart(ProgressBar bar)
         {
             if (_savedDownloadLink != null)
@@ -509,6 +514,12 @@ namespace TootTallyMultiplayer
                 _nextStartTimerTick--;
                 CurrentInstance.sfx_hover.Play();
             }
+        }
+
+        public void UpdateSearchFilter(string filter)
+        {
+            _searchFilter = filter;
+            RefreshAllLobbyInfo();
         }
 
         public void KickUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.KickFromLobby, new dynamic[] { userID });

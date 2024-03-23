@@ -5,10 +5,10 @@ using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyNotifs;
+using TootTallyMultiplayer.APIService;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using UnityEngine.UIElements.UIR;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.MultiplayerPanels
@@ -16,6 +16,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
     public class MultiplayerMainPanel : MultiplayerPanelBase
     {
         public GameObject lobbyListContainer, lobbyInfoContainer;
+        public GameObject searchPanel, searchLeft, searchCenter, searchRight;
         private GameObject _currentInputPrompt;
         private List<GameObject> _lobbyInfoRowsList;
         private Dictionary<string, int> _savedCodeToPing;
@@ -28,8 +29,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private TMP_Text _lobbyPlayerListText;
         private TMP_Text _noLobbyText;
+        private TMP_InputField _searchInputField;
 
-        private static CustomButton _connectButton, _createLobbyButton, _refreshLobbyButton;
+        private static CustomButton _connectButton, _createLobbyButton, _refreshLobbyButton, _shutdownButton;
         private static TootTallyAnimation _connectButtonScaleAnimation;
 
         private static MultiplayerLobbyInfo _selectedLobby;
@@ -39,6 +41,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public MultiplayerMainPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "MainLayout")
         {
+            //Search Panel
+            searchPanel = panel.transform.Find("Search").gameObject;
+            searchLeft = searchPanel.transform.GetChild(0).gameObject;
+            searchCenter = searchPanel.transform.GetChild(1).gameObject;
+            searchRight = searchPanel.transform.GetChild(2).gameObject;
+
             lobbyListContainer = center.transform.Find("Left/LobbyContainer").gameObject;
             lobbyInfoContainer = center.transform.Find("Right/InfoContainer").gameObject;
 
@@ -52,6 +60,15 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var serverText = GameObjectFactory.CreateSingleText(headerRight.transform, "ServerText", "Server: Toronto");
             serverText.fontSize = 40;
 
+            var searchHLayout = searchLeft.GetComponent<HorizontalLayoutGroup>();
+            searchHLayout.childControlHeight = searchHLayout.childForceExpandHeight = false;
+            searchHLayout.spacing = 8f;
+            var searchText = GameObjectFactory.CreateSingleText(searchLeft.transform, "SearchText", "Search:");
+            searchText.alignment = TextAlignmentOptions.MidlineRight;
+            searchText.rectTransform.sizeDelta = new Vector2(450, 30);
+            _searchInputField = MultiplayerGameObjectFactory.CreateInputField(searchLeft.transform, "SearchInput", new Vector2(325, 36), 24, "", false);
+            _searchInputField.onValueChanged.AddListener(controller.UpdateSearchFilter);
+
             _slider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _slider.gameObject.SetActive(true);
             _slider.onValueChanged.AddListener(OnSliderValueChangeScrollContainer);
@@ -59,7 +76,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _scrollingHandler.enabled = false;
 
             _lobbyPlayerListText = GameObjectFactory.CreateSingleText(lobbyInfoContainer.transform, "LobbyDetailInfoText", "");
-            _lobbyPlayerListText.rectTransform.sizeDelta = new Vector2(0, 680);
+            _lobbyPlayerListText.rectTransform.sizeDelta = new Vector2(0, 620);
             _lobbyPlayerListText.enableAutoSizing = true;
             _lobbyPlayerListText.fontSizeMax = 32;
             _lobbyPlayerListText.alignment = TextAlignmentOptions.TopLeft;
@@ -78,14 +95,25 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _connectButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Connect", "LobbyConnectButton", OnConnectButtonClick);
             _connectButton.gameObject.SetActive(false);
+
+            if (TootTallyAccounts.TootTallyUser.userInfo.dev)
+                EnableDevMode();
         }
+
+        private void EnableDevMode()
+        {
+            _shutdownButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Shutdown", "SDButton", OnShutdownButtonClick);
+            _shutdownButton.gameObject.SetActive(false);
+        }
+
         bool debugPassword = false;
         public void DisplayLobbyDebug()
         {
             MultiplayerManager.StopRecursiveRefresh();
-            DisplayLobby(new MultiplayerLobbyInfo() { id = "AAAAA", maxPlayerCount = 16, players = new List<MultiplayerUserInfo>(), songInfo = new MultiplayerSongInfo(), state = "SelectingSong", title = "TEST LOBBY", hasPassword = debugPassword }, true);
+            DisplayLobby(new MultiplayerLobbyInfo() { id = "AAAAA", maxPlayerCount = 16, players = new List<MultiplayerUserInfo>(), songInfo = new MultiplayerSongInfo(), state = "SelectingSong", title = $"TEST LOBBY{UnityEngine.Random.Range(1,200)}", hasPassword = debugPassword }, true);
             debugPassword = !debugPassword;
             UpdateScrolling(_lobbyInfoRowsList.Count);
+            _noLobbyText.gameObject.SetActive(false);
         }
 
         public void ShowNoLobbyText()
@@ -111,6 +139,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void DisplayLobby(MultiplayerLobbyInfo lobbyInfo, bool shouldAnimate)
         {
+
             var lobbyContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0, 120), lobbyListContainer.transform);
             lobbyContainer.GetComponent<Image>().enabled = true;
             _lobbyInfoRowsList.Add(lobbyContainer);
@@ -204,7 +233,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 _slider.value = 0;
             }
             _scrollingHandler.enabled = enableScrolling;
-            center.transform.Find("Left").GetComponent<HorizontalLayoutGroup>().enabled = enableScrolling; //only need this to initialize, else it causes scrolling bugs
+            center.transform.Find("Left").GetComponent<HorizontalLayoutGroup>().enabled = !enableScrolling; //only need this to initialize, else it causes scrolling bugs
             _scrollingHandler.accelerationMult = enableScrolling ? 16f / lobbyCount : 1f;
 
             if (_previousLobbyCount != 0 && _slider.value != 0 && enableScrolling)
@@ -246,7 +275,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void ClearLobbyDetailsText()
         {
-            _lobbyPlayerListText.text = "";
+            _lobbyPlayerListText.text = "-";
         }
 
         public void OnMouseClickSelectLobby(MultiplayerLobbyInfo lobbyInfo, GameObject lobbyContainer, bool animateConnect)
@@ -264,7 +293,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _hoveredLobbyContainer = null;
 
             _connectButtonScaleAnimation?.Dispose();
-
+            _shutdownButton?.gameObject.SetActive(true);
             if (lobbyInfo.players.Count < lobbyInfo.maxPlayerCount)
             {
                 _connectButton.gameObject.SetActive(true);
@@ -279,13 +308,22 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _connectButton.transform.localScale = Vector3.one;
 
             }
+        }
 
+        public void OnShutdownButtonClick()
+        {
+            if (_selectedLobby == null) return;
+
+            Plugin.LogInfo($"Shutting down lobby {_selectedLobby.code}");
+            TootTallyNotifManager.DisplayNotif($"Shutting down lobby {_selectedLobby.code}");
+            Plugin.Instance.StartCoroutine(MultiplayerAPIService.ShutdownMultiplayerServer(_selectedLobby.code, controller.RefreshAllLobbyInfo));
         }
 
         public void ClearAllLobby()
         {
             _selectedLobby = null; _selectedLobbyContainer = null; _hoveredLobbyContainer = null;
             _connectButton.gameObject.SetActive(false);
+            _shutdownButton?.gameObject.SetActive(false);
             _lobbyInfoRowsList.ForEach(GameObject.DestroyImmediate);
             _lobbyInfoRowsList.Clear();
         }
@@ -342,6 +380,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_currentInputPrompt != null)
             {
                 TootTallyNotifManager.DisplayNotif("Password is incorrect.");
+                DestroyInputPrompt();
                 return;
             }
             TootTallyNotifManager.DisplayNotif("Unexpected error occured.");

@@ -265,16 +265,22 @@ namespace TootTallyMultiplayer
 
             GameObject improvBtnContainer = __instance.btncontainers[(int)HomeScreenButtonIndexes.Improv];
             GameObject improvFG = improvBtnContainer.transform.Find("FG").gameObject;
+            ThemeManager.OverwriteGameObjectSpriteAndColor(improvFG, "ImprovButtonV2.png", Color.white);
             RectTransform improvFGRectTransform = improvFG.GetComponent<RectTransform>();
             improvBtnContainer.GetComponent<RectTransform>().anchoredPosition = new Vector2(-150, 156);
-            improvFGRectTransform.sizeDelta = new Vector2(450, 195);
+            improvFGRectTransform.sizeDelta = new Vector2(450, 190);
             GameObject improvOutline = __instance.allbtnoutlines[(int)HomeScreenButtonIndexes.Improv];
+            ThemeManager.OverwriteGameObjectSpriteAndColor(improvOutline, "ImprovButtonOutline.png", Color.white);
             RectTransform improvOutlineRectTransform = improvOutline.GetComponent<RectTransform>();
-            improvOutlineRectTransform.sizeDelta = new Vector2(470, 230);
-            GameObject textImprov = __instance.paneltxts[(int)HomeScreenButtonIndexes.Improv];
-            textImprov.transform.GetChild(0).localScale = textImprov.transform.GetChild(1).localScale = Vector3.one * .7f;
-            textImprov.GetComponent<RectTransform>().anchoredPosition = new Vector2(305, 385);
-            textImprov.GetComponent<RectTransform>().sizeDelta = new Vector2(426, 54);
+            improvOutlineRectTransform.sizeDelta = new Vector2(480, 220);
+            GameObject txtContainer = __instance.paneltxts[(int)HomeScreenButtonIndexes.Improv];
+            var improvIcon = txtContainer.transform.GetChild(0);
+            var improvTxt = txtContainer.transform.GetChild(1);
+            improvIcon.localScale = improvTxt.localScale = Vector3.one * .6f;
+            improvIcon.localPosition = new Vector2(-196f, 0);
+            improvTxt.localPosition = new Vector2(42, 25f);
+            txtContainer.GetComponent<RectTransform>().anchoredPosition = new Vector2(305, 385);
+            txtContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(426, 54);
             #endregion
 
             #region hitboxes

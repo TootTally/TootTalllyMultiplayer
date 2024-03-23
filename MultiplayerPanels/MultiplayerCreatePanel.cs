@@ -23,10 +23,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             var titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "Create Lobby");
             titleText.enableAutoSizing = true;
-            _lobbyName = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyNameInputField", new Vector2(300, 30), 24, $"{TootTallyUser.userInfo.username}'s Lobby", false);
-            _lobbyDescription = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyDescriptionInputField", new Vector2(300, 30), 24, "Welcome to my lobby!", false);
+            var defaultLobbyName = Plugin.Instance.SavedLobbyTitle.Value == "" ? $"{TootTallyUser.userInfo.username}'s Lobby" : Plugin.Instance.SavedLobbyTitle.Value;
+            _lobbyName = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyNameInputField", new Vector2(300, 30), 24,  defaultLobbyName, false);
+            _lobbyDescription = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyDescriptionInputField", new Vector2(300, 30), 24, Plugin.Instance.SavedLobbyDesc.Value, false);
             _lobbyPassword = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyPasswordInputField", new Vector2(300, 30), 24, "", true);
-            _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, "16", false);
+            _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, Plugin.Instance.SavedLobbyMaxPlayer.Value.ToString(), false);
 
             GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Back", "CreateBackButton", OnBackButtonClick);
             GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Create", "CreateLobbyButton", OnCreateButtonClick);
@@ -73,6 +74,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             {
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("Password has to be\nshorter than 32 characters");
+            }
+
+            if (isValid)
+            {
+                Plugin.Instance.SavedLobbyTitle.Value = _lobbyName.text;
+                Plugin.Instance.SavedLobbyDesc.Value = _lobbyDescription.text;
+                Plugin.Instance.SavedLobbyMaxPlayer.Value = value;
             }
 
             return isValid;

@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TMPro;
-using TootTallyCore.Graphics;
-using TootTallyMultiplayer.MultiplayerPanels;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;

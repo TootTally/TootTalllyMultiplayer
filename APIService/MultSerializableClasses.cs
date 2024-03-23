@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.SocialPlatforms;
 
 namespace TootTallyMultiplayer.APIService
 {
     public static class MultSerializableClasses
     {
+        [Serializable]
+        public class APIShutdownSubmission
+        {
+            public string lobby_code;
+        }
+
         [Serializable]
         public class APICreateSubmission
         {
