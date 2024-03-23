@@ -113,8 +113,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             if (!_isDevModeEnabled) return;
 
-            _forceConnectButton.enabled = isEnabled;
-            _shutdownButton.enabled = isEnabled;
+            _forceConnectButton.button.enabled = isEnabled;
+            _shutdownButton.button.enabled = isEnabled;
         }
 
         bool debugPassword = false;
@@ -406,10 +406,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnRefreshLobbyButtonClick()
         {
-            _refreshLobbyButton.enabled = false;
+            _refreshLobbyButton.button.enabled = false;
             controller.RefreshAllLobbyInfo();
         }
 
-        public void ShowRefreshLobbyButton() => _refreshLobbyButton.enabled = true;
+        public void ShowRefreshLobbyButton() => _refreshLobbyButton.button.enabled = true;
     }
 }
