@@ -144,6 +144,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _songNameText.fontSizeMin = 48;
             _songNameText.overflowMode = TextOverflowModes.Ellipsis;
             _songNameText.fontStyle = TMPro.FontStyles.Bold;
+            var titleTextTrigger = _songNameText.gameObject.AddComponent<EventTrigger>();
+            EventTrigger.Entry pointerClickEvent = new EventTrigger.Entry();
+            pointerClickEvent.eventID = EventTriggerType.PointerClick;
+            pointerClickEvent.callback.AddListener(data => { OnTitleTextClickOpenSongLink(); });
+            titleTextTrigger.triggers.Add(pointerClickEvent);
 
             _songArtistText = GameObjectFactory.CreateSingleText(titleContainer.transform, "SongArtistText", "-");
             _songArtistText.rectTransform.sizeDelta = new Vector2(0, 75);
@@ -462,6 +467,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             HideDropdown();
             controller.KickUserFromLobby(_dropdownUserInfo.id);
             controller.RefreshCurrentLobbyInfo();
+        }
+
+        public void OnTitleTextClickOpenSongLink()
+        {
+            controller.OpenSongLink();
         }
 
         public void OnReportButtonClick()

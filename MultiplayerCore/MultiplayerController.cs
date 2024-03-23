@@ -102,6 +102,7 @@ namespace TootTallyMultiplayer
             }
             _lobbyInfoList ??= new List<MultiplayerLobbyInfo>();
             _currentActivePanel = _multMainPanel;
+            _searchFilter = "";
 
             if (IsConnected)
             {
@@ -182,7 +183,7 @@ namespace TootTallyMultiplayer
                 code += $"?ForceEntry";
             else if (password != "")
                 code += $"?Password={password}";
-            
+
             _multiConnection = new MultiplayerSystem(code, false)
             {
                 OnWebSocketOpenCallback = delegate
@@ -530,6 +531,13 @@ namespace TootTallyMultiplayer
         public void GiveHostUser(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.GiveHost, new dynamic[] { userID });
 
         public void SendQuickChat(QuickChat chat) => _multiConnection.SendOptionInfo(OptionInfoType.QuickChat, new dynamic[] { (int)chat });
+
+        public void OpenSongLink()
+        {
+            if (savedSongInfo == null) return;
+
+            Application.OpenURL($"https://toottally.com/song/{savedSongInfo.songID}/");
+        }
 
         public void LoadLoaderScene()
         {
