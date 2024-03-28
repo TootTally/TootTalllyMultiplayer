@@ -3,6 +3,7 @@ using TMPro;
 using TootTallyCore;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.Assets;
+using TootTallyMultiplayer.MultiplayerCore.InputPrompts;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -194,6 +195,13 @@ namespace TootTallyMultiplayer
             var cancelButton = GameObjectFactory.CreateCustomButton(buttonHorizontalBox.transform, Vector2.zero, new Vector2(170, 65), "Cancel", "CancelButton", OnCancel);
 
             return borderedBox;
+        }
+
+        public static LobbySettingsInputPrompt CreateLobbySettingsInputPrompt(Transform canvasTransform, Action<string, string, string, string> OnConfirm)
+        {
+            var lobbySettings = new LobbySettingsInputPrompt(canvasTransform, OnConfirm);
+            lobbySettings.gameObject.transform.localScale = new Vector3(0, 0, 1);
+            return lobbySettings;
         }
 
         public static GameObject GetVerticalBox(Vector2 size, Transform parent = null)

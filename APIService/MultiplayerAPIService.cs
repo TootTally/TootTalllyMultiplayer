@@ -54,7 +54,8 @@ namespace TootTallyMultiplayer.APIService
                 name = name,
                 description = description,
                 password = password,
-                maxPlayer = maxPlayer
+                maxPlayer = maxPlayer,
+                version = PluginInfo.PLUGIN_VERSION
             };
             var data = System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(apiSubmission));
             UnityWebRequest webRequest = PostUploadRequestWithHeader(query, data, new List<string[]> { new string[] { "Authorization", "APIKey " + TootTallyAccounts.Plugin.GetAPIKey } });

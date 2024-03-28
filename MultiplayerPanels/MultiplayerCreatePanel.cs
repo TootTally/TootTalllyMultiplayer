@@ -43,11 +43,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         }
 
-        private bool ValidateInput()
+        public static bool ValidateInput(string name, string desc, string pass, string maxPlayer)
         {
             bool isValid = true;
 
-            if (!int.TryParse(_lobbyMaxPlayer.text, out int value))
+            if (!int.TryParse(maxPlayer, out int value))
             {
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("MaxPlayer must be a number.");
@@ -58,19 +58,19 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 TootTallyNotifManager.DisplayNotif("MaxPlayer must be between 2 and 32.");
             }
 
-            if (_lobbyName.text.Length > 32)
+            if (name.Length > 32)
             {
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("Lobby name has to be\nshorter than 32 characters");
             }
 
-            if (_lobbyDescription.text.Length > 100)
+            if (desc.Length > 100)
             {
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("Description has to be\nshorter than 32 characters");
             }
 
-            if (_lobbyPassword.text.Length > 100)
+            if (pass.Length > 100)
             {
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("Password has to be\nshorter than 32 characters");
@@ -78,8 +78,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             if (isValid)
             {
-                Plugin.Instance.SavedLobbyTitle.Value = _lobbyName.text;
-                Plugin.Instance.SavedLobbyDesc.Value = _lobbyDescription.text;
+                Plugin.Instance.SavedLobbyTitle.Value = name;
+                Plugin.Instance.SavedLobbyDesc.Value = desc;
                 Plugin.Instance.SavedLobbyMaxPlayer.Value = value;
             }
 
@@ -88,7 +88,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private void OnCreateButtonClick()
         {
-            if (IsRequestPending || !ValidateInput() || controller.IsConnected || controller.IsConnectionPending) return;
+            if (IsRequestPending || !ValidateInput(_lobbyName.text, _lobbyDescription.text, _lobbyPassword.text, _lobbyMaxPlayer.text) || controller.IsConnected || controller.IsConnectionPending) return;
 
             IsRequestPending = true;
             TootTallyNotifManager.DisplayNotif("Creating lobby...");

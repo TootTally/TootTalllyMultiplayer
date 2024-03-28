@@ -10,6 +10,7 @@ using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyLeaderboard;
 using TootTallyMultiplayer.MultiplayerCore;
+using TootTallyMultiplayer.MultiplayerCore.InputPrompts;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -46,6 +47,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private MultiplayerUserInfo _dropdownUserInfo;
 
         private TootTallyAnimation _dropdownAnimation;
+
+        private LobbySettingsInputPrompt _lobbySettingsInputPrompt;
+        private TootTallyAnimation _lobbySettingsAnimation;
 
         public bool IsHost;
 
@@ -95,8 +99,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _userCardsDict = new Dictionary<int, MultiplayerCard>();
 
-            _lobbySettingButton = GameObjectFactory.CreateClickableImageHolder(headerRight.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingButton", OnSettingsButtonClick).gameObject;
+            _lobbySettingsInputPrompt = MultiplayerGameObjectFactory.CreateLobbySettingsInputPrompt(canvas.transform, OnSettingsPromptConfirm);
+            _lobbySettingsInputPrompt.gameObject.SetActive(false);
+            _lobbySettingButton = GameObjectFactory.CreateClickableImageHolder(headerRight.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingButton", _lobbySettingsInputPrompt.Show).gameObject;
             _lobbySettingButton.gameObject.SetActive(false);
+            
 
             GameObjectFactory.CreateClickableImageHolder(headerLeft.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("gtfo.png"), "LobbyBackButton", OnBackButtonClick);
 
@@ -224,6 +231,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             _userState = UserState.None;
             DisableButton(.8f);
+            _lobbySettingsInputPrompt.Hide(false);
         }
 
         private void SetTextsParameters(params TMP_Text[] texts)
@@ -444,9 +452,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _startGameButton.textHolder.text = $"{_readyCount}/{_userCardsDict.Count} Force Start";
         }
 
-        public void OnSettingsButtonClick()
+        public void OnSettingsPromptConfirm(string name, string desc, string password, string maxPlayer)
         {
-            TootTallyNotifManager.DisplayNotif("Setting change not supported yet.");
+            if (!MultiplayerCreatePanel.ValidateInput(name, desc, password, maxPlayer)) return;
+
+            controller.SendSetLobbySettings(name, desc, password, int.Parse(maxPlayer));
+            TootTallyNotifManager.DisplayNotif("Sending new lobby info...");
+            _lobbySettingsInputPrompt.Hide();
         }
 
         public void OnBackButtonClick()

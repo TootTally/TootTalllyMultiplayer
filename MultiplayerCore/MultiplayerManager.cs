@@ -80,6 +80,7 @@ namespace TootTallyMultiplayer
             __instance.logo_trect.gameObject.SetActive(false);
             __instance.logo_crect.gameObject.SetActive(false);
 
+            GameModifierManager.ClearAllModifiers();
             MultiplayerGameObjectFactory.Initialize();
             MultiAudioController.InitMusic();
 
@@ -600,7 +601,29 @@ namespace TootTallyMultiplayer
             }
             return true;
         }
+        #endregion
 
+        #region GameModifiers Patches
+        [HarmonyPatch(typeof(GameModifierManager), nameof(GameModifierManager.Toggle))]
+        [HarmonyPrefix]
+        public static bool PreventBrutalAndInstaFailToggles(GameModifiers.ModifierType modifierType)
+        {
+            if (IsPlayingMultiplayer || IsConnectedToMultiplayer || _isSceneActive)
+            {
+                if (modifierType == GameModifiers.ModifierType.Brutal)
+                {
+                    TootTallyNotifManager.DisplayNotif("Cannot enable Brutal Mode in multiplayer.");
+                    return false;
+                }
+                else if (modifierType == GameModifiers.ModifierType.InstaFail)
+                {
+                    TootTallyNotifManager.DisplayNotif("Cannot enable InstaFail in multiplayer.");
+                    return false;
+                }
+                
+            }
+            return true;
+        }
         #endregion
 
         #region MultiplayerState

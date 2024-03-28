@@ -360,6 +360,7 @@ namespace TootTallyMultiplayer
             }
             else
                 diff = songInfo.speed_diffs[(int)diffIndex];
+            Plugin.LogInfo($"diff: {diff}, I: {diffIndex}, GS: {songInfo.gameSpeed}");
 
             UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
 
@@ -539,6 +540,8 @@ namespace TootTallyMultiplayer
         }
 
         public void SendQuickChat(QuickChat chat) => _multiConnection.SendOptionInfo(OptionInfoType.QuickChat, new dynamic[] { (int)chat });
+
+        public void SendSetLobbySettings(string name, string description, string password, int maxPlayer) => _multiConnection.SendSetLobbyInfo(name, description, password, maxPlayer);
 
         public void OpenSongLink()
         {

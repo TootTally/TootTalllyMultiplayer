@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyWebsocketLibs;
 using WebSocketSharp;
@@ -24,7 +25,7 @@ namespace TootTallyMultiplayer
 
         public string GetServerID => _id;
 
-        public MultiplayerSystem(string serverID, bool isHost) : base(serverID, "wss://spec.toottally.com/mp/join/", "1.0.0")
+        public MultiplayerSystem(string serverID, bool isHost) : base(serverID, "wss://spec.toottally.com/mp/join/", PluginInfo.PLUGIN_VERSION)
         {
             ConnectionPending = true;
 
@@ -46,6 +47,20 @@ namespace TootTallyMultiplayer
                 modifiers = modifiers
             };
             SendSongHash(socketSetSongByHash);
+        }
+
+        public void SendSetLobbyInfo(string name, string description, string password, int maxPlayer)
+        {
+            SocketSetLobbyInfo socketSetLobbyInfo = new SocketSetLobbyInfo()
+            {
+                dataType = DataType.SetLobbyInfo.ToString(),
+                name = name,
+                description = description,
+                password = password,
+                maxPlayer = maxPlayer
+            };
+            var json = JsonConvert.SerializeObject(socketSetLobbyInfo);
+            SendToSocket(json);
         }
 
         public void SendSongHash(SocketSetSongByHash socketSetSongByHash)
@@ -129,7 +144,8 @@ namespace TootTallyMultiplayer
             SongInfo,
             LobbyInfo,
             OptionInfo,
-            SetSong
+            SetSong,
+            SetLobbyInfo,
         }
 
         public enum QuickChat
@@ -142,8 +158,6 @@ namespace TootTallyMultiplayer
             ImHere,
             NicePlay,
             GoodGame,
-
-
         }
 
         public enum OptionInfoType
@@ -168,11 +182,6 @@ namespace TootTallyMultiplayer
 
             //Lobby Updates
             LobbyInfoChanged,
-            SelectedSongChanged,
-            TitleChanged,
-            PasswordChanged,
-            ModifierChanged,
-            GameSpeedChanged,
         }
 
         public class SocketMessage
@@ -185,6 +194,14 @@ namespace TootTallyMultiplayer
             public string filehash { get; set; }
             public float gamespeed { get; set; }
             public string modifiers { get; set; }
+        }
+
+        public class SocketSetLobbyInfo : SocketMessage
+        {
+            public string name;
+            public string description;
+            public string password;
+            public int maxPlayer;
         }
 
         public class SocketOptionInfo : SocketMessage

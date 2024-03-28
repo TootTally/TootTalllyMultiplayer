@@ -18,6 +18,7 @@ namespace TootTallyMultiplayer.APIService
             public string description;
             public string password;
             public int maxPlayer;
+            public string version;
         }
 
         [Serializable]
