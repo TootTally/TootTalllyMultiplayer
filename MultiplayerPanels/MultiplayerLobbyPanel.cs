@@ -47,7 +47,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private TootTallyAnimation _dropdownAnimation;
 
-        private bool _isHost;
+        public bool IsHost;
 
         private int _maxPlayerCount;
         private int _readyCount;
@@ -243,7 +243,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             if (_lastUsers != null)
             {
-                users.FindAll(x => !_lastUsers.Any(l => x.id == l.id)).ToList().ForEach(u => 
+                users.FindAll(x => !_lastUsers.Any(l => x.id == l.id)).ToList().ForEach(u =>
                 {
                     MultiplayerLogger.ServerLog($"{u.username} joined the lobby.");
                 });
@@ -256,12 +256,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             ClearAllUserRows();
 
             _hostInfo = users.First();
-            _isHost = _hostInfo.id == TootTallyUser.userInfo.id;
-            _lobbySettingButton.SetActive(_isHost);
-            _startGameButton.gameObject.SetActive(_isHost);
-            _selectSongButton.gameObject.SetActive(_isHost);
+            IsHost = _hostInfo.id == TootTallyUser.userInfo.id;
+            _lobbySettingButton.SetActive(IsHost);
+            _startGameButton.gameObject.SetActive(IsHost);
+            _selectSongButton.gameObject.SetActive(IsHost);
 
-            _readyUpButton.gameObject.SetActive(!_isHost);
+            _readyUpButton.gameObject.SetActive(!IsHost);
 
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
             UpdateScrolling(_userCardsDict.Count);
@@ -341,11 +341,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             GameObjectFactory.TintImage(userCard.container.GetComponent<Image>(), color, .2f);
             userCard.image.color = color;
 
-            if (_isHost)
-                if (_readyCount == _userCardsDict.Count)
-                    _startGameButton.textHolder.text = "Start Game";
-                else
-                    _startGameButton.textHolder.text = $"{_readyCount}/{_userCardsDict.Count} Force Start";
+            if (IsHost)
+                SetHostButtonText();
         }
 
         private float _posYJumpValue = 83f;
@@ -381,7 +378,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             UpdateDropdown(user.id);
             var v3 = Input.mousePosition;
             v3.z = 0;
-            _dropdownMenu.transform.position = v3;
+            _dropdownMenu.transform.position = v3 - (new Vector3(1, 1, 0) * 4f);
             _dropdownMenu.transform.localScale = Vector2.zero;
             _dropdownMenu.SetActive(true);
             _dropdownAnimation?.Dispose();
@@ -397,7 +394,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private void UpdateDropdown(int userID)
         {
             var isSelf = IsSelf(userID);
-            var showAllOptions = _isHost && !isSelf;
+            var showAllOptions = IsHost && !isSelf;
             _kickButton.gameObject.SetActive(showAllOptions);
             _giveHostButton.gameObject.SetActive(showAllOptions);
             _reportButton.gameObject.SetActive(showAllOptions);
@@ -438,6 +435,15 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             }
         }
 
+        public void SetHostButtonText()
+        {
+            if (IsHost)
+                if (_readyCount == _userCardsDict.Count)
+                    _startGameButton.textHolder.text = "Start Game";
+                else
+                    _startGameButton.textHolder.text = $"{_readyCount}/{_userCardsDict.Count} Force Start";
+        }
+
         public void OnSettingsButtonClick()
         {
             TootTallyNotifManager.DisplayNotif("Setting change not supported yet.");
@@ -449,16 +455,19 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             ClearAllUserRows();
             controller.DisconnectFromLobby();
-            _userState = UserState.NotReady;
+            _userState = UserState.None;
         }
 
         public void OnSelectSongButtonClick()
         {
+            if (!_canPressButton) return;
+
             controller.TransitionToSongSelection();
         }
 
         public void OnStartGameButtonClick()
         {
+            DisableButton(.5f);
             controller.StartLobbyGame();
         }
 
@@ -485,12 +494,26 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             Application.OpenURL($"https://toottally.com/profile/{_dropdownUserInfo.id}");
         }
 
+        public void OnTimerStart()
+        {
+            DisableButton();
+            if (IsHost) _startGameButton.textHolder.text = "Abort Game";
+        }
+
+        public void OnTimerAbort()
+        {
+            EnableButton();
+            if (IsHost) SetHostButtonText();
+        }
+
         public void OnGiveHostButtonClick()
         {
             HideDropdown();
-            _userState = UserState.NotReady;
+
+            if (!_canPressButton) return;
+
+            _userState = UserState.None;
             controller.GiveHostUser(_dropdownUserInfo.id);
-            controller.OnGiveHostSetUserState();
             controller.RefreshCurrentLobbyInfo();
         }
 
@@ -509,7 +532,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _gameSpeedText.text = $" <b>{gamespeed:0.00}x</b>";
             _modifiersText.text = $"M <b>{modifiers}</b>";
             _ratingText.text = $" <b>{difficulty:0.00}</b>";
-            _startGameButton.gameObject.SetActive(_isHost);
+            _startGameButton.gameObject.SetActive(IsHost);
         }
 
         public void OnSongInfoChanged(MultiplayerSongInfo songInfo) => OnSongInfoChanged(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, songInfo.difficulty);
@@ -553,11 +576,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _readyUpButton.textHolder.text = "Download Song";
                     break;
                 case UserState.NotReady:
-                    _readyUpButton.gameObject.SetActive(!_isHost);
+                    _readyUpButton.gameObject.SetActive(!IsHost);
                     _readyUpButton.textHolder.text = "Ready Up";
                     break;
                 case UserState.Ready:
-                    _readyUpButton.gameObject.SetActive(!_isHost);
+                    _readyUpButton.gameObject.SetActive(!IsHost);
                     _readyUpButton.textHolder.text = "Not Ready";
                     break;
             }

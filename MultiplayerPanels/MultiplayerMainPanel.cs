@@ -62,12 +62,14 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             serverText.fontSize = 40;
 
             var searchHLayout = searchLeft.GetComponent<HorizontalLayoutGroup>();
+            searchHLayout.childAlignment = TextAnchor.MiddleLeft;
             searchHLayout.childControlHeight = searchHLayout.childForceExpandHeight = false;
             searchHLayout.spacing = 8f;
+            searchHLayout.padding = new RectOffset(-12, 0, 0, 0);
             var searchText = GameObjectFactory.CreateSingleText(searchLeft.transform, "SearchText", "Search:");
             searchText.alignment = TextAlignmentOptions.MidlineRight;
-            searchText.rectTransform.sizeDelta = new Vector2(450, 30);
-            _searchInputField = MultiplayerGameObjectFactory.CreateInputField(searchLeft.transform, "SearchInput", new Vector2(325, 36), 24, "", false);
+            searchText.rectTransform.sizeDelta = new Vector2(90, 30);
+            _searchInputField = MultiplayerGameObjectFactory.CreateInputField(searchLeft.transform, "SearchInput", new Vector2(350, 36), 24, "", false);
             _searchInputField.onValueChanged.AddListener(controller.UpdateSearchFilter);
 
             _slider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();

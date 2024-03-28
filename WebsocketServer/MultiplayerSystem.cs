@@ -162,6 +162,7 @@ namespace TootTallyMultiplayer
             //Host Commands
             GiveHost,
             KickFromLobby,
+            StartTimer,
             StartGame,
             AbortGame,
 

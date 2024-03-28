@@ -207,6 +207,7 @@ namespace TootTallyMultiplayer
             }
             else
                 _multMainPanel.OnLobbyDisconnectError();
+            StopTimer();
             _currentLobby = null;
             IsConnectionPending = false;
             MultiplayerManager.UpdateMultiplayerStateIfChanged(MultiplayerState.Home);
@@ -382,11 +383,6 @@ namespace TootTallyMultiplayer
             }
         }
 
-        public void OnGiveHostSetUserState()
-        {
-            SendUserState(_savedTrackRef != "" && OptionModule.IsSome(TrackLookup.tryLookup(_savedTrackRef)) ? UserState.NotReady : UserState.NoSong);
-        }
-
         public void DownloadSavedChart(ProgressBar bar)
         {
             if (_savedDownloadLink != null)
@@ -464,7 +460,12 @@ namespace TootTallyMultiplayer
             if (IsTimerStarted)
                 _multiConnection.SendOptionInfo(OptionInfoType.AbortGame);
             else
-                _multiConnection.SendOptionInfo(OptionInfoType.StartGame);
+                _multiConnection.SendOptionInfo(OptionInfoType.StartTimer, new dynamic[] { 5 });
+        }
+
+        public void SendStartGame()
+        {
+            _multiConnection.SendOptionInfo(OptionInfoType.StartGame);
         }
 
         public void StartGame()
@@ -488,20 +489,20 @@ namespace TootTallyMultiplayer
         public void AbortTimer()
         {
             StopTimer();
-            MultiplayerLogger.ServerLog($"Song start in aborted.");
+            MultiplayerLogger.ServerLog($"Song start aborted.");
         }
 
         public void StopTimer()
         {
             IsTimerStarted = false;
             _startGameTimer = _startGameTimerMaxTime = _nextStartTimerTick;
-            _multLobbyPanel.EnableButton();
+            _multLobbyPanel.OnTimerAbort();
         }
 
         public void StartTimer(float time)
         {
             _startGameTimer = _startGameTimerMaxTime = _startGameTimer = _nextStartTimerTick = time;
-            _multLobbyPanel.DisableButton();
+            _multLobbyPanel.OnTimerStart();
             IsTimerStarted = true;
         }
 
@@ -511,7 +512,8 @@ namespace TootTallyMultiplayer
             if (_startGameTimer <= 0)
             {
                 StopTimer();
-                StartGame();
+                if (_multLobbyPanel.IsHost)
+                    SendStartGame();
                 return;
             }
             else if (_startGameTimer < _nextStartTimerTick)
@@ -530,7 +532,11 @@ namespace TootTallyMultiplayer
 
         public void KickUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.KickFromLobby, new dynamic[] { userID });
 
-        public void GiveHostUser(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.GiveHost, new dynamic[] { userID });
+        public void GiveHostUser(int userID)
+        {
+            _multiConnection.SendOptionInfo(OptionInfoType.GiveHost, new dynamic[] { userID });
+            _currentUserState = UserState.NoSong;
+        }
 
         public void SendQuickChat(QuickChat chat) => _multiConnection.SendOptionInfo(OptionInfoType.QuickChat, new dynamic[] { (int)chat });
 
@@ -559,7 +565,9 @@ namespace TootTallyMultiplayer
             switch (Enum.Parse(typeof(OptionInfoType), optionInfo.optionType))
             {
                 case OptionInfoType.StartGame:
-                    StartTimer(5); break;
+                    StartGame(); break;
+                case OptionInfoType.StartTimer:
+                    StartTimer((float)optionInfo.values[0]); break;
                 case OptionInfoType.AbortGame:
                     AbortTimer(); break;
                 case OptionInfoType.KickFromLobby:
