@@ -131,6 +131,7 @@ namespace TootTallyMultiplayer
             inputField.transform.Find("Text").GetComponent<RectTransform>().sizeDelta = size;
             inputField.textComponent.GetComponent<RectTransform>().sizeDelta = size;
             inputField.textComponent.fontSize = fontSize;
+            inputField.textComponent.overflowMode = TextOverflowModes.Ellipsis;
             inputField.text = text;
             inputField.inputType = isPassword ? TMP_InputField.InputType.Password : TMP_InputField.InputType.Standard;
 

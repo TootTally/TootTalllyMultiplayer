@@ -272,9 +272,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _readyUpButton.gameObject.SetActive(!IsHost);
 
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
-            UpdateScrolling(_userCardsDict.Count);
 
             users.ForEach(DisplayUserInfo);
+            UpdateScrolling(_userCardsDict.Count);
             _lastUsers = users;
         }
 
@@ -351,6 +351,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             if (IsHost)
                 SetHostButtonText();
+            UpdateScrolling(_userCardsDict.Count);
         }
 
         private float _posYJumpValue = 83f;
