@@ -4,7 +4,7 @@
 		<TargetFramework>net472</TargetFramework>
 		<AssemblyName>TootTallyMultiplayer</AssemblyName>
 		<Description>TootTally Multiplayer Module</Description>
-		<Version>0.7.5</Version>
+		<Version>0.8.0</Version>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<LangVersion>latest</LangVersion>
 		<TromboneChampDir>E:\SteamLibrary\steamapps\common\TromboneChamp</TromboneChampDir>

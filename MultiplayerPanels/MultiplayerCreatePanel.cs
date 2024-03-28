@@ -18,16 +18,38 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public MultiplayerCreatePanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "CreateLayout")
         {
             panel.transform.localPosition = new Vector2(0, 2000);
-            _centerContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(300, 0), center.transform);
+            _centerContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(500, 0), center.transform);
             _centerContainer.GetComponent<VerticalLayoutGroup>().spacing = 50;
 
             var titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "Create Lobby");
             titleText.enableAutoSizing = true;
             var defaultLobbyName = Plugin.Instance.SavedLobbyTitle.Value == "" ? $"{TootTallyUser.userInfo.username}'s Lobby" : Plugin.Instance.SavedLobbyTitle.Value;
-            _lobbyName = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyNameInputField", new Vector2(300, 30), 24,  defaultLobbyName, false);
-            _lobbyDescription = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyDescriptionInputField", new Vector2(300, 30), 24, Plugin.Instance.SavedLobbyDesc.Value, false);
-            _lobbyPassword = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyPasswordInputField", new Vector2(300, 30), 24, "", true);
-            _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(_centerContainer.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, Plugin.Instance.SavedLobbyMaxPlayer.Value.ToString(), false);
+
+            var nameHBox = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0, 55), _centerContainer.transform);
+            var hlayout = nameHBox.GetComponent<HorizontalLayoutGroup>();
+            hlayout.spacing = 8f;
+            hlayout.childAlignment = TextAnchor.MiddleLeft;
+
+            var descHBox = GameObject.Instantiate(nameHBox, _centerContainer.transform);
+            var passwordHBox = GameObject.Instantiate(nameHBox, _centerContainer.transform);
+            var maxCountHBox = GameObject.Instantiate(nameHBox, _centerContainer.transform);
+
+            var nameLabel = GameObjectFactory.CreateSingleText(nameHBox.transform, "NameLabel", "Name:");
+            nameLabel.rectTransform.sizeDelta = new Vector2(140, 55);
+            nameLabel.alignment = TextAlignmentOptions.BottomLeft;
+            _lobbyName = MultiplayerGameObjectFactory.CreateInputField(nameHBox.transform, "LobbyNameInputField", new Vector2(300, 30), 24,  defaultLobbyName, false);
+
+            var descLabel = GameObject.Instantiate(nameLabel, descHBox.transform);
+            descLabel.name = "DescLabel"; descLabel.text = "Description:";
+            _lobbyDescription = MultiplayerGameObjectFactory.CreateInputField(descHBox.transform, "LobbyDescriptionInputField", new Vector2(300, 30), 24, Plugin.Instance.SavedLobbyDesc.Value, false);
+
+            var passLabel = GameObject.Instantiate(nameLabel, passwordHBox.transform);
+            passLabel.name = "PasswordLabel"; passLabel.text = "Password:";
+            _lobbyPassword = MultiplayerGameObjectFactory.CreateInputField(passwordHBox.transform, "LobbyPasswordInputField", new Vector2(300, 30), 24, "", true);
+
+            var maxPlayerLabel = GameObject.Instantiate(nameLabel, maxCountHBox.transform);
+            maxPlayerLabel.name = "MaxPlayerLabel"; maxPlayerLabel.text = "Max Player:";
+            _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(maxCountHBox.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, Plugin.Instance.SavedLobbyMaxPlayer.Value.ToString(), false);
 
             GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Back", "CreateBackButton", OnBackButtonClick);
             GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Create", "CreateLobbyButton", OnCreateButtonClick);

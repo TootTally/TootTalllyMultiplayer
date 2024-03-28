@@ -360,7 +360,6 @@ namespace TootTallyMultiplayer
             }
             else
                 diff = songInfo.speed_diffs[(int)diffIndex];
-            Plugin.LogInfo($"diff: {diff}, I: {diffIndex}, GS: {songInfo.gameSpeed}");
 
             UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
 
