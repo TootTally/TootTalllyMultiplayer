@@ -169,7 +169,7 @@ namespace TootTallyMultiplayer
             multiplayerHitbox.name = "MULTIButton";
             multiplayerText.name = "MULTIText";
             GameObject.DestroyImmediate(multiplayerText.transform.GetChild(1).GetComponent<LocalizeStringEvent>());
-            multiplayerText.transform.GetChild(1).GetComponent<Text>().text = multiplayerText.transform.GetChild(1).GetChild(0).GetComponent<Text>().text = "MULTI";
+            multiplayerText.transform.GetChild(1).GetComponent<Text>().text = multiplayerText.transform.GetChild(1).GetChild(0).GetComponent<Text>().text = "<i>MULTI</i>";
             ThemeManager.OverwriteGameObjectSpriteAndColor(multiplayerButton.transform.Find("FG").gameObject, "MultiplayerButtonV2.png", Color.white);
             multiplayerButton.transform.SetSiblingIndex(0);
             multiplayerText.transform.SetSiblingIndex(21);
