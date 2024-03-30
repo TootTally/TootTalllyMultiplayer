@@ -385,7 +385,7 @@ namespace TootTallyMultiplayer
 
         public void DownloadSavedChart(ProgressBar bar)
         {
-            if (_savedDownloadLink != null)
+            if (_savedDownloadLink != null && IsDownloadPending)
             {
                 IsDownloadPending = true;
                 Plugin.Instance.StartCoroutine(TootTallyAPIService.DownloadZipFromServer(_savedDownloadLink, bar, data =>
