@@ -349,7 +349,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             GameObjectFactory.TintImage(userCard.container.GetComponent<Image>(), color, .2f);
             userCard.image.color = color;
 
-            if (IsHost)
+            if (IsHost && !controller.IsTimerStarted)
                 SetHostButtonText();
             UpdateScrolling(_userCardsDict.Count);
         }
@@ -545,7 +545,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _gameSpeedText.text = $" <b>{gamespeed:0.00}x</b>";
             _modifiersText.text = $"M <b>{modifiers}</b>";
             _ratingText.text = $" <b>{difficulty:0.00}</b>";
-            _startGameButton.gameObject.SetActive(IsHost);
+            _startGameButton.gameObject.SetActive(IsHost && !controller.IsDownloadPending);
         }
 
         public void OnSongInfoChanged(MultiplayerSongInfo songInfo) => OnSongInfoChanged(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, songInfo.difficulty);

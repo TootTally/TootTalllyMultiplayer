@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using Mono.Cecil.Cil;
+using TMPro;
 using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
@@ -24,11 +25,13 @@ namespace TootTallyMultiplayer.MultiplayerCore
         private string _name;
         private int _score, _health, _combo, _position, _count;
         private bool _IsSelf => _id == TootTallyUser.userInfo.id;
+        private bool _hasQuit;
 
         public int GetScore => _score;
 
         public void Initialize(int id, string name, MultiplayerLiveScoreController controller)
         {
+            _hasQuit = false;
             _id = id;
             if (_IsSelf)
                 _outlineImage.color = new Color(.95f, .2f, .95f, .5f);
@@ -121,6 +124,17 @@ namespace TootTallyMultiplayer.MultiplayerCore
                 _count = count;
                 _position = position;
             }
+        }
+
+        public void SetQuitUI()
+        {
+            if (_hasQuit) return;
+
+            _hasQuit = true;
+            gameObject.GetComponent<Image>().color = new Color(1f, 0, 0, .35f);
+            _rainbow1.gameObject.SetActive(false);
+            _rainbow2.gameObject.SetActive(false);
+            _comboText.text = "(Quit)";
         }
 
         public void SetIsVisible(bool visible, bool animate = true)

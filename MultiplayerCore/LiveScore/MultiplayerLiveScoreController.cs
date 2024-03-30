@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TootTallyMultiplayer.MultiplayerCore
 {
@@ -54,7 +55,15 @@ namespace TootTallyMultiplayer.MultiplayerCore
             }
             _idToLiveScoreDict[id].UpdateScore(score, combo, health);
         }
-        
+
+
+        public void OnUserQuit(int id)
+        {
+            if (!_idToLiveScoreDict.ContainsKey(id)) return;
+
+            _idToLiveScoreDict[id].SetQuitUI();
+        }
+
         public void OnDestroy()
         {
             _idToLiveScoreDict.Clear();

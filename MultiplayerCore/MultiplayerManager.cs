@@ -299,7 +299,7 @@ namespace TootTallyMultiplayer
 
         }
 
-        private static void LoadPlayTestScene() => SceneManager.LoadScene(PLAYTEST_SCENE_NAME);      
+        private static void LoadPlayTestScene() => SceneManager.LoadScene(PLAYTEST_SCENE_NAME);
 
         [HarmonyPatch(typeof(HomeController), nameof(HomeController.Update))]
         [HarmonyPostfix]
@@ -517,14 +517,24 @@ namespace TootTallyMultiplayer
         [HarmonyPostfix]
         private static void OnDoScoreTextSendScoreToLobby(int whichtext, GameController __instance)
         {
-            if (IsPlayingMultiplayer)
+            if (!IsPlayingMultiplayer || !IsConnectedToMultiplayer || _wasAutotootUsed) return;
+
+            if (!_wasAutotootUsed && __instance.controllermode)
+            {
+                _wasAutotootUsed = true;
+                _multiController.SendQuitFlag();
+            }
+            else
                 _multiController.SendScoreDataToLobby(__instance.totalscore, __instance.highestcombocounter, (int)__instance.currenthealth, whichtext);
         }
+
+        private static bool _wasAutotootUsed;
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.Start))]
         [HarmonyPostfix]
         private static void OnMultiplayerGameStart(GameController __instance)
         {
+            _wasAutotootUsed = false;
             if (IsPlayingMultiplayer)
                 _multiController.OnGameControllerStartSetup();
         }
@@ -620,7 +630,7 @@ namespace TootTallyMultiplayer
                     TootTallyNotifManager.DisplayNotif("Cannot enable InstaFail in multiplayer.");
                     return false;
                 }
-                
+
             }
             return true;
         }
@@ -684,6 +694,8 @@ namespace TootTallyMultiplayer
                     StopRecursiveRefresh();
                     break;
                 case MultiplayerController.MultiplayerState.Quitting:
+                    if (!_wasAutotootUsed)
+                        _multiController.SendQuitFlag();
                     _multiController.OnSongQuit();
                     break;
             }

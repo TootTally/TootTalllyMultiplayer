@@ -172,6 +172,7 @@ namespace TootTallyMultiplayer
             SongFinished,
             FinalScore,
             QuickChat,
+            Quit,
 
             //Host Commands
             GiveHost,

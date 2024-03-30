@@ -592,6 +592,11 @@ namespace TootTallyMultiplayer
                     //id - score - percent - maxcombo - tally
                     MultiplayerPointScoreController.AddScore((int)optionInfo.values[0], (int)optionInfo.values[1], (float)optionInfo.values[2], (int)optionInfo.values[3], optionInfo.values[4].ToObject<int[]>());
                     break;
+                case OptionInfoType.Quit:
+                    //id
+                    _multiLiveScoreController?.OnUserQuit((int)optionInfo.values[0]);
+                    break;
+
             }
         }
 
@@ -599,6 +604,7 @@ namespace TootTallyMultiplayer
 
         #region MultiConnectionRequests
         public void SendSongFinishedToLobby() => _multiConnection?.SendOptionInfo(OptionInfoType.SongFinished);
+        public void SendQuitFlag() => _multiConnection?.SendOptionInfo(OptionInfoType.Quit);
         public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers) => _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
         public void SendScoreDataToLobby(int score, int combo, int health, int tally)
         {
