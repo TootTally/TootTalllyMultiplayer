@@ -205,6 +205,18 @@ namespace TootTallyMultiplayer
             return lobbySettings;
         }
 
+        public static GameObject CreateQuickChatPopup(Transform canvasTransform)
+        {
+            var quickChatContainer = GetBorderedVerticalBox(new Vector2(300,900), 4, canvasTransform);
+
+            var title = GameObjectFactory.CreateSingleText(canvasTransform, "QuickChatTitle", "Quick Chat");
+            title.fontSize = 24;
+            title.rectTransform.sizeDelta = new Vector2(300, 30);
+
+            return quickChatContainer;
+
+        }
+
         public static GameObject GetVerticalBox(Vector2 size, Transform parent = null)
         {
             var box = GameObject.Instantiate(AssetBundleManager.GetPrefab("verticalbox"), parent);

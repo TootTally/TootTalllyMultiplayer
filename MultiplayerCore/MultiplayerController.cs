@@ -540,6 +540,11 @@ namespace TootTallyMultiplayer
 
         public void SendQuickChat(QuickChat chat) => _multiConnection.SendOptionInfo(OptionInfoType.QuickChat, new dynamic[] { (int)chat });
 
+        public void OnQuickChatReceived(int userID, QuickChat chat)
+        {
+            _multLobbyPanel?.OnQuickChatReceived(userID, chat);
+        }
+
         public void SendSetLobbySettings(string name, string description, string password, int maxPlayer) => _multiConnection.SendSetLobbyInfo(name, description, password, maxPlayer);
 
         public void OpenSongLink()
@@ -575,6 +580,10 @@ namespace TootTallyMultiplayer
                 case OptionInfoType.KickFromLobby:
                     if (TootTallyAccounts.TootTallyUser.userInfo.id == (int)optionInfo.values[0])
                         DisconnectFromLobby();
+                    break;
+                case OptionInfoType.QuickChat:
+                    //UserID - QuickChatID
+                    OnQuickChatReceived((int)optionInfo.values[0], optionInfo.values[1].ToObject<QuickChat>());
                     break;
                 case OptionInfoType.Refresh:
                 case OptionInfoType.GiveHost:

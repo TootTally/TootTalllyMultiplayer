@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyWebsocketLibs;
@@ -150,14 +151,41 @@ namespace TootTallyMultiplayer
 
         public enum QuickChat
         {
+            //Introductions
             Hello,
             Welcome,
-            GoodLuck,
+            Bye,
+            Leave,
+
+            //SelfState
+            Wait,
+            ImReady,
             ReadyUp,
-            BeRightBack,
-            ImHere,
+            GoodLuck,
+
+            //Opinions
+            GoodChart,
+            BadChart,
+            Yes,
+            No,
+
+            //Requests
+            TooFast,
+            TooSlow,
+            TooHard,
+            TooEasy,
+
+            //PostGame
             NicePlay,
             GoodGame,
+            CloseOne,
+            Rematch,
+
+            //Emotions - Demands
+            Laugh,
+            Sad,
+            WantHost,
+            GiveHost
         }
 
         public enum OptionInfoType
@@ -248,5 +276,39 @@ namespace TootTallyMultiplayer
                 throw new NotImplementedException();
             }
         }
+
+        public static readonly Dictionary<QuickChat, string> QuickChatToTextDic = new Dictionary<QuickChat, string>()
+        {
+            {QuickChat.Hello, "Hello!" },
+            {QuickChat.Welcome, "Welcome!" },
+            {QuickChat.Bye, "Bye bye!" },
+            {QuickChat.Leave, "I have to leave." },
+
+            {QuickChat.Wait, "Wait for me." },
+            {QuickChat.ImReady, "I'm ready!" },
+            {QuickChat.ReadyUp, "Ready up!" },
+            {QuickChat.GoodLuck, "Good luck!" },
+
+            {QuickChat.GoodChart, "I approve this chart" },
+            {QuickChat.BadChart, "I disapprove this chart" },
+            {QuickChat.Yes, "Yes." },
+            {QuickChat.No, "No." },
+
+            {QuickChat.TooFast, "I think the game speed is too fast." },
+            {QuickChat.TooSlow, "I think the game speed is too slow." },
+            {QuickChat.TooHard, "I think the song is too hard." },
+            {QuickChat.TooEasy, "I think the song is too easy." },
+
+            {QuickChat.NicePlay, "Nice play!" },
+            {QuickChat.GoodGame, "Good game." },
+            {QuickChat.CloseOne, "That was a close match!" },
+            {QuickChat.Rematch, "Rematch!" },
+
+            {QuickChat.Laugh, "Ahah!" },
+            {QuickChat.Sad, "" },
+            {QuickChat.WantHost, "Can I have host?" },
+            {QuickChat.GiveHost, "Who want to be host?" }
+
+        };
     }
 }

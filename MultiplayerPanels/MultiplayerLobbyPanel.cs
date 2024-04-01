@@ -15,6 +15,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
+using static TootTallyMultiplayer.MultiplayerSystem;
 
 namespace TootTallyMultiplayer.MultiplayerPanels
 {
@@ -24,7 +25,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject titleContainer, songDescContainer, buttonContainer;
         public GameObject songInfoContainer, songInfoTop, songInfoBottom;
 
-        //private GameObject _quickChatContainer;
+        private GameObject _quickChatContainer;
 
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
@@ -65,7 +66,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private bool _canPressButton;
 
         private UserState _userState;
-        //private int _quickChatPageIndex;
 
         public MultiplayerLobbyPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "LobbyLayout")
         {
@@ -86,10 +86,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             songDescContainer = rightPanelContainer.transform.GetChild(2).gameObject;
             buttonContainer = rightPanelContainer.transform.GetChild(3).gameObject;
 
-            //_quickChatContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(64, 64), middlePanel.transform);
-            //_quickChatContainer.name = "QuickChat";
+            _quickChatContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(64, 64), middlePanel.transform);
+            _quickChatContainer.SetActive(false);
+            _quickChatContainer.name = "QuickChat";
 
-            //GameObjectFactory.CreateCustomButton(_quickChatContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
+            GameObjectFactory.CreateCustomButton(_quickChatContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
 
             _hiddenUserCardSlider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _hiddenUserCardSlider.gameObject.SetActive(true);
@@ -354,6 +355,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             UpdateScrolling(_userCardsDict.Count);
         }
 
+        public void OnQuickChatReceived(int userID, QuickChat chat)
+        {
+            if (!_userCardsDict.ContainsKey(userID) || !QuickChatToTextDic.ContainsKey(chat)) return;
+
+            MultiplayerLogger.UserLog(_userCardsDict[userID].user.username, QuickChatToTextDic[chat]);
+        }
+
         private float _posYJumpValue = 83f;
         private float _posYOffset = -340f;
 
@@ -412,7 +420,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private void OnQuickChatOpenButtonClick()
         {
-
+            _quickChatContainer.SetActive(true);
         }
 
         private bool IsSelf(int userID) => TootTallyUser.userInfo.id == userID;
