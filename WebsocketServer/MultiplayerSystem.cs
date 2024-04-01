@@ -308,7 +308,6 @@ namespace TootTallyMultiplayer
             {QuickChat.Sad, "" },
             {QuickChat.WantHost, "Can I have host?" },
             {QuickChat.GiveHost, "Who want to be host?" }
-
         };
     }
 }

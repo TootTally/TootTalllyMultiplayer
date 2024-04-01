@@ -583,7 +583,7 @@ namespace TootTallyMultiplayer
                     break;
                 case OptionInfoType.QuickChat:
                     //UserID - QuickChatID
-                    OnQuickChatReceived((int)optionInfo.values[0], optionInfo.values[1].ToObject<QuickChat>());
+                    OnQuickChatReceived((int)optionInfo.values[0], (QuickChat)optionInfo.values[1]);
                     break;
                 case OptionInfoType.Refresh:
                 case OptionInfoType.GiveHost:

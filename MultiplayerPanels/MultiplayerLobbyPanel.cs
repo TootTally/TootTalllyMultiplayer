@@ -25,7 +25,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject titleContainer, songDescContainer, buttonContainer;
         public GameObject songInfoContainer, songInfoTop, songInfoBottom;
 
-        private GameObject _quickChatContainer;
+        private GameObject _quickChatPopup;
+        private TootTallyAnimation _quickChatAnimation;
+        private bool _isQuickChatPopupEnabled;
 
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
@@ -86,11 +88,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             songDescContainer = rightPanelContainer.transform.GetChild(2).gameObject;
             buttonContainer = rightPanelContainer.transform.GetChild(3).gameObject;
 
-            _quickChatContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(64, 64), middlePanel.transform);
-            _quickChatContainer.SetActive(false);
-            _quickChatContainer.name = "QuickChat";
+            _quickChatPopup = MultiplayerGameObjectFactory.CreateQuickChatPopup(canvas.transform, OnSendQuickChatButtonClick);
+            _quickChatPopup.SetActive(false);
+            _quickChatPopup.name = "QuickChat";
+            _isQuickChatPopupEnabled = false;
 
-            GameObjectFactory.CreateCustomButton(_quickChatContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
+            GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
 
             _hiddenUserCardSlider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _hiddenUserCardSlider.gameObject.SetActive(true);
@@ -362,6 +365,32 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             MultiplayerLogger.UserLog(_userCardsDict[userID].user.username, QuickChatToTextDic[chat]);
         }
 
+        public void OnSendQuickChatButtonClick(QuickChat chat)
+        {
+            if (!_isQuickChatPopupEnabled) return; //Prevent user from sending QuickChat while panel is closing
+            QuickChatOnCloseAnimation();
+            controller.SendQuickChat(chat);
+        }
+
+        public void QuickChatOnCloseAnimation()
+        {
+            _isQuickChatPopupEnabled = false;
+            _quickChatAnimation?.Dispose();
+            _quickChatAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_quickChatPopup, Vector2.zero, .5f, new SecondDegreeDynamicsAnimation(3.5f, 1f, 1.1f), delegate
+            {
+                _quickChatPopup.gameObject.SetActive(false);
+                _quickChatAnimation = null;
+            });
+        }
+
+        public void QuickChatOnOpenAnimation()
+        {
+            _isQuickChatPopupEnabled = true;
+            _quickChatAnimation?.Dispose();
+            _quickChatPopup.SetActive(true);
+            _quickChatAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_quickChatPopup, Vector2.one, .6f, new SecondDegreeDynamicsAnimation(2.75f, 1f, 1.1f));
+        }
+
         private float _posYJumpValue = 83f;
         private float _posYOffset = -340f;
 
@@ -420,7 +449,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private void OnQuickChatOpenButtonClick()
         {
-            _quickChatContainer.SetActive(true);
+            _isQuickChatPopupEnabled = !_isQuickChatPopupEnabled;
+            if (_isQuickChatPopupEnabled)
+                QuickChatOnOpenAnimation();
+            else
+                QuickChatOnCloseAnimation();
         }
 
         private bool IsSelf(int userID) => TootTallyUser.userInfo.id == userID;
