@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using TMPro;
 using TootTallyAccounts;
@@ -107,7 +108,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _lobbySettingsInputPrompt.gameObject.SetActive(false);
             _lobbySettingButton = GameObjectFactory.CreateClickableImageHolder(headerRight.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingButton", _lobbySettingsInputPrompt.Show).gameObject;
             _lobbySettingButton.gameObject.SetActive(false);
-            
+
 
             GameObjectFactory.CreateClickableImageHolder(headerLeft.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("gtfo.png"), "LobbyBackButton", OnBackButtonClick);
 
@@ -362,7 +363,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             if (!_userCardsDict.ContainsKey(userID) || !QuickChatToTextDic.ContainsKey(chat)) return;
 
-            MultiplayerLogger.UserLog(_userCardsDict[userID].user.username, QuickChatToTextDic[chat]);
+            if (_hostInfo.id == userID)
+                MultiplayerLogger.HostLog(_userCardsDict[userID].user.username, QuickChatToTextDic[chat]);
+            else
+                MultiplayerLogger.UserLog(_userCardsDict[userID].user.username, QuickChatToTextDic[chat]);
         }
 
         public void OnSendQuickChatButtonClick(QuickChat chat)
