@@ -183,7 +183,7 @@ namespace TootTallyMultiplayer
 
             //Emotions - Demands
             Laugh,
-            Sad,
+            Enjoy,
             WantHost,
             GiveHost
         }
@@ -305,7 +305,7 @@ namespace TootTallyMultiplayer
             {QuickChat.Rematch, "Rematch!" },
 
             {QuickChat.Laugh, "Ahah!" },
-            {QuickChat.Sad, "" },
+            {QuickChat.Enjoy, "Im enjoying this lobby!" },
             {QuickChat.WantHost, "Can I have host?" },
             {QuickChat.GiveHost, "Who want to be host?" }
         };
