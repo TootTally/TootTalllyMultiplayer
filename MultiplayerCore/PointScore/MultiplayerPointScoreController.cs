@@ -44,7 +44,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
             if (!_idToPointScoreDict.ContainsKey(id))
             {
                 var user = MultiplayerController.GetUserFromLobby(id);
-                if (user == null) return;
+                if (user.id == 0) return;
 
                 var pointScore = MultiplayerGameObjectFactory.CreatePointScoreCard(_gameObject.transform, new Vector2(-250, 32 * _idToPointScoreDict.Count), $"{id}PointScore").AddComponent<MultiplayerPointScore>();
                 pointScore.Initialize(id, user.username, score, percent, maxCombo, noteTally);
