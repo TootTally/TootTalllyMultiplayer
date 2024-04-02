@@ -2,6 +2,8 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.ComponentModel;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyWebsocketLibs;
 using WebSocketSharp;
@@ -24,7 +26,7 @@ namespace TootTallyMultiplayer
 
         public string GetServerID => _id;
 
-        public MultiplayerSystem(string serverID, bool isHost) : base(serverID, "wss://spec.toottally.com/mp/join/", "1.0.0")
+        public MultiplayerSystem(string serverID, bool isHost) : base(serverID, "wss://spec.toottally.com/mp/join/", PluginInfo.PLUGIN_VERSION)
         {
             ConnectionPending = true;
 
@@ -46,6 +48,20 @@ namespace TootTallyMultiplayer
                 modifiers = modifiers
             };
             SendSongHash(socketSetSongByHash);
+        }
+
+        public void SendSetLobbyInfo(string name, string description, string password, int maxPlayer)
+        {
+            SocketSetLobbyInfo socketSetLobbyInfo = new SocketSetLobbyInfo()
+            {
+                dataType = DataType.SetLobbyInfo.ToString(),
+                name = name,
+                description = description,
+                password = password,
+                maxPlayer = maxPlayer
+            };
+            var json = JsonConvert.SerializeObject(socketSetLobbyInfo);
+            SendToSocket(json);
         }
 
         public void SendSongHash(SocketSetSongByHash socketSetSongByHash)
@@ -129,21 +145,47 @@ namespace TootTallyMultiplayer
             SongInfo,
             LobbyInfo,
             OptionInfo,
-            SetSong
+            SetSong,
+            SetLobbyInfo,
         }
 
         public enum QuickChat
         {
+            //Introductions
             Hello,
             Welcome,
-            GoodLuck,
+            Bye,
+            Leave,
+
+            //SelfState
+            Wait,
+            ImReady,
             ReadyUp,
-            BeRightBack,
-            ImHere,
+            GoodLuck,
+
+            //Opinions
+            GoodChart,
+            BadChart,
+            Yes,
+            No,
+
+            //Requests
+            TooFast,
+            TooSlow,
+            TooHard,
+            TooEasy,
+
+            //PostGame
             NicePlay,
             GoodGame,
+            CloseOne,
+            Rematch,
 
-
+            //Emotions - Demands
+            Laugh,
+            Enjoy,
+            WantHost,
+            GiveHost
         }
 
         public enum OptionInfoType
@@ -158,19 +200,17 @@ namespace TootTallyMultiplayer
             SongFinished,
             FinalScore,
             QuickChat,
+            Quit,
 
             //Host Commands
             GiveHost,
             KickFromLobby,
+            StartTimer,
             StartGame,
+            AbortGame,
 
             //Lobby Updates
             LobbyInfoChanged,
-            SelectedSongChanged,
-            TitleChanged,
-            PasswordChanged,
-            ModifierChanged,
-            GameSpeedChanged,
         }
 
         public class SocketMessage
@@ -183,6 +223,14 @@ namespace TootTallyMultiplayer
             public string filehash { get; set; }
             public float gamespeed { get; set; }
             public string modifiers { get; set; }
+        }
+
+        public class SocketSetLobbyInfo : SocketMessage
+        {
+            public string name;
+            public string description;
+            public string password;
+            public int maxPlayer;
         }
 
         public class SocketOptionInfo : SocketMessage
@@ -228,5 +276,38 @@ namespace TootTallyMultiplayer
                 throw new NotImplementedException();
             }
         }
+
+        public static readonly Dictionary<QuickChat, string> QuickChatToTextDic = new Dictionary<QuickChat, string>()
+        {
+            {QuickChat.Hello, "Hello!" },
+            {QuickChat.Welcome, "Welcome!" },
+            {QuickChat.Bye, "Bye bye!" },
+            {QuickChat.Leave, "I have to leave." },
+
+            {QuickChat.Wait, "Wait for me." },
+            {QuickChat.ImReady, "I'm ready!" },
+            {QuickChat.ReadyUp, "Ready up!" },
+            {QuickChat.GoodLuck, "Good luck!" },
+
+            {QuickChat.GoodChart, "I like this chart." },
+            {QuickChat.BadChart, "I don't like this chart." },
+            {QuickChat.Yes, "Yes." },
+            {QuickChat.No, "No." },
+
+            {QuickChat.TooFast, "I think the game speed is too fast." },
+            {QuickChat.TooSlow, "I think the game speed is too slow." },
+            {QuickChat.TooHard, "I think the song is too hard." },
+            {QuickChat.TooEasy, "I think the song is too easy." },
+
+            {QuickChat.NicePlay, "Nice play!" },
+            {QuickChat.GoodGame, "Good game." },
+            {QuickChat.CloseOne, "That was a close match!" },
+            {QuickChat.Rematch, "Rematch!" },
+
+            {QuickChat.Laugh, "Ahah!" },
+            {QuickChat.Enjoy, "Im enjoying this lobby!" },
+            {QuickChat.WantHost, "Can I have host?" },
+            {QuickChat.GiveHost, "Who want to be host?" }
+        };
     }
 }

@@ -7,6 +7,7 @@ using TootTallyCore;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Helpers;
+using TootTallyCore.Utils.TootTallyGlobals;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
 using TootTallyLeaderboard;
@@ -16,6 +17,7 @@ using TootTallyMultiplayer.MultiplayerCore;
 using TootTallySpectator;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Localization.Components;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -78,6 +80,7 @@ namespace TootTallyMultiplayer
             __instance.logo_trect.gameObject.SetActive(false);
             __instance.logo_crect.gameObject.SetActive(false);
 
+            GameModifierManager.ClearAllModifiers();
             MultiplayerGameObjectFactory.Initialize();
             MultiAudioController.InitMusic();
 
@@ -165,8 +168,9 @@ namespace TootTallyMultiplayer
             multiplayerButton.name = "MULTIContainer";
             multiplayerHitbox.name = "MULTIButton";
             multiplayerText.name = "MULTIText";
+            GameObject.DestroyImmediate(multiplayerText.transform.GetChild(1).GetComponent<LocalizeStringEvent>());
+            multiplayerText.transform.GetChild(1).GetComponent<Text>().text = multiplayerText.transform.GetChild(1).GetChild(0).GetComponent<Text>().text = "<i>MULTI</i>";
             ThemeManager.OverwriteGameObjectSpriteAndColor(multiplayerButton.transform.Find("FG").gameObject, "MultiplayerButtonV2.png", Color.white);
-            ThemeManager.OverwriteGameObjectSpriteAndColor(multiplayerText, "MultiText.png", Color.white);
             multiplayerButton.transform.SetSiblingIndex(0);
             multiplayerText.transform.SetSiblingIndex(21);
             multiplayerHitbox.transform.SetSiblingIndex(22);
@@ -183,7 +187,7 @@ namespace TootTallyMultiplayer
                 __instance.playSfx(3);
                 if (TootTallyUser.userInfo == null || TootTallyUser.userInfo.id == 0)
                 {
-                    TootTallyNotifManager.DisplayNotif("Please login on TootTally to play online.", Theme.colors.notification.errorText);
+                    TootTallyNotifManager.DisplayError("Please login on TootTally to play online.");
                     return;
                 }
 
@@ -191,22 +195,13 @@ namespace TootTallyMultiplayer
                 return;*/
 
                 //Yoinked from DNSpy KEKW
+                Plugin.LogInfo("Entering Multiplayer...");
                 __instance.musobj.Stop();
                 __instance.quickFlash(2);
-                __instance.fadeAndLoadScene(18);
+                LeanTween.scale(__instance.fullcanvas, new Vector3(0.001f, 0.001f, 1f), 0.5f).setEaseInQuart();
+                __instance.screenfade.alpha = 0f;
+                LeanTween.alphaCanvas(__instance.screenfade, 1f, 0.45f).setDelay(0.25f).setOnComplete(new Action(LoadPlayTestScene));
                 //SceneManager.MoveGameObjectToScene(GameObject.Instantiate(multiplayerButton), scene);
-
-                //1 is HomeScreen
-                //6 and 7 cards collection
-                //9 is LoadController
-                //10 is GameController
-                //11 is PointSceneController
-                //12 is some weird ass fucking notes
-                //13 is intro
-                //14 is boss fail animation
-                //15 is how to play
-                //16 is end scene
-                //17 is the demo scene
             });
 
             EventTrigger multiBtnEvents = multiplayerHitbox.GetComponent<EventTrigger>();
@@ -263,22 +258,30 @@ namespace TootTallyMultiplayer
             ThemeManager.OverwriteGameObjectSpriteAndColor(collectOutline, "CollectButtonOutline.png", Color.white);
             RectTransform collectOutlineRectTransform = collectOutline.GetComponent<RectTransform>();
             collectOutlineRectTransform.sizeDelta = new Vector2(351, 217.2f);
-            GameObject textCollect = __instance.allpaneltxt.transform.Find("imgCOLLECT").gameObject;
+            GameObject textCollect = __instance.paneltxts[(int)HomeScreenButtonIndexes.Collect];
+            textCollect.transform.GetChild(1).localScale = Vector3.one * .6f;
             textCollect.GetComponent<RectTransform>().anchoredPosition = new Vector2(790, 430);
             textCollect.GetComponent<RectTransform>().sizeDelta = new Vector2(285, 48);
             textCollect.GetComponent<RectTransform>().pivot = Vector2.one / 2;
 
             GameObject improvBtnContainer = __instance.btncontainers[(int)HomeScreenButtonIndexes.Improv];
             GameObject improvFG = improvBtnContainer.transform.Find("FG").gameObject;
+            ThemeManager.OverwriteGameObjectSpriteAndColor(improvFG, "ImprovButtonV2.png", Color.white);
             RectTransform improvFGRectTransform = improvFG.GetComponent<RectTransform>();
             improvBtnContainer.GetComponent<RectTransform>().anchoredPosition = new Vector2(-150, 156);
-            improvFGRectTransform.sizeDelta = new Vector2(450, 195);
+            improvFGRectTransform.sizeDelta = new Vector2(450, 190);
             GameObject improvOutline = __instance.allbtnoutlines[(int)HomeScreenButtonIndexes.Improv];
+            ThemeManager.OverwriteGameObjectSpriteAndColor(improvOutline, "ImprovButtonOutline.png", Color.white);
             RectTransform improvOutlineRectTransform = improvOutline.GetComponent<RectTransform>();
-            improvOutlineRectTransform.sizeDelta = new Vector2(470, 230);
-            GameObject textImprov = __instance.allpaneltxt.transform.Find("imgImprov").gameObject;
-            textImprov.GetComponent<RectTransform>().anchoredPosition = new Vector2(305, 385);
-            textImprov.GetComponent<RectTransform>().sizeDelta = new Vector2(426, 54);
+            improvOutlineRectTransform.sizeDelta = new Vector2(480, 220);
+            GameObject txtContainer = __instance.paneltxts[(int)HomeScreenButtonIndexes.Improv];
+            var improvIcon = txtContainer.transform.GetChild(0);
+            var improvTxt = txtContainer.transform.GetChild(1);
+            improvIcon.localScale = improvTxt.localScale = Vector3.one * .6f;
+            improvIcon.localPosition = new Vector2(-196f, 0);
+            improvTxt.localPosition = new Vector2(42, 25f);
+            txtContainer.GetComponent<RectTransform>().anchoredPosition = new Vector2(305, 385);
+            txtContainer.GetComponent<RectTransform>().sizeDelta = new Vector2(426, 54);
             #endregion
 
             #region hitboxes
@@ -295,6 +298,8 @@ namespace TootTallyMultiplayer
             #endregion
 
         }
+
+        private static void LoadPlayTestScene() => SceneManager.LoadScene(PLAYTEST_SCENE_NAME);
 
         [HarmonyPatch(typeof(HomeController), nameof(HomeController.Update))]
         [HarmonyPostfix]
@@ -387,7 +392,7 @@ namespace TootTallyMultiplayer
             GlobalVariables.chosen_track = trackData.trackref;
             GlobalVariables.chosen_track_data = trackData;
 
-            _multiController.SendSongHashToLobby(songHash, ReplaySystemManager.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
+            _multiController.SendSongHashToLobby(songHash, TootTallyGlobalVariables.gameSpeedMultiplier, GameModifierManager.GetModifiersString());
 
             OnMultiplayerSelectSongExit(__instance);
             return false;
@@ -416,6 +421,15 @@ namespace TootTallyMultiplayer
                 _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
             }));
         }
+
+        //This is so dumb lmfao
+        [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.hoverPlay))]
+        [HarmonyPrefix]
+        public static bool PreventHoverPlayLeanTweenWhenTransitioning(LevelSelectController __instance) => IsConnectedToMultiplayer && !__instance.back_clicked;
+
+        [HarmonyPatch(typeof(LevelSelectController), nameof(LevelSelectController.unHoverPlay))]
+        [HarmonyPrefix]
+        public static bool PreventUnhoverPlayLeanTweenWhenTransitioning(LevelSelectController __instance) => IsConnectedToMultiplayer && !__instance.back_clicked;
         #endregion
 
         #region PointScene Patches
@@ -472,6 +486,30 @@ namespace TootTallyMultiplayer
             }
             return true;
         }
+
+        [HarmonyPatch(typeof(GameController), nameof(GameController.pauseRetryLevel))]
+        [HarmonyPrefix]
+        private static bool PreventRetryInMultiplayer()
+        {
+            if (_multiController != null && _state == MultiplayerController.MultiplayerState.Quitting)
+            {
+                TootTallyNotifManager.DisplayNotif("Can't quick retry in multiplayer.");
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(GameController), nameof(GameController.pauseQuitLevel))]
+        [HarmonyPrefix]
+        private static bool PreventQuickQuittingInMultiplayer()
+        {
+            if (_multiController != null && _state == MultiplayerController.MultiplayerState.Quitting)
+            {
+                TootTallyNotifManager.DisplayNotif("Can't fast quit in multiplayer.");
+                return false;
+            }
+            return true;
+        }
         #endregion
 
         #region GameController Patches
@@ -479,14 +517,24 @@ namespace TootTallyMultiplayer
         [HarmonyPostfix]
         private static void OnDoScoreTextSendScoreToLobby(int whichtext, GameController __instance)
         {
-            if (IsPlayingMultiplayer)
+            if (!IsPlayingMultiplayer || !IsConnectedToMultiplayer || _wasAutotootUsed) return;
+
+            if (!_wasAutotootUsed && __instance.controllermode)
+            {
+                _wasAutotootUsed = true;
+                _multiController.SendQuitFlag();
+            }
+            else
                 _multiController.SendScoreDataToLobby(__instance.totalscore, __instance.highestcombocounter, (int)__instance.currenthealth, whichtext);
         }
+
+        private static bool _wasAutotootUsed;
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.Start))]
         [HarmonyPostfix]
         private static void OnMultiplayerGameStart(GameController __instance)
         {
+            _wasAutotootUsed = false;
             if (IsPlayingMultiplayer)
                 _multiController.OnGameControllerStartSetup();
         }
@@ -506,6 +554,8 @@ namespace TootTallyMultiplayer
                     _syncTimeoutTimer += Time.deltaTime;
             }
 
+            if (IsPlayingMultiplayer)
+                __instance.restarttimer = 0.01f;
         }
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.startSong))]
@@ -531,11 +581,13 @@ namespace TootTallyMultiplayer
         public static bool OnGamePause(PauseCanvasController __instance)
         {
             if (!IsPlayingMultiplayer) return true;
-
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.Quitting);
-            __instance.gc.sfxrefs.backfromfreeplay.Play();
-            __instance.gc.pausecanvas.SetActive(false);
-            __instance.gc.curtainc.closeCurtain(false);
+            var gameController = __instance.gc;
+            gameController.paused = true;
+            gameController.quitting = true;
+            gameController.sfxrefs.backfromfreeplay.Play();
+            gameController.pausecanvas.SetActive(false);
+            gameController.curtainc.closeCurtain(false);
             LeanTween.alphaCanvas(__instance.curtaincontroller.fullfadeblack, 1f, 0.5f).setDelay(0.6f).setEaseInOutQuint().setOnComplete(() =>
             {
                 __instance.curtaincontroller.unloadAssets();
@@ -559,7 +611,29 @@ namespace TootTallyMultiplayer
             }
             return true;
         }
+        #endregion
 
+        #region GameModifiers Patches
+        [HarmonyPatch(typeof(GameModifierManager), nameof(GameModifierManager.Toggle))]
+        [HarmonyPrefix]
+        public static bool PreventBrutalAndInstaFailToggles(GameModifiers.ModifierType modifierType)
+        {
+            if (IsPlayingMultiplayer || IsConnectedToMultiplayer || _isSceneActive)
+            {
+                if (modifierType == GameModifiers.ModifierType.Brutal)
+                {
+                    TootTallyNotifManager.DisplayNotif("Cannot enable Brutal Mode in multiplayer.");
+                    return false;
+                }
+                else if (modifierType == GameModifiers.ModifierType.InstaFail)
+                {
+                    TootTallyNotifManager.DisplayNotif("Cannot enable InstaFail in multiplayer.");
+                    return false;
+                }
+
+            }
+            return true;
+        }
         #endregion
 
         #region MultiplayerState
@@ -567,6 +641,15 @@ namespace TootTallyMultiplayer
         {
             if (!AllowExit) return;
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
+        }
+
+        public static void UpdateMultiplayerStateIfChanged(MultiplayerController.MultiplayerState newState)
+        {
+            if (_state == newState) return;
+
+            _previousState = _state;
+            _state = newState;
+            ResolveMultiplayerState();
         }
 
         public static void UpdateMultiplayerState(MultiplayerController.MultiplayerState newState)
@@ -611,6 +694,8 @@ namespace TootTallyMultiplayer
                     StopRecursiveRefresh();
                     break;
                 case MultiplayerController.MultiplayerState.Quitting:
+                    if (!_wasAutotootUsed)
+                        _multiController.SendQuitFlag();
                     _multiController.OnSongQuit();
                     break;
             }
@@ -662,6 +747,10 @@ namespace TootTallyMultiplayer
         }
         #endregion
 
+        #region DEBUG
+        public static void DebugFakeLobby() => _multiController?.DebugFakeLobby();
+        public static void DebugFakeUser() => _multiController?.DebugFakeUser();
+        #endregion
         public enum HomeScreenButtonIndexes
         {
             Play = 0,

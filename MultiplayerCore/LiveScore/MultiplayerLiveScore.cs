@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Mono.Cecil.Cil;
 using TMPro;
 using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using UnityEngine;
-using UnityEngine.PostProcessing;
 using UnityEngine.UI;
 
 namespace TootTallyMultiplayer.MultiplayerCore
@@ -30,11 +25,13 @@ namespace TootTallyMultiplayer.MultiplayerCore
         private string _name;
         private int _score, _health, _combo, _position, _count;
         private bool _IsSelf => _id == TootTallyUser.userInfo.id;
+        private bool _hasQuit;
 
         public int GetScore => _score;
 
         public void Initialize(int id, string name, MultiplayerLiveScoreController controller)
         {
+            _hasQuit = false;
             _id = id;
             if (_IsSelf)
                 _outlineImage.color = new Color(.95f, .2f, .95f, .5f);
@@ -70,18 +67,21 @@ namespace TootTallyMultiplayer.MultiplayerCore
             LeanTween.moveLocalX(rainbowHolder1, 0, 2).setLoopClamp();
             LeanTween.moveLocalX(rainbowHolder2, 180, 2).setLoopClamp();
 
-            _positionText = GameObjectFactory.CreateSingleText(container, "Position", "#-", Color.white);
+            _positionText = GameObjectFactory.CreateSingleText(container, "Position", "#-");
             _positionText.rectTransform.sizeDelta = new Vector2(18, 0);
 
-            _nameText = GameObjectFactory.CreateSingleText(container, "Name", "Unknown", Color.white);
+            _nameText = GameObjectFactory.CreateSingleText(container, "Name", "Unknown");
             _nameText.rectTransform.sizeDelta = new Vector2(66, 0);
 
             var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), container);
             vBox.GetComponent<Image>().enabled = false;
-            _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-", Color.white);
+            var vBoxLayout = vBox.GetComponent<VerticalLayoutGroup>();
+            vBoxLayout.childForceExpandHeight = false;
+            vBoxLayout.childControlHeight = true;
+            _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-");
             _scoreText.rectTransform.sizeDelta = new Vector2(0, 12);
 
-            _comboText = GameObjectFactory.CreateSingleText(vBox.transform, "Combo", "-", Color.white);
+            _comboText = GameObjectFactory.CreateSingleText(vBox.transform, "Combo", "-");
             _comboText.rectTransform.sizeDelta = new Vector2(0, 4);
 
             SetTextProperties(_positionText, _nameText, _scoreText, _comboText);
@@ -102,7 +102,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
             _combo = combo;
             _health = health;
 
-            _rainbowMaskRect.sizeDelta = new Vector2(160 * (health / 100f), 30);
+            _rainbowMaskRect.sizeDelta = new Vector2(160 * (health / 100f), 28);
 
             if (_previousHealth != _health && (_previousHealth == 100 || _health == 100))
                 _rainbow1.color = _rainbow2.color = new Color(1, 1, 1, health == 100 ? .85f : .25f);
@@ -124,6 +124,17 @@ namespace TootTallyMultiplayer.MultiplayerCore
                 _count = count;
                 _position = position;
             }
+        }
+
+        public void SetQuitUI()
+        {
+            if (_hasQuit) return;
+
+            _hasQuit = true;
+            gameObject.GetComponent<Image>().color = new Color(1f, 0, 0, .35f);
+            _rainbow1.gameObject.SetActive(false);
+            _rainbow2.gameObject.SetActive(false);
+            _comboText.text = "(Quit)";
         }
 
         public void SetIsVisible(bool visible, bool animate = true)

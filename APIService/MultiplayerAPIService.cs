@@ -30,6 +30,21 @@ namespace TootTallyMultiplayer.APIService
                 callback(null);
         }
 
+        public static IEnumerator<UnityWebRequestAsyncOperation> ShutdownMultiplayerServer(string code, Action callback)
+        {
+            string query = $"{MULTURL}/delete";
+
+            APIShutdownSubmission apiSubmission = new APIShutdownSubmission()
+            {
+                lobby_code = code,
+            };
+            var data = System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(apiSubmission));
+            UnityWebRequest webRequest = PostUploadRequestWithHeader(query, data, new List<string[]> { new string[] { "Authorization", "APIKey " + TootTallyAccounts.Plugin.GetAPIKey } });
+
+            yield return webRequest.SendWebRequest();
+            callback();
+        }
+
         public static IEnumerator<UnityWebRequestAsyncOperation> CreateMultiplayerServerRequest(string name, string description, string password, int maxPlayer, Action<string> callback)
         {
             string query = $"{MULTURL}/create";
@@ -39,7 +54,8 @@ namespace TootTallyMultiplayer.APIService
                 name = name,
                 description = description,
                 password = password,
-                maxPlayer = maxPlayer
+                maxPlayer = maxPlayer,
+                version = PluginInfo.PLUGIN_VERSION
             };
             var data = System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(apiSubmission));
             UnityWebRequest webRequest = PostUploadRequestWithHeader(query, data, new List<string[]> { new string[] { "Authorization", "APIKey " + TootTallyAccounts.Plugin.GetAPIKey } });

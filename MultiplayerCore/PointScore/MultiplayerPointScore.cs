@@ -46,13 +46,13 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
             var container = transform.GetChild(0);
             _outlineImage = GetComponent<Image>();
 
-            _positionText = GameObjectFactory.CreateSingleText(container, "Position", "#-", Color.white);
+            _positionText = GameObjectFactory.CreateSingleText(container, "Position", "#-");
             _positionText.rectTransform.sizeDelta = new Vector2(18, 0);
 
-            _nameText = GameObjectFactory.CreateSingleText(container, "Name", "Unknown", Color.white);
+            _nameText = GameObjectFactory.CreateSingleText(container, "Name", "Unknown");
             _nameText.rectTransform.sizeDelta = new Vector2(66, 0);
 
-            _percentText = GameObjectFactory.CreateSingleText(container, "Percent", "-%", Color.white);
+            _percentText = GameObjectFactory.CreateSingleText(container, "Percent", "-%");
             _percentText.rectTransform.sizeDelta = new Vector2(30, 0);
 
             var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), container);
@@ -60,10 +60,10 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
             var vBoxLayout = vBox.GetComponent<VerticalLayoutGroup>();
             vBoxLayout.childForceExpandHeight = false;
             vBoxLayout.childControlHeight = true;
-            _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-", Color.white);
+            _scoreText = GameObjectFactory.CreateSingleText(vBox.transform, "Score", "-");
             _scoreText.rectTransform.sizeDelta = new Vector2(0, 12);
 
-            _maxComboText = GameObjectFactory.CreateSingleText(vBox.transform, "MaxCombo", "-", Color.white);
+            _maxComboText = GameObjectFactory.CreateSingleText(vBox.transform, "MaxCombo", "-");
             _maxComboText.rectTransform.sizeDelta = new Vector2(0, 4);
 
             SetTextProperties(_positionText, _nameText, _scoreText, _percentText, _maxComboText);

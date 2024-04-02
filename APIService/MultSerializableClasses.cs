@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.SocialPlatforms;
 
 namespace TootTallyMultiplayer.APIService
 {
     public static class MultSerializableClasses
     {
+        [Serializable]
+        public class APIShutdownSubmission
+        {
+            public string lobby_code;
+        }
+
         [Serializable]
         public class APICreateSubmission
         {
@@ -13,6 +18,7 @@ namespace TootTallyMultiplayer.APIService
             public string description;
             public string password;
             public int maxPlayer;
+            public string version;
         }
 
         [Serializable]
@@ -29,7 +35,7 @@ namespace TootTallyMultiplayer.APIService
             public string id;
             public int maxPlayerCount;
             public string title;
-            //public string password;
+            public bool hasPassword;
             public string state;
             public List<MultiplayerUserInfo> players;
             public MultiplayerSongInfo songInfo;
@@ -40,6 +46,7 @@ namespace TootTallyMultiplayer.APIService
         {
             public float difficulty;
             public string charter;
+            public string download;
             public string mirror;
             public string fileHash;
             public float gameSpeed;

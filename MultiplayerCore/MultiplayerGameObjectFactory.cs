@@ -1,10 +1,13 @@
-﻿using TMPro;
+﻿using System;
+using System.Linq;
+using TMPro;
 using TootTallyCore;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.Assets;
-using TootTallySettings.TootTallySettingsObjects;
+using TootTallyMultiplayer.MultiplayerCore.InputPrompts;
 using UnityEngine;
 using UnityEngine.UI;
+using static TootTallyMultiplayer.MultiplayerSystem;
 
 namespace TootTallyMultiplayer
 {
@@ -35,13 +38,13 @@ namespace TootTallyMultiplayer
             horizontalLayout.childControlWidth = false;
             horizontalLayout.childForceExpandHeight = horizontalLayout.childForceExpandWidth = false;
 
-            var textName = GameObjectFactory.CreateSingleText(container.transform, $"Name", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
+            var textName = GameObjectFactory.CreateSingleText(container.transform, $"Name", $"", Vector2.one / 2f, new Vector2(190, 75), Theme.colors.leaderboard.text);
             textName.alignment = TextAlignmentOptions.Left;
 
-            var textState = GameObjectFactory.CreateSingleText(container.transform, $"State", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
+            var textState = GameObjectFactory.CreateSingleText(container.transform, $"State", $"", Vector2.one / 2f, new Vector2(190, 75), Theme.colors.leaderboard.text);
             textState.alignment = TextAlignmentOptions.Right;
 
-            var textRank = GameObjectFactory.CreateSingleText(container.transform, $"Rank", $"", Vector2.one / 2f, new Vector2(190, 75), Color.white);
+            var textRank = GameObjectFactory.CreateSingleText(container.transform, $"Rank", $"", Vector2.one / 2f, new Vector2(190, 75), Theme.colors.leaderboard.text);
             textRank.alignment = TextAlignmentOptions.Right;
 
             GameObject.DontDestroyOnLoad(_userCardPrefab);
@@ -59,7 +62,7 @@ namespace TootTallyMultiplayer
             var layout = container.GetComponent<HorizontalLayoutGroup>();
             layout.childControlWidth = layout.childForceExpandWidth = false;
             var rect = _liveScorePrefab.GetComponent<RectTransform>();
-            rect.pivot = rect.anchorMax = rect.anchorMin = new Vector2(1,0);
+            rect.pivot = rect.anchorMax = rect.anchorMin = new Vector2(1, 0);
             var mask = GameObject.Instantiate(container, container.transform);
             mask.name = "Mask";
             mask.AddComponent<LayoutElement>().ignoreLayout = true;
@@ -78,7 +81,7 @@ namespace TootTallyMultiplayer
             var layout = container.GetComponent<HorizontalLayoutGroup>();
             layout.childControlWidth = layout.childForceExpandWidth = false;
             var rect = _pointScorePrefab.GetComponent<RectTransform>();
-            rect.pivot = new Vector2(0,1);
+            rect.pivot = new Vector2(0, 1);
             rect.anchorMax = rect.anchorMin = new Vector2(.04f, .926f);
             _pointScorePrefab.SetActive(false);
 
@@ -91,8 +94,8 @@ namespace TootTallyMultiplayer
             var rectHolder = inputHolder.AddComponent<RectTransform>();
             rectHolder.anchoredPosition = Vector2.zero;
             rectHolder.sizeDelta = new Vector2(350, 50);
-            var inputImageHolder = Object.Instantiate(inputHolder, inputHolder.transform);
-            var inputTextHolder = Object.Instantiate(inputImageHolder, inputHolder.transform);
+            var inputImageHolder = GameObject.Instantiate(inputHolder, inputHolder.transform);
+            var inputTextHolder = GameObject.Instantiate(inputImageHolder, inputHolder.transform);
             inputImageHolder.name = "Image";
             inputTextHolder.name = "Text";
 
@@ -118,18 +121,19 @@ namespace TootTallyMultiplayer
             _inputFieldPrefab.textComponent.enableWordWrapping = true;
             _inputFieldPrefab.textViewport = _inputFieldPrefab.textComponent.rectTransform;
 
-            Object.DontDestroyOnLoad(_inputFieldPrefab);
+            GameObject.DontDestroyOnLoad(_inputFieldPrefab);
         }
 
         public static TMP_InputField CreateInputField(Transform canvasTransform, string name, Vector2 size, float fontSize, string text, bool isPassword)
         {
-            var inputField = Object.Instantiate(_inputFieldPrefab, canvasTransform);
+            var inputField = GameObject.Instantiate(_inputFieldPrefab, canvasTransform);
             inputField.name = name;
             inputField.GetComponent<RectTransform>().sizeDelta = size;
             inputField.transform.Find("Image").GetComponent<RectTransform>().sizeDelta = new Vector2(size.x, 2);
             inputField.transform.Find("Text").GetComponent<RectTransform>().sizeDelta = size;
             inputField.textComponent.GetComponent<RectTransform>().sizeDelta = size;
             inputField.textComponent.fontSize = fontSize;
+            inputField.textComponent.overflowMode = TextOverflowModes.Ellipsis;
             inputField.text = text;
             inputField.inputType = isPassword ? TMP_InputField.InputType.Password : TMP_InputField.InputType.Standard;
 
@@ -147,9 +151,9 @@ namespace TootTallyMultiplayer
 
         public static GameObject CreatePointScoreCard(Transform canvasTransform, Vector2 position, string name)
         {
-            var pointScoreObject = GameObject.Instantiate(_pointScorePrefab,canvasTransform);
+            var pointScoreObject = GameObject.Instantiate(_pointScorePrefab, canvasTransform);
             pointScoreObject.SetActive(true);
-            pointScoreObject.GetComponent <RectTransform>().anchoredPosition = position;
+            pointScoreObject.GetComponent<RectTransform>().anchoredPosition = position;
             pointScoreObject.name = name;
             return pointScoreObject;
         }
@@ -159,6 +163,97 @@ namespace TootTallyMultiplayer
             var userCard = GameObject.Instantiate(_userCardPrefab, canvasTransform).AddComponent<MultiplayerCard>();
             userCard.InitTexts();
             return userCard;
+        }
+
+        public static GameObject CreatePasswordInputPrompt(Transform canvasTransform, string titleText, Action<string> OnConfirm, Action OnCancel)
+        {
+            var borderedBox = GetBorderedVerticalBox(new Vector2(520, 235), 4, canvasTransform);
+            var promptRect = borderedBox.GetComponent<RectTransform>();
+            promptRect.anchorMin = promptRect.anchorMax = promptRect.pivot = Vector2.one / 2f;
+
+            var borderedBoxContainer = borderedBox.transform.GetChild(0).gameObject;
+            var vlayout = borderedBoxContainer.GetComponent<VerticalLayoutGroup>();
+            vlayout.childAlignment = TextAnchor.UpperCenter;
+            vlayout.spacing = 21;
+            vlayout.padding = new RectOffset(5, 5, 35, 5);
+            var title = GameObjectFactory.CreateSingleText(borderedBoxContainer.transform, "TitleText", titleText);
+            title.fontSize = 26;
+            title.fontStyle = FontStyles.Bold;
+            title.rectTransform.sizeDelta = new Vector2(0, 32);
+
+            var inputHorizontalBox = GetHorizontalBox(new Vector2(0, 30), borderedBoxContainer.transform);
+            var hlayout = inputHorizontalBox.GetComponent<HorizontalLayoutGroup>();
+            hlayout.spacing = 8f;
+            hlayout.padding = new RectOffset(0, 0, 3, 0);
+            var inputFieldLabel = GameObjectFactory.CreateSingleText(inputHorizontalBox.transform, "InputFieldLabel", "Password:");
+            inputFieldLabel.rectTransform.sizeDelta = new Vector2(115, 30);
+            inputFieldLabel.alignment = TextAlignmentOptions.BottomRight;
+            var inputField = CreateInputField(inputHorizontalBox.transform, "InputField", new Vector2(275, 30), 24, "", true);
+
+            var buttonHorizontalBox = GetHorizontalBox(new Vector2(0, 66), borderedBoxContainer.transform);
+            var hLayout2 = buttonHorizontalBox.GetComponent<HorizontalLayoutGroup>();
+            hLayout2.spacing = 100f;
+            hLayout2.childControlHeight = hLayout2.childForceExpandHeight = false;
+            var confirmButton = GameObjectFactory.CreateCustomButton(buttonHorizontalBox.transform, Vector2.zero, new Vector2(170, 65), "Confirm", "ConfirmButton", delegate { OnConfirm?.Invoke(inputField.text); });
+            var cancelButton = GameObjectFactory.CreateCustomButton(buttonHorizontalBox.transform, Vector2.zero, new Vector2(170, 65), "Cancel", "CancelButton", OnCancel);
+
+            return borderedBox;
+        }
+
+        public static LobbySettingsInputPrompt CreateLobbySettingsInputPrompt(Transform canvasTransform, Action<string, string, string, string> OnConfirm)
+        {
+            var lobbySettings = new LobbySettingsInputPrompt(canvasTransform, OnConfirm);
+            lobbySettings.gameObject.transform.localScale = new Vector3(0, 0, 1);
+            return lobbySettings;
+        }
+
+        public static GameObject CreateQuickChatPopup(Transform canvasTransform, Action<QuickChat> OnBtnClickCallback, Action OnCloseBtnClick)
+        {
+            var quickChatBox = GetBorderedVerticalBox(new Vector2(450, 700), 4, canvasTransform);
+            quickChatBox.transform.localScale = Vector2.zero;
+
+            var quickChatContainer = quickChatBox.transform.GetChild(0).gameObject;
+            quickChatContainer.GetComponent<Image>().color = Theme.colors.leaderboard.text.CompareRGB(Color.black) ? new Color(1,1,1,1) : new Color(0, 0, 0, 1);
+            
+
+            var chatBoxRect = quickChatBox.GetComponent<RectTransform>();
+            chatBoxRect.anchorMin = chatBoxRect.anchorMax = chatBoxRect.pivot = Vector2.one / 2f;
+
+            var title = GameObjectFactory.CreateSingleText(quickChatContainer.transform, "QuickChatTitle", "Quick Chat");
+            title.fontSize = 38;
+            title.fontStyle = FontStyles.Bold;
+            title.alignment = TextAlignmentOptions.Bottom;
+            title.rectTransform.sizeDelta = new Vector2(450, 60);
+
+            GameObjectFactory.CreateCustomButton(quickChatContainer.transform, Vector2.one * -5f, new Vector2(32, 32), AssetManager.GetSprite("Close64.png"), "CloseQuickChatButton", OnCloseBtnClick)
+                .gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+
+            var nullColor = new Color(0, 0, 0, 0);
+            for (int height = 0; height < 3; height++)
+            {
+                var hContainer = GetHorizontalBox(new Vector2(0, 205), quickChatContainer.transform);
+                hContainer.GetComponent<HorizontalLayoutGroup>().spacing = 20;
+                for (int width = 0; width < 2; width++)
+                {
+                    var buttonContainer = GetVerticalBox(new Vector2(190, 0), hContainer.transform);
+                    var buttonLayout = buttonContainer.GetComponent<VerticalLayoutGroup>();
+                    buttonLayout.spacing = 1;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        var index = (height * 8) + (width * 4) + i;
+                        var quickChatOption = MultiplayerSystem.QuickChatToTextDic.ElementAt(index).Key;
+                        var btnText = string.Concat(quickChatOption.ToString().Select(x => char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' ');
+                        var btn = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(0, 36), btnText, $"QCButton{quickChatOption}", delegate { OnBtnClickCallback(quickChatOption); });
+                        var colors = btn.button.colors;
+                        colors.normalColor = nullColor;
+                        btn.button.colors = colors;
+
+                    }
+                }
+            }
+
+            return quickChatBox;
+
         }
 
         public static GameObject GetVerticalBox(Vector2 size, Transform parent = null)
