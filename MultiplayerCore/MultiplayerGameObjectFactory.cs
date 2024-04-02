@@ -207,13 +207,14 @@ namespace TootTallyMultiplayer
             return lobbySettings;
         }
 
-        public static GameObject CreateQuickChatPopup(Transform canvasTransform, Action<QuickChat> OnBtnClickCallback)
+        public static GameObject CreateQuickChatPopup(Transform canvasTransform, Action<QuickChat> OnBtnClickCallback, Action OnCloseBtnClick)
         {
             var quickChatBox = GetBorderedVerticalBox(new Vector2(450, 700), 4, canvasTransform);
             quickChatBox.transform.localScale = Vector2.zero;
 
             var quickChatContainer = quickChatBox.transform.GetChild(0).gameObject;
-            quickChatContainer.GetComponent<Image>().color = new Color(0, 0, 0, 1);
+            quickChatContainer.GetComponent<Image>().color = Theme.colors.leaderboard.text.CompareRGB(Color.black) ? new Color(1,1,1,1) : new Color(0, 0, 0, 1);
+            
 
             var chatBoxRect = quickChatBox.GetComponent<RectTransform>();
             chatBoxRect.anchorMin = chatBoxRect.anchorMax = chatBoxRect.pivot = Vector2.one / 2f;
@@ -223,6 +224,10 @@ namespace TootTallyMultiplayer
             title.fontStyle = FontStyles.Bold;
             title.alignment = TextAlignmentOptions.Bottom;
             title.rectTransform.sizeDelta = new Vector2(450, 60);
+
+            GameObjectFactory.CreateCustomButton(quickChatContainer.transform, Vector2.one * -5f, new Vector2(32, 32), AssetManager.GetSprite("Close64.png"), "CloseQuickChatButton", OnCloseBtnClick)
+                .gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+
             var nullColor = new Color(0, 0, 0, 0);
             for (int height = 0; height < 3; height++)
             {

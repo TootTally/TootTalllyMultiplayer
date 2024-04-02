@@ -66,7 +66,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private float _lastLobbyContainerPosY;
         private Vector3 _lobbyContainerScrollingDistance;
 
-        private bool _canPressButton;
+        private bool _canPressButton, _canDoQuickChat;
 
         private UserState _userState;
 
@@ -89,9 +89,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             songDescContainer = rightPanelContainer.transform.GetChild(2).gameObject;
             buttonContainer = rightPanelContainer.transform.GetChild(3).gameObject;
 
-            _quickChatPopup = MultiplayerGameObjectFactory.CreateQuickChatPopup(canvas.transform, OnSendQuickChatButtonClick);
-            _quickChatPopup.SetActive(false);
+            _quickChatPopup = MultiplayerGameObjectFactory.CreateQuickChatPopup(canvas.transform, OnSendQuickChatButtonClick, QuickChatOnCloseAnimation);
             _quickChatPopup.name = "QuickChat";
+            _canDoQuickChat = true;
             _isQuickChatPopupEnabled = false;
 
             GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
@@ -131,7 +131,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _giveHostButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Give Host", "DropdownGiveHost", OnGiveHostButtonClick);
             _kickButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Kick", "DropdownKick", OnKickUserButtonClick);
             _reportButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Report", "DropdownReport", OnReportButtonClick);
-            _dropdownMenu.SetActive(false);
 
             //TITLE
             _titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "-");
@@ -237,6 +236,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _userState = UserState.None;
             DisableButton(.8f);
             _lobbySettingsInputPrompt.Hide(false);
+            _quickChatPopup.SetActive(false);
         }
 
         private void SetTextsParameters(params TMP_Text[] texts)
@@ -267,8 +267,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             }
 
             ClearAllUserRows();
-
-            _hostInfo = users.First();
+            var currentHost = users.First();
+            if (_hostInfo == null || _hostInfo.id != currentHost.id)
+            {
+                if (_hostInfo != null)
+                    MultiplayerLogger.ServerLog($"Host was given to {currentHost.username}.");
+                _hostInfo = currentHost;
+            }
             IsHost = _hostInfo.id == TootTallyUser.userInfo.id;
             _lobbySettingButton.SetActive(IsHost);
             _startGameButton.gameObject.SetActive(IsHost);
@@ -371,8 +376,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnSendQuickChatButtonClick(QuickChat chat)
         {
-            if (!_isQuickChatPopupEnabled) return; //Prevent user from sending QuickChat while panel is closing
-            QuickChatOnCloseAnimation();
+            if (!_isQuickChatPopupEnabled || !_canDoQuickChat) return; //Prevent user from sending QuickChat while panel is closing
+            //QuickChatOnCloseAnimation();
+            DisableQuickChat(2f);
             controller.SendQuickChat(chat);
         }
 
@@ -391,6 +397,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             _isQuickChatPopupEnabled = true;
             _quickChatAnimation?.Dispose();
+            _quickChatPopup.transform.localScale = Vector2.zero;
             _quickChatPopup.SetActive(true);
             _quickChatAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_quickChatPopup, Vector2.one, .6f, new SecondDegreeDynamicsAnimation(2.75f, 1f, 1.1f));
         }
@@ -520,6 +527,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             if (!_canPressButton) return;
 
+            QuickChatOnCloseAnimation();
+            _lobbySettingsInputPrompt.Hide(false);
             controller.TransitionToSongSelection();
         }
 
@@ -650,6 +659,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             Plugin.Instance.StartCoroutine(DelayAllowButtonClick(delay));
         }
 
+        private void DisableQuickChat(float delay)
+        {
+            _canDoQuickChat = false;
+            Plugin.Instance.StartCoroutine(DelayAllowQuickChat(delay));
+        }
+
         public void DisableButton() { _canPressButton = false; }
         public void EnableButton() { _canPressButton = true; }
 
@@ -658,6 +673,14 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             yield return new WaitForSeconds(delay);
             AllowButtonClick();
         }
+
+        private IEnumerator<WaitForSeconds> DelayAllowQuickChat(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            AllowQuickChat();
+        }
+
+        public void AllowQuickChat() => _canDoQuickChat = true;
 
         private static string ColorText(string text, Color color) => $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{text}</color>";
 

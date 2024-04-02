@@ -289,8 +289,8 @@ namespace TootTallyMultiplayer
             {QuickChat.ReadyUp, "Ready up!" },
             {QuickChat.GoodLuck, "Good luck!" },
 
-            {QuickChat.GoodChart, "I approve this chart" },
-            {QuickChat.BadChart, "I disapprove this chart" },
+            {QuickChat.GoodChart, "I like this chart." },
+            {QuickChat.BadChart, "I don't like this chart." },
             {QuickChat.Yes, "Yes." },
             {QuickChat.No, "No." },
 
