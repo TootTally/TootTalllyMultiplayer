@@ -106,12 +106,12 @@ namespace TootTallyMultiplayer
                 }
                 catch (Exception) { return; }
 
-                if (message is SocketSongInfo && !IsHost)
-                    _receivedSongInfo.Enqueue((SocketSongInfo)message);
-                else if (message is SocketOptionInfo)
-                    _receivedSocketOptionInfo.Enqueue((SocketOptionInfo)message);
-                else if (message is SocketLobbyInfo)
-                    _receivedLobbyInfo.Enqueue((SocketLobbyInfo)message);
+                if (message is SocketSongInfo songInfo && !IsHost)
+                    _receivedSongInfo.Enqueue(songInfo);
+                else if (message is SocketOptionInfo optionInfo)
+                    _receivedSocketOptionInfo.Enqueue(optionInfo);
+                else if (message is SocketLobbyInfo lobbyInfo)
+                    _receivedLobbyInfo.Enqueue(lobbyInfo);
             }
         }
 
