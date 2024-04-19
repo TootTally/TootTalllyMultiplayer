@@ -38,7 +38,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private static GameObject _hoveredLobbyContainer;
         private static GameObject _selectedLobbyContainer;
         private static float _previousLobbyCount;
-        private bool _isDevModeEnabled;
 
         public MultiplayerMainPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "MainLayout")
         {
@@ -98,22 +97,19 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _connectButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Connect", "LobbyConnectButton", OnConnectButtonClick);
             _connectButton.gameObject.SetActive(false);
-
-            if (TootTallyAccounts.TootTallyUser.userInfo.dev)
-                EnableDevMode();
+            if (controller.IsDevMode) EnableDevMode();
         }
 
         private void EnableDevMode()
         {
             _forceConnectButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Force Connect", "FCButton", OnForceConnectButtonClick);
             _shutdownButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Shutdown", "SDButton", OnShutdownButtonClick);
-            _isDevModeEnabled = true;
             ToggleEnableDevButtons(false);
         }
 
         private void ToggleEnableDevButtons(bool isEnabled)
         {
-            if (!_isDevModeEnabled) return;
+            if (!controller.IsDevMode) return;
 
             _forceConnectButton.button.enabled = isEnabled;
             _shutdownButton.button.enabled = isEnabled;
@@ -138,13 +134,13 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void SetupForLobbyDisplay()
         {
-            _selectedLobby = null;
+            _selectedLobby.code = "";
             _noLobbyText.gameObject.SetActive(false);
         }
 
         public void FinalizeLobbyDisplay()
         {
-            if (_selectedLobby == null && _currentInputPrompt != null)
+            if (_selectedLobby.code == "" && _currentInputPrompt != null)
                 DestroyInputPrompt();
         }
 
@@ -264,7 +260,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             if ((_selectedLobbyContainer == null || _hoveredLobbyContainer != lobbyContainer) && lobbyContainer != _selectedLobbyContainer)
             {
-                if (_hoverLobbyID != lobbyInfo.id && (_selectedLobby == null || _hoverLobbyID != _selectedLobby.id))
+                if (_hoverLobbyID != lobbyInfo.id && (_selectedLobby.code == "" || _hoverLobbyID != _selectedLobby.id))
                     controller.GetInstance.sfx_hover.Play();
                 _hoveredLobbyContainer = lobbyContainer;
                 _hoverLobbyID = lobbyInfo.id;
@@ -275,7 +271,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnMouseExitClearLobbyDetails()
         {
-            if (_selectedLobby != null)
+            if (_selectedLobby.code != "")
                 OnMouseEnterDisplayLobbyDetails(_selectedLobby, _selectedLobbyContainer);
             else
                 ClearLobbyDetailsText();
@@ -293,7 +289,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnMouseClickSelectLobby(MultiplayerLobbyInfo lobbyInfo, GameObject lobbyContainer, bool animateConnect)
         {
-            if (_selectedLobby == lobbyInfo) return;
+            if (_selectedLobby.code == lobbyInfo.code) return;
 
             if (_selectedLobbyContainer != null)
                 _selectedLobbyContainer.GetComponent<Image>().color = new Color(0, 0, 0, .58f);
@@ -325,7 +321,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnShutdownButtonClick()
         {
-            if (_selectedLobby == null || !TootTallyAccounts.TootTallyUser.userInfo.dev) return;
+            if (_selectedLobby.code == "" || !TootTallyAccounts.TootTallyUser.userInfo.dev) return;
 
             Plugin.LogInfo($"Shutting down lobby {_selectedLobby.code}");
             TootTallyNotifManager.DisplayNotif($"Shutting down lobby {_selectedLobby.code}");
@@ -334,7 +330,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void ClearAllLobby()
         {
-            _selectedLobby = null; _selectedLobbyContainer = null; _hoveredLobbyContainer = null;
+            _selectedLobby.code = ""; _selectedLobbyContainer = null; _hoveredLobbyContainer = null;
             _connectButton.gameObject.SetActive(false);
             ToggleEnableDevButtons(false);
             _lobbyInfoRowsList.ForEach(GameObject.DestroyImmediate);
@@ -350,7 +346,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnConnectButtonClick()
         {
-            if (_selectedLobby == null) return;
+            if (_selectedLobby.code == "") return;
 
             if (_selectedLobby.hasPassword)
                 ShowPasswordInputPrompt();
@@ -360,7 +356,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnForceConnectButtonClick()
         {
-            if (_selectedLobby == null || !TootTallyAccounts.TootTallyUser.userInfo.dev) return;
+            if (_selectedLobby.code == "" || !TootTallyAccounts.TootTallyUser.userInfo.dev) return;
 
             controller.ConnectToLobby(_selectedLobby.code, "", true);
         }
@@ -391,7 +387,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             if (_currentInputPrompt != null)
                 DestroyInputPrompt();
-            _lastSelectedLobbyID = null; _selectedLobby = null;
+            _lastSelectedLobbyID = null; _selectedLobby.code = "";
 
         }
 

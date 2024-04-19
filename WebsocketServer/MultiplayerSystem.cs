@@ -42,7 +42,6 @@ namespace TootTallyMultiplayer
         {
             SocketSetSongByHash socketSetSongByHash = new SocketSetSongByHash()
             {
-                dataType = DataType.SetSong.ToString(),
                 filehash = filehash,
                 gamespeed = gamespeed,
                 modifiers = modifiers
@@ -54,7 +53,6 @@ namespace TootTallyMultiplayer
         {
             SocketSetLobbyInfo socketSetLobbyInfo = new SocketSetLobbyInfo()
             {
-                dataType = DataType.SetLobbyInfo.ToString(),
                 name = name,
                 description = description,
                 password = password,
@@ -74,7 +72,6 @@ namespace TootTallyMultiplayer
         {
             SocketOptionInfo socketOptionInfo = new SocketOptionInfo()
             {
-                dataType = DataType.OptionInfo.ToString(),
                 optionType = optionType.ToString(),
                 values = values
             };
@@ -102,19 +99,19 @@ namespace TootTallyMultiplayer
         {
             if (e.IsText)
             {
-                SocketMessage message;
+                ISocketMessage message;
                 try
                 {
-                    message = JsonConvert.DeserializeObject<SocketMessage>(e.Data, _dataConverter);
+                    message = JsonConvert.DeserializeObject<ISocketMessage>(e.Data, _dataConverter);
                 }
                 catch (Exception) { return; }
 
-                if (message is SocketSongInfo && !IsHost)
-                    _receivedSongInfo.Enqueue(message as SocketSongInfo);
-                else if (message is SocketOptionInfo)
-                    _receivedSocketOptionInfo.Enqueue(message as SocketOptionInfo);
-                else if (message is SocketLobbyInfo)
-                    _receivedLobbyInfo.Enqueue(message as SocketLobbyInfo);
+                if (message is SocketSongInfo songInfo && !IsHost)
+                    _receivedSongInfo.Enqueue(songInfo);
+                else if (message is SocketOptionInfo optionInfo)
+                    _receivedSocketOptionInfo.Enqueue(optionInfo);
+                else if (message is SocketLobbyInfo lobbyInfo)
+                    _receivedLobbyInfo.Enqueue(lobbyInfo);
             }
         }
 
@@ -213,46 +210,52 @@ namespace TootTallyMultiplayer
             LobbyInfoChanged,
         }
 
-        public class SocketMessage
+        public interface ISocketMessage
         {
-            public string dataType { get; set; }
+            public string dataType { get; }
         }
 
-        public class SocketSetSongByHash : SocketMessage
+        public struct SocketSetSongByHash : ISocketMessage
         {
             public string filehash { get; set; }
             public float gamespeed { get; set; }
             public string modifiers { get; set; }
+
+            public string dataType => DataType.SetSong.ToString();
         }
 
-        public class SocketSetLobbyInfo : SocketMessage
+        public struct SocketSetLobbyInfo : ISocketMessage
         {
             public string name;
             public string description;
             public string password;
             public int maxPlayer;
+            public string dataType => DataType.SetSong.ToString();
         }
 
-        public class SocketOptionInfo : SocketMessage
+        public struct SocketOptionInfo : ISocketMessage
         {
             public string optionType { get; set; }
             public dynamic[] values { get; set; }
+            public string dataType => DataType.OptionInfo.ToString();
         }
 
-        public class SocketLobbyInfo : SocketMessage
+        public struct SocketLobbyInfo : ISocketMessage
         {
             public MultiplayerLobbyInfo lobbyInfo { get; set; }
+            public string dataType => DataType.LobbyInfo.ToString();
         }
 
-        public class SocketSongInfo : SocketMessage
+        public struct SocketSongInfo : ISocketMessage
         {
             public MultiplayerSongInfo songInfo { get; set; }
+            public string dataType => DataType.SongInfo.ToString();
         }
 
 
         public class SocketDataConverter : JsonConverter
         {
-            public override bool CanConvert(Type objectType) => objectType == typeof(SocketMessage);
+            public override bool CanConvert(Type objectType) => objectType == typeof(ISocketMessage);
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {

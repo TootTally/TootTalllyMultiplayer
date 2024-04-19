@@ -268,9 +268,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             ClearAllUserRows();
             var currentHost = users.First();
-            if (_hostInfo == null || _hostInfo.id != currentHost.id)
+            if (_hostInfo.id == 0 || _hostInfo.id != currentHost.id)
             {
-                if (_hostInfo != null)
+                if (_hostInfo.id != 0)
                     MultiplayerLogger.ServerLog($"Host was given to {currentHost.username}.");
                 _hostInfo = currentHost;
             }
@@ -342,7 +342,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             var userCard = _userCardsDict[user.id];
 
-            var parsedPreviousState = userCard.user != null ? (UserState)Enum.Parse(typeof(UserState), userCard.user.state) : UserState.None;
+            var parsedPreviousState = userCard.user.id != 0 ? (UserState)Enum.Parse(typeof(UserState), userCard.user.state) : UserState.None;
 
             var parsedState = (UserState)Enum.Parse(typeof(UserState), user.state);
             var userState = user.id == _hostInfo.id ? UserState.Host : parsedState;
@@ -451,7 +451,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private void UpdateDropdown(int userID)
         {
             var isSelf = IsSelf(userID);
-            var showAllOptions = IsHost && !isSelf;
+            var showAllOptions = (IsHost && !isSelf) || controller.IsDevMode;
             _kickButton.gameObject.SetActive(showAllOptions);
             _giveHostButton.gameObject.SetActive(showAllOptions);
             _reportButton.gameObject.SetActive(showAllOptions);

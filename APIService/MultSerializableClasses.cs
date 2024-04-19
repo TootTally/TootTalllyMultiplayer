@@ -6,13 +6,13 @@ namespace TootTallyMultiplayer.APIService
     public static class MultSerializableClasses
     {
         [Serializable]
-        public class APIShutdownSubmission
+        public struct APIShutdownSubmission
         {
             public string lobby_code;
         }
 
         [Serializable]
-        public class APICreateSubmission
+        public struct APICreateSubmission
         {
             public string name;
             public string description;
@@ -22,14 +22,14 @@ namespace TootTallyMultiplayer.APIService
         }
 
         [Serializable]
-        public class APIMultiplayerInfo
+        public struct APIMultiplayerInfo
         {
             public int count { get; set; }
             public List<MultiplayerLobbyInfo> lobbies { get; set; }
         }
 
         [Serializable]
-        public class MultiplayerLobbyInfo
+        public struct MultiplayerLobbyInfo
         {
             public string code;
             public string id;
@@ -42,7 +42,7 @@ namespace TootTallyMultiplayer.APIService
         }
 
         [Serializable]
-        public class MultiplayerSongInfo
+        public struct MultiplayerSongInfo
         {
             public float difficulty;
             public string charter;
@@ -59,7 +59,7 @@ namespace TootTallyMultiplayer.APIService
         }
 
         [Serializable]
-        public class MultiplayerUserInfo
+        public struct MultiplayerUserInfo
         {
             public string country;
             public int id;
@@ -79,6 +79,7 @@ namespace TootTallyMultiplayer.APIService
             Loading,
             Playing,
             Host,
+            Spectating,
         }
     }
 }

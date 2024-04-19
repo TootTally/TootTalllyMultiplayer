@@ -60,6 +60,7 @@ namespace TootTallyMultiplayer
         public bool IsAnybodyLoading => _currentLobby.players.Where(x => x.id != TootTallyUser.userInfo.id).Any(x => x.state == "Loading");
 
         public bool IsRequestPending => _multCreatePanel.IsRequestPending || IsConnectionPending;
+        public bool IsDevMode => TootTallyUser.userInfo.dev || TootTallyUser.userInfo.moderator;
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -208,7 +209,7 @@ namespace TootTallyMultiplayer
             else
                 _multMainPanel.OnLobbyDisconnectError();
             StopTimer();
-            _currentLobby = null;
+            _currentLobby.code = "";
             IsConnectionPending = false;
             MultiplayerManager.UpdateMultiplayerStateIfChanged(MultiplayerState.Home);
             MoveToMain();
@@ -290,7 +291,7 @@ namespace TootTallyMultiplayer
 
         public void RefreshCurrentLobbyInfo()
         {
-            if (_currentLobby != null)
+            if (_currentLobby.code != "")
                 OnLobbyInfoReceived(_currentLobby);
         }
 
@@ -310,7 +311,7 @@ namespace TootTallyMultiplayer
 
         public void OnUserInfoReceived(MultiplayerUserInfo userInfo)
         {
-            if (userInfo == null) return;
+            if (userInfo.id == 0) return;
 
             var index = _currentLobby.players.FindIndex(x => x.id == userInfo.id);
             _currentLobby.players[index] = userInfo;
@@ -338,7 +339,7 @@ namespace TootTallyMultiplayer
         public void OnSongInfoReceived(SocketSongInfo socketSongInfo) => OnSongInfoReceived(socketSongInfo.songInfo);
         public void OnSongInfoReceived(MultiplayerSongInfo songInfo)
         {
-            if ((savedSongInfo == null || savedSongInfo.trackRef != songInfo.trackRef) && songInfo.trackRef != "")
+            if ((savedSongInfo.trackRef == "" || savedSongInfo.trackRef != songInfo.trackRef) && songInfo.trackRef != "")
                 MultiplayerLogger.HostLog(_currentLobby.players[0].username, $"Song \"{songInfo.songName}\" was selected.");
 
             savedSongInfo = songInfo;
@@ -451,7 +452,7 @@ namespace TootTallyMultiplayer
 
             if (savedTrackData != null)
                 _multLobbyPanel?.SetTrackDataDetails(savedTrackData);
-            if (savedSongInfo != null)
+            if (savedSongInfo.trackRef != "")
                 _multLobbyPanel?.OnSongInfoChanged(savedSongInfo);
         }
 
@@ -549,7 +550,7 @@ namespace TootTallyMultiplayer
 
         public void OpenSongLink()
         {
-            if (savedSongInfo == null || savedSongInfo.songID == 0) return;
+            if (savedSongInfo.trackRef == "" || savedSongInfo.songID == 0) return;
 
             Application.OpenURL($"https://toottally.com/song/{savedSongInfo.songID}/");
         }
@@ -609,7 +610,7 @@ namespace TootTallyMultiplayer
             }
         }
 
-        public static MultiplayerUserInfo GetUserFromLobby(int id) => _currentLobby?.players.Find(x => x.id == id);
+        public static MultiplayerUserInfo GetUserFromLobby(int id) => _currentLobby.players.Find(x => x.id == id);
 
         #region MultiConnectionRequests
         public void SendSongFinishedToLobby() => _multiConnection?.SendOptionInfo(OptionInfoType.SongFinished);
