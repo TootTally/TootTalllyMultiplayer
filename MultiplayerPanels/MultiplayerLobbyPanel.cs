@@ -451,7 +451,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private void UpdateDropdown(int userID)
         {
             var isSelf = IsSelf(userID);
-            var showAllOptions = IsHost && !isSelf;
+            var showAllOptions = (IsHost && !isSelf) || controller.IsDevMode;
             _kickButton.gameObject.SetActive(showAllOptions);
             _giveHostButton.gameObject.SetActive(showAllOptions);
             _reportButton.gameObject.SetActive(showAllOptions);

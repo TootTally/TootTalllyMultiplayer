@@ -79,6 +79,7 @@ namespace TootTallyMultiplayer.APIService
             Loading,
             Playing,
             Host,
+            Spectating,
         }
     }
 }

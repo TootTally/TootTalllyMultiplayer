@@ -38,7 +38,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private static GameObject _hoveredLobbyContainer;
         private static GameObject _selectedLobbyContainer;
         private static float _previousLobbyCount;
-        private bool _isDevModeEnabled;
 
         public MultiplayerMainPanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "MainLayout")
         {
@@ -98,22 +97,19 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _connectButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Connect", "LobbyConnectButton", OnConnectButtonClick);
             _connectButton.gameObject.SetActive(false);
-
-            if (TootTallyAccounts.TootTallyUser.userInfo.dev)
-                EnableDevMode();
+            if (controller.IsDevMode) EnableDevMode();
         }
 
         private void EnableDevMode()
         {
             _forceConnectButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Force Connect", "FCButton", OnForceConnectButtonClick);
             _shutdownButton = GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Shutdown", "SDButton", OnShutdownButtonClick);
-            _isDevModeEnabled = true;
             ToggleEnableDevButtons(false);
         }
 
         private void ToggleEnableDevButtons(bool isEnabled)
         {
-            if (!_isDevModeEnabled) return;
+            if (!controller.IsDevMode) return;
 
             _forceConnectButton.button.enabled = isEnabled;
             _shutdownButton.button.enabled = isEnabled;

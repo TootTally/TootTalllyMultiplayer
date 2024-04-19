@@ -60,6 +60,7 @@ namespace TootTallyMultiplayer
         public bool IsAnybodyLoading => _currentLobby.players.Where(x => x.id != TootTallyUser.userInfo.id).Any(x => x.state == "Loading");
 
         public bool IsRequestPending => _multCreatePanel.IsRequestPending || IsConnectionPending;
+        public bool IsDevMode => TootTallyUser.userInfo.dev || TootTallyUser.userInfo.moderator;
 
         public MultiplayerController(PlaytestAnims __instance)
         {
