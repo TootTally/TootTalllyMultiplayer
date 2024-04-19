@@ -498,11 +498,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void SetHostButtonText()
         {
+            var maxCount = _userCardsDict.Values.Select(x => x.user).Where(x => x.state != "Spectating").Count();
             if (IsHost)
-                if (_readyCount == _userCardsDict.Count)
+                if (_readyCount == maxCount)
                     _startGameButton.textHolder.text = "Start Game";
                 else
-                    _startGameButton.textHolder.text = $"{_readyCount}/{_userCardsDict.Count} Force Start";
+                    _startGameButton.textHolder.text = $"{_readyCount}/{maxCount} Force Start";
         }
 
         public void OnSettingsPromptConfirm(string name, string desc, string password, string maxPlayer)
