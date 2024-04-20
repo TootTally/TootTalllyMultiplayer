@@ -20,6 +20,7 @@ using TootTallyMultiplayer.MultiplayerCore.PointScore;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static Rewired.Controller;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
 
@@ -540,7 +541,7 @@ namespace TootTallyMultiplayer
         }
 
         public void SendQuickChat(QuickChat chat) => _multiConnection.SendOptionInfo(OptionInfoType.QuickChat, new dynamic[] { (int)chat });
-
+        public void SendQuickChat(int chatId) => _multiConnection.SendOptionInfo(OptionInfoType.QuickChat, new dynamic[] { chatId });
         public void OnQuickChatReceived(int userID, QuickChat chat)
         {
             _multLobbyPanel?.OnQuickChatReceived(userID, chat);

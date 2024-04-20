@@ -41,14 +41,15 @@ namespace TootTallyMultiplayer
         private static TootTallyAnimation _multiBtnAnimation, _multiTextAnimation;
         private static MultiplayerController.MultiplayerState _state, _previousState;
         private static MultiplayerController _multiController;
+        public static MultiplayerController GetMultiplayerController => _multiController;
 
         private static bool _isSceneActive;
         private static bool _multiButtonLoaded;
         private static bool _isLevelSelectInit, _attemptedInitLevelSelect;
 
         private static bool _isRecursiveRefreshRunning;
-        private static bool IsConnectedToMultiplayer => _multiController != null && _multiController.IsConnected;
-        private static bool IsPlayingMultiplayer => _multiController != null && _state == MultiplayerController.MultiplayerState.Playing;
+        public static bool IsConnectedToMultiplayer => _multiController != null && _multiController.IsConnected;
+        public static bool IsPlayingMultiplayer => _multiController != null && _state == MultiplayerController.MultiplayerState.Playing;
 
         #region Playtest Patches
         [HarmonyPatch(typeof(PlaytestAnims), nameof(PlaytestAnims.Start))]
