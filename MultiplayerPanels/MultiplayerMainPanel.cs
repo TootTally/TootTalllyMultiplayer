@@ -321,7 +321,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnShutdownButtonClick()
         {
-            if (_selectedLobby.code == "" || !TootTallyAccounts.TootTallyUser.userInfo.dev) return;
+            if (_selectedLobby.code == "" || !controller.IsDevMode) return;
 
             Plugin.LogInfo($"Shutting down lobby {_selectedLobby.code}");
             TootTallyNotifManager.DisplayNotif($"Shutting down lobby {_selectedLobby.code}");
@@ -356,7 +356,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnForceConnectButtonClick()
         {
-            if (_selectedLobby.code == "" || !TootTallyAccounts.TootTallyUser.userInfo.dev) return;
+            if (_selectedLobby.code == "" || !controller.IsDevMode) return;
 
             controller.ConnectToLobby(_selectedLobby.code, "", true);
         }
