@@ -115,6 +115,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             //Menu when clicking on user pfp
             _dropdownMenu = MultiplayerGameObjectFactory.GetBorderedVerticalBox(new Vector2(300, 180), 5, panel.transform);
             _dropdownMenu.GetComponent<Image>().enabled = false;
+            _dropdownMenu.SetActive(false);
             _lobbyContainerScrollingDistance = Vector3.zero;
 
             var trigger = _dropdownMenu.AddComponent<EventTrigger>();
@@ -445,7 +446,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private void HideDropdown()
         {
             _dropdownAnimation?.Dispose();
-            _dropdownAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_dropdownMenu, Vector2.zero, .4f, MultiplayerController.GetSecondDegreeAnimationNoBounce(5f));
+            _dropdownAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_dropdownMenu, Vector2.zero, .4f, MultiplayerController.GetSecondDegreeAnimationNoBounce(5f), delegate { _dropdownMenu.SetActive(false); });
         }
 
         private void UpdateDropdown(int userID)

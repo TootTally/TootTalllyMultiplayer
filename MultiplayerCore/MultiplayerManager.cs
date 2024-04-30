@@ -56,6 +56,7 @@ namespace TootTallyMultiplayer
         [HarmonyPrefix]
         public static bool OnStartPrefixLoadLevelSelectIfNotInit(PlaytestAnims __instance)
         {
+            GlobalVariables.scene_destination = LEVELSELECT_SCENE_NAME;
             if (SpectatingManager.IsSpectating) SpectatingManager.StopAllSpectator();
 
             _currentInstance = __instance;
