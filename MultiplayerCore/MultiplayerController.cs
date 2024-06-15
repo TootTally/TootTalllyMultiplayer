@@ -474,6 +474,7 @@ namespace TootTallyMultiplayer
         {
             if (_hasSong && CurrentInstance != null && !IsTransitioning)
             {
+                TootTallyGlobalVariables.isPracticing = false; //Force practice mode off
                 MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Playing);
                 Plugin.LogInfo("Starting Multiplayer for " + GlobalVariables.chosen_track_data.trackname_short + " - " + GlobalVariables.chosen_track_data.trackref);
                 MultiplayerLogger.ServerLog($"Song starting now.");
