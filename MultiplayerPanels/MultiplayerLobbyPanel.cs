@@ -53,7 +53,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private TootTallyAnimation _dropdownAnimation;
 
         private LobbySettingsInputPrompt _lobbySettingsInputPrompt;
-        private TootTallyAnimation _lobbySettingsAnimation;
 
         public bool IsHost;
 

@@ -412,7 +412,7 @@ namespace TootTallyMultiplayer
                             SelectSongFromTrackref(_savedTrackRef);
                             SendUserState(UserState.NotReady);
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             _multLobbyPanel.OnUserStateChange(_currentUserState);
                             TootTallyNotifManager.DisplayNotif("Download failed. Unexpected error occured.");
