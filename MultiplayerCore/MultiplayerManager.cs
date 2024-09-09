@@ -163,6 +163,7 @@ namespace TootTallyMultiplayer
         {
             GameObject mainCanvas = GameObject.Find("MainCanvas").gameObject;
             GameObject mainMenu = mainCanvas.transform.Find("MainMenu").gameObject;
+
             #region MultiplayerButton
             GameObject multiplayerButton = GameObject.Instantiate(__instance.btncontainers[(int)HomeScreenButtonIndexes.Collect], mainMenu.transform);
             GameObject multiplayerHitbox = GameObject.Instantiate(mainMenu.transform.Find("Button1Collect").gameObject, mainMenu.transform);
@@ -293,7 +294,7 @@ namespace TootTallyMultiplayer
             buttonCollectTransform.sizeDelta = new Vector2(320, 190);
             buttonCollectTransform.Rotate(0, 0, 15f);
 
-            GameObject buttonImprov = mainMenu.transform.Find("Button3").gameObject;
+            GameObject buttonImprov = mainMenu.transform.Find("Button3FreeImprov").gameObject;
             RectTransform buttonImprovTransform = buttonImprov.GetComponent<RectTransform>();
             buttonImprovTransform.anchoredPosition = new Vector2(310, 383);
             buttonImprovTransform.sizeDelta = new Vector2(450, 195);
