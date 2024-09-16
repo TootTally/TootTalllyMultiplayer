@@ -1,61 +1,82 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net48</TargetFramework>
-		<AssemblyName>TootTallyMultiplayer</AssemblyName>
-		<Description>TootTally Multiplayer Module</Description>
-		<Version>1.0.5</Version>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<LangVersion>latest</LangVersion>
-		<TromboneChampDir>E:\SteamLibrary\steamapps\common\TromboneChamp</TromboneChampDir>
-		<TromboneTootDir>C:\Users\Sabz\AppData\Roaming\r2modmanPlus-local\TromboneChamp\profiles\Default</TromboneTootDir>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>TootTallyMultiplayer</AssemblyName>
+    <Description>TootTally Multiplayer Module</Description>
+    <Version>1.0.6</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <TromboneChampDir>E:\SteamLibrary\steamapps\common\TromboneChamp</TromboneChampDir>
+    <TromboneTootDir>C:\Users\Sabz\AppData\Roaming\r2modmanPlus-local\TromboneChamp\profiles\Default</TromboneTootDir>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <Optimize>True</Optimize>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>True</Optimize>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-		<PackageReference Include="BepInEx.Core" Version="5.*" />
-		<PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
-		<PackageReference Include="UnityEngine.Modules" Version="2019.4.40" IncludeAssets="compile" />
-		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-		<PackageReference Include="TromboneChamp.GameLibs" Version="1.20.0-beta" />
-		<PackageReference Include="TromboneChamp.BaboonAPI" Version="2.7.0-alpha.1" />
-		<PackageReference Include="TromboneChamp.TrombLoader" Version="2.0.0-rc.1" />
-		<PackageReference Include="websocket-sharp-customheaders" Version="1.0.2.31869" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.*" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
+    <PackageReference Include="UnityEngine.Modules" Version="2019.4.40" IncludeAssets="compile" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="TromboneChamp.GameLibs" Version="1.20.0-beta" />
+    <PackageReference Include="TromboneChamp.BaboonAPI" Version="2.7.0-alpha.1" />
+    <PackageReference Include="TromboneChamp.TrombLoader" Version="2.0.0-rc.1" />
+    <PackageReference Include="websocket-sharp-customheaders" Version="1.0.2.31869" />
+    <Assets Include="Assets\*.*" />
+    <Music Include="Music\*.*" />
+    <multiplayerassetbundle Include="multiplayerassetbundle" />
+  </ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-	</ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<Reference Include="TootTallyCore">
-			<HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyCore\TootTallyCore.dll</HintPath>
-		</Reference>
-		<Reference Include="TootTallySettings">
-			<HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallySettings\TootTallySettings.dll</HintPath>
-		</Reference>
-		<Reference Include="TootTallyAccounts">
-			<HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyAccounts\TootTallyAccounts.dll</HintPath>
-		</Reference>
-		<Reference Include="TootTallySpectator">
-			<HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallySpectator\TootTallySpectator.dll</HintPath>
-		</Reference>
-		<Reference Include="TootTallyWebsocketLibs">
-			<HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyWebsocketLibs\TootTallyWebsocketLibs.dll</HintPath>
-		</Reference>
-		<Reference Include="TootTallyLeaderboard">
-			<HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyLeaderboard\TootTallyLeaderboard.dll</HintPath>
-		</Reference>
-		<Reference Include="TootTallyGameModifiers">
-			<HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyGameModifiers\TootTallyGameModifiers.dll</HintPath>
-		</Reference>
-	</ItemGroup>
+  <ItemGroup>
+    <Reference Include="TootTallyCore">
+      <HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyCore\TootTallyCore.dll</HintPath>
+    </Reference>
+    <Reference Include="TootTallySettings">
+      <HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallySettings\TootTallySettings.dll</HintPath>
+    </Reference>
+    <Reference Include="TootTallyAccounts">
+      <HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyAccounts\TootTallyAccounts.dll</HintPath>
+    </Reference>
+    <Reference Include="TootTallySpectator">
+      <HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallySpectator\TootTallySpectator.dll</HintPath>
+    </Reference>
+    <Reference Include="TootTallyWebsocketLibs">
+      <HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyWebsocketLibs\TootTallyWebsocketLibs.dll</HintPath>
+    </Reference>
+    <Reference Include="TootTallyLeaderboard">
+      <HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyLeaderboard\TootTallyLeaderboard.dll</HintPath>
+    </Reference>
+    <Reference Include="TootTallyGameModifiers">
+      <HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyGameModifiers\TootTallyGameModifiers.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer" />
-	</Target>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer" />
+    <Copy SourceFiles="@(Assets)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer\Assets" />
+    <Copy SourceFiles="@(Music)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer\Music" />
+    <Copy SourceFiles="@(multiplayerassetbundle)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer" />
+  </Target>
+
+  <Target Name="ThunderstoreZip" AfterTargets="Build">
+    <Delete Files="$(OutDir)thunderstore" />
+    <Delete Files="$(SolutionDir)$(ProjectName).zip" />
+    <Copy SourceFiles="CHANGELOG.md" DestinationFolder="$(OutDir)thunderstore" />
+    <Copy SourceFiles="icon.png" DestinationFolder="$(OutDir)thunderstore" />
+    <Copy SourceFiles="manifest.json" DestinationFolder="$(OutDir)thunderstore" />
+    <Copy SourceFiles="README.md" DestinationFolder="$(OutDir)thunderstore" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutDir)thunderstore/plugins" />
+    <Copy SourceFiles="@(Assets)" DestinationFolder="$(OutDir)thunderstore/plugins/Assets" />
+    <MakeDir Directories="$(OutDir)thunderstore/plugins/Downloads" />
+    <Copy SourceFiles="@(Music)" DestinationFolder="$(OutDir)thunderstore/plugins/Music" />
+    <Copy SourceFiles="@(multiplayerassetbundle)" DestinationFolder="$(OutDir)thunderstore/plugins" />
+    <ZipDirectory DestinationFile="$(SolutionDir)$(ProjectName).zip" SourceDirectory="$(OutDir)thunderstore" />
+  </Target>
 </Project>
