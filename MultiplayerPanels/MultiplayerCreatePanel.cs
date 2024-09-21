@@ -1,25 +1,29 @@
-﻿using TMPro;
+﻿using SuperSystems.UnityTools;
+using TMPro;
 using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyMultiplayer.APIService;
 using UnityEngine;
 using UnityEngine.UI;
+using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 
 namespace TootTallyMultiplayer.MultiplayerPanels
 {
     public class MultiplayerCreatePanel : MultiplayerPanelBase
     {
         private GameObject _centerContainer;
-
         private TMP_InputField _lobbyName, _lobbyDescription, _lobbyPassword, _lobbyMaxPlayer;
+        private Toggle _autoRotateToggle, _teamsToggle, _freemodToggle;
 
         public bool IsRequestPending;
         public MultiplayerCreatePanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "CreateLayout")
         {
             panel.transform.localPosition = new Vector2(0, 2000);
             _centerContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(500, 0), center.transform);
-            _centerContainer.GetComponent<VerticalLayoutGroup>().spacing = 50;
+            var centerLayout = _centerContainer.GetComponent<VerticalLayoutGroup>();
+            centerLayout.spacing = 40;
+            centerLayout.childAlignment = TextAnchor.UpperCenter;
 
             var titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "Create Lobby");
             titleText.enableAutoSizing = true;
@@ -51,6 +55,16 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             maxPlayerLabel.name = "MaxPlayerLabel"; maxPlayerLabel.text = "Max Player:";
             _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(maxCountHBox.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, Plugin.Instance.SavedLobbyMaxPlayer.Value.ToString(), false);
 
+            //Other Settings
+            var _otherSettingsContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(245, 0), _centerContainer.transform);
+            var otherLayout = _otherSettingsContainer.GetComponent<VerticalLayoutGroup>();
+            otherLayout.childAlignment = TextAnchor.UpperLeft;
+            otherLayout.childForceExpandWidth = otherLayout.childControlWidth = false;
+
+            _autoRotateToggle = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "AutorotateToggle", new Vector2(60, 60), "autorotate");
+            _teamsToggle = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "TeamsToggle", new Vector2(60, 60), "teams");
+            _freemodToggle = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "FreemodToggle", new Vector2(60, 60), "freemod");
+
             GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Back", "CreateBackButton", OnBackButtonClick);
             GameObjectFactory.CreateCustomButton(footer.transform, Vector2.zero, new Vector2(150, 75), "Create", "CreateLobbyButton", OnCreateButtonClick);
         }
@@ -61,8 +75,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             controller.MoveToMain();
             MultiplayerManager.UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
-
-
         }
 
         public static bool ValidateInput(string name, string desc, string pass, string maxPlayer)
@@ -74,7 +86,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("MaxPlayer must be a number.");
             }
-            else if (value <= 1 || value >= 33)
+            else if (value < 2 || value > 32)
             {
                 isValid = false;
                 TootTallyNotifManager.DisplayNotif("MaxPlayer must be between 2 and 32.");
@@ -83,19 +95,19 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (name.Length > 32)
             {
                 isValid = false;
-                TootTallyNotifManager.DisplayNotif("Lobby name has to be\nshorter than 32 characters");
+                TootTallyNotifManager.DisplayNotif("Lobby name has to be\n32 characters or shorter");
             }
 
             if (desc.Length > 100)
             {
                 isValid = false;
-                TootTallyNotifManager.DisplayNotif("Description has to be\nshorter than 32 characters");
+                TootTallyNotifManager.DisplayNotif("Description has to be\n100 characters or shorter");
             }
 
             if (pass.Length > 100)
             {
                 isValid = false;
-                TootTallyNotifManager.DisplayNotif("Password has to be\nshorter than 32 characters");
+                TootTallyNotifManager.DisplayNotif("Password has to be\n100 characters or shorter");
             }
 
             if (isValid)
@@ -114,7 +126,18 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             IsRequestPending = true;
             TootTallyNotifManager.DisplayNotif("Creating lobby...");
-            Plugin.Instance.StartCoroutine(MultiplayerAPIService.CreateMultiplayerServerRequest(_lobbyName.text, _lobbyDescription.text, _lobbyPassword.text, int.Parse(_lobbyMaxPlayer.text), serverCode =>
+            var apiSubmission = new APICreateSubmission()
+            {
+                name = _lobbyName.text,
+                description = _lobbyDescription.text,
+                password = _lobbyPassword.text,
+                maxPlayer = int.Parse(_lobbyMaxPlayer.text),
+                autorotate = _autoRotateToggle.isOn,
+                teams = _teamsToggle.isOn,
+                freemod = _freemodToggle.isOn,
+                version = PluginInfo.PLUGIN_VERSION
+            };
+            Plugin.Instance.StartCoroutine(MultiplayerAPIService.CreateMultiplayerServerRequest(apiSubmission, serverCode =>
             {
                 if (serverCode != null)
                 {

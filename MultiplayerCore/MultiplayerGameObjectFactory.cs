@@ -15,6 +15,7 @@ namespace TootTallyMultiplayer
     {
         private static TMP_InputField _inputFieldPrefab;
         private static GameObject _userCardPrefab, _liveScorePrefab, _pointScorePrefab;
+        private static Toggle _togglePrefab;
 
         private static bool _isInitialized;
 
@@ -32,6 +33,7 @@ namespace TootTallyMultiplayer
         private static void SetUserCardPrefab()
         {
             _userCardPrefab = GameObject.Instantiate(GetBorderedHorizontalBox(new Vector2(700, 72), 3));
+            var teamChanger = GameObjectFactory.CreateCustomButton(_userCardPrefab.transform, Vector2.zero, new Vector2(25, 65), "R", "TeamChanger");
             var container = _userCardPrefab.transform.GetChild(0).gameObject;
             var horizontalLayout = container.GetComponent<HorizontalLayoutGroup>();
             horizontalLayout.childAlignment = TextAnchor.MiddleLeft;
@@ -46,7 +48,7 @@ namespace TootTallyMultiplayer
 
             var textRank = GameObjectFactory.CreateSingleText(container.transform, $"Rank", $"", Vector2.one / 2f, new Vector2(190, 75), Theme.colors.leaderboard.text);
             textRank.alignment = TextAlignmentOptions.Right;
-
+            teamChanger.transform.SetAsFirstSibling();
             GameObject.DontDestroyOnLoad(_userCardPrefab);
         }
 
@@ -124,6 +126,15 @@ namespace TootTallyMultiplayer
             GameObject.DontDestroyOnLoad(_inputFieldPrefab);
         }
 
+        public static void SetTogglePrefab(HomeController __instance)
+        {
+            _togglePrefab = GameObject.Instantiate(__instance.set_tog_accessb_jumpscare);
+            _togglePrefab.name = "MultiplayerTogglePrefab";
+            _togglePrefab.onValueChanged = new Toggle.ToggleEvent();
+
+            GameObject.DontDestroyOnLoad(_togglePrefab);
+        }
+
         public static TMP_InputField CreateInputField(Transform canvasTransform, string name, Vector2 size, float fontSize, string text, bool isPassword)
         {
             var inputField = GameObject.Instantiate(_inputFieldPrefab, canvasTransform);
@@ -158,10 +169,10 @@ namespace TootTallyMultiplayer
             return pointScoreObject;
         }
 
-        public static MultiplayerCard CreateUserCard(Transform canvasTransform)
+        public static MultiplayerCard CreateUserCard(Transform canvasTransform, Action<dynamic[]> changeTeam)
         {
             var userCard = GameObject.Instantiate(_userCardPrefab, canvasTransform).AddComponent<MultiplayerCard>();
-            userCard.InitTexts();
+            userCard.Init(changeTeam);
             return userCard;
         }
 
@@ -200,9 +211,9 @@ namespace TootTallyMultiplayer
             return borderedBox;
         }
 
-        public static LobbySettingsInputPrompt CreateLobbySettingsInputPrompt(Transform canvasTransform, Action<string, string, string, string> OnConfirm)
+        public static LobbySettingsInputPrompt CreateLobbySettingsInputPrompt(Transform canvasTransform, MultiplayerController controller)
         {
-            var lobbySettings = new LobbySettingsInputPrompt(canvasTransform, OnConfirm);
+            var lobbySettings = new LobbySettingsInputPrompt(canvasTransform, controller);
             lobbySettings.gameObject.transform.localScale = new Vector3(0, 0, 1);
             return lobbySettings;
         }
@@ -247,13 +258,33 @@ namespace TootTallyMultiplayer
                         var colors = btn.button.colors;
                         colors.normalColor = nullColor;
                         btn.button.colors = colors;
-
                     }
                 }
             }
 
             return quickChatBox;
+        }
 
+        public static Toggle CreateToggle(Transform canvasTransform, string name, Vector2 size, string text)
+        {
+            var toggle = GameObject.Instantiate(_togglePrefab, canvasTransform);
+            RectTransform rect = toggle.GetComponent<RectTransform>();
+            rect.pivot = Vector3.zero;
+            rect.anchoredPosition = Vector3.zero;
+            rect.sizeDelta = size;
+
+            var label = GameObjectFactory.CreateSingleText(toggle.transform, $"{name}Label", text, Vector2.zero, new Vector2(250, 0), Theme.colors.leaderboard.text, GameObjectFactory.TextFont.Multicolore);
+            label.alignment = TextAlignmentOptions.Left;
+            label.fontStyle = FontStyles.Underline;
+            label.enableWordWrapping = false;
+            label.rectTransform.anchoredPosition = new Vector2(20, 0);
+            label.rectTransform.anchorMax = label.rectTransform.anchorMin = new Vector2(1, .5f);
+            label.fontSize = 28;
+            label.text = text;
+            toggle.name = name;
+            toggle.isOn = false;
+
+            return toggle;
         }
 
         public static GameObject GetVerticalBox(Vector2 size, Transform parent = null)

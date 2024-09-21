@@ -45,18 +45,9 @@ namespace TootTallyMultiplayer.APIService
             callback();
         }
 
-        public static IEnumerator<UnityWebRequestAsyncOperation> CreateMultiplayerServerRequest(string name, string description, string password, int maxPlayer, Action<string> callback)
+        public static IEnumerator<UnityWebRequestAsyncOperation> CreateMultiplayerServerRequest(APICreateSubmission apiSubmission, Action<string> callback)
         {
             string query = $"{MULTURL}/create";
-
-            APICreateSubmission apiSubmission = new APICreateSubmission()
-            {
-                name = name,
-                description = description,
-                password = password,
-                maxPlayer = maxPlayer,
-                version = PluginInfo.PLUGIN_VERSION
-            };
             var data = System.Text.Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(apiSubmission));
             UnityWebRequest webRequest = PostUploadRequestWithHeader(query, data, new List<string[]> { new string[] { "Authorization", "APIKey " + TootTallyAccounts.Plugin.GetAPIKey } });
 
@@ -77,7 +68,6 @@ namespace TootTallyMultiplayer.APIService
             if (!HasError(webRequest, assetDir))
                 callback(DownloadHandlerAudioClip.GetContent(webRequest));
         }
-
 
         private static UnityWebRequest PostUploadRequest(string query, byte[] data, string contentType = "application/json")
         {

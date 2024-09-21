@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using TMPro;
 using TootTallyAccounts;
@@ -32,7 +31,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
-        private CustomButton _selectSongButton, _startGameButton, _readyUpButton;
+        private CustomButton _selectSongButton, _startGameButton, _readyUpButton, _freemodButton;
         private CustomButton _profileButton, _giveHostButton, _kickButton, _reportButton;
 
         private GameObject _lobbySettingButton;
@@ -103,7 +102,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _userCardsDict = new Dictionary<int, MultiplayerCard>();
 
-            _lobbySettingsInputPrompt = MultiplayerGameObjectFactory.CreateLobbySettingsInputPrompt(canvas.transform, OnSettingsPromptConfirm);
+            _lobbySettingsInputPrompt = MultiplayerGameObjectFactory.CreateLobbySettingsInputPrompt(canvas.transform, controller);
             _lobbySettingsInputPrompt.gameObject.SetActive(false);
             _lobbySettingButton = GameObjectFactory.CreateClickableImageHolder(headerRight.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingButton", _lobbySettingsInputPrompt.Show).gameObject;
             _lobbySettingButton.gameObject.SetActive(false);
@@ -213,6 +212,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             SetTextsParameters(_timeText, _bpmText, _gameSpeedText, _modifiersText, _ratingText);
 
             //BUTTONS
+            _freemodButton = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("ModifierButton.png"), "ModifierButton", OnQuickChatOpenButtonClick);
             _selectSongButton = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(170, 65), "SelectSong", "SelectSongButton", OnSelectSongButtonClick);
             _selectSongButton.gameObject.SetActive(false);
             _startGameButton = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(170, 65), "Start Game", "StartGameButton", OnStartGameButtonClick);
@@ -252,7 +252,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private MultiplayerUserInfo _hostInfo;
         private List<MultiplayerUserInfo> _lastUsers;
-        public void DisplayAllUserInfo(List<MultiplayerUserInfo> users)
+        public void DisplayAllUserInfo(List<MultiplayerUserInfo> users, MultiplayerLobbyInfo lobbyInfo)
         {
             if (_lastUsers != null)
             {
@@ -281,11 +281,16 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _readyUpButton.gameObject.SetActive(!IsHost);
 
+            _maxPlayerCount = lobbyInfo.maxPlayerCount;
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
 
             users.ForEach(DisplayUserInfo);
             UpdateScrolling(_userCardsDict.Count);
             _lastUsers = users;
+
+            _titleText.text = lobbyInfo.title;
+            _userCardsDict.Values.ToList().ForEach(item => item.teamChanger.SetActive(lobbyInfo.teams));
+            _lobbySettingsInputPrompt.UpdateLobbyValues(lobbyInfo);
         }
 
         public void UpdateScrolling(int userCount)
@@ -321,7 +326,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_userState == UserState.None && IsSelf(user.id))
                 OnUserStateChange(parsedState);
 
-            var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform);
+            var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform, controller.ChangeTeam);
+            userCard.hostId = _hostInfo.id;
             _userCardsDict.Add(user.id, userCard);
 
             var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.container, Vector2.zero, new Vector2(100, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
@@ -351,14 +357,15 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_userState == UserState.None && IsSelf(user.id))
                 OnUserStateChange(parsedState);
 
-            userCard.UpdateUserInfo(user, displayedState);
+            userCard.hostId = _hostInfo.id;
+            userCard.UpdateUserCard(user, displayedState);
+            userCard.teamChanger.gameObject.GetComponent<Button>().interactable = IsSelf(user.id) || IsHost;
 
             _readyCount = _userCardsDict.Values.Where(x => x.user.state == "Ready" && !IsSelf(x.user.id)).Count() + 1;
 
             var color = UserStateToColor(userState);
             GameObjectFactory.TintImage(userCard.container.GetComponent<Image>(), color, .2f);
             userCard.image.color = color;
-
             if (IsHost && !controller.IsTimerStarted)
                 SetHostButtonText();
             UpdateScrolling(_userCardsDict.Count);
@@ -506,15 +513,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _startGameButton.textHolder.text = $"{_readyCount}/{maxCount} Force Start";
         }
 
-        public void OnSettingsPromptConfirm(string name, string desc, string password, string maxPlayer)
-        {
-            if (!MultiplayerCreatePanel.ValidateInput(name, desc, password, maxPlayer)) return;
-
-            controller.SendSetLobbySettings(name, desc, password, int.Parse(maxPlayer));
-            TootTallyNotifManager.DisplayNotif("Sending new lobby info...");
-            _lobbySettingsInputPrompt.Hide();
-        }
-
         public void OnBackButtonClick()
         {
             if (controller.IsTransitioning) return;
@@ -583,13 +581,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _userState = UserState.None;
             controller.GiveHostUser(_dropdownUserInfo.id);
             controller.RefreshCurrentLobbyInfo();
-        }
-
-        public void OnLobbyInfoReceived(string title, int playerCount, int maxPlayer)
-        {
-            _titleText.text = title;
-            _maxPlayerCount = maxPlayer;
-            _maxPlayerText.text = $"{playerCount}/{maxPlayer}";
         }
 
         public void OnSongInfoChanged(string songName, float gamespeed, string modifiers, float difficulty)

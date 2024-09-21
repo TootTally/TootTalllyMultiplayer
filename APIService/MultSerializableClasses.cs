@@ -19,6 +19,9 @@ namespace TootTallyMultiplayer.APIService
             public string password;
             public int maxPlayer;
             public string version;
+            public bool autorotate;
+            public bool teams;
+            public bool freemod;
         }
 
         [Serializable]
@@ -31,12 +34,16 @@ namespace TootTallyMultiplayer.APIService
         [Serializable]
         public struct MultiplayerLobbyInfo
         {
+            public bool autorotate;
             public string code;
+            public string description;
             public string id;
             public int maxPlayerCount;
             public string title;
             public bool hasPassword;
             public string state;
+            public bool teams;
+            public bool freemod;
             public List<MultiplayerUserInfo> players;
             public MultiplayerSongInfo songInfo;
         }
@@ -67,6 +74,13 @@ namespace TootTallyMultiplayer.APIService
             public int team;
             public string username;
             public string state;
+        }
+
+        public enum MultiplayerTeamState
+        {
+            None = -1,
+            Red = 0,
+            Blue = 1,
         }
 
         public enum UserState

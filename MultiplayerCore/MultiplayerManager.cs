@@ -163,6 +163,7 @@ namespace TootTallyMultiplayer
         {
             GameObject mainCanvas = GameObject.Find("MainCanvas").gameObject;
             GameObject mainMenu = mainCanvas.transform.Find("MainMenu").gameObject;
+            MultiplayerGameObjectFactory.SetTogglePrefab(__instance);
 
             #region MultiplayerButton
             GameObject multiplayerButton = GameObject.Instantiate(__instance.btncontainers[(int)HomeScreenButtonIndexes.Collect], mainMenu.transform);

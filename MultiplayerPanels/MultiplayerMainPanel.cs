@@ -148,7 +148,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void DisplayLobby(MultiplayerLobbyInfo lobbyInfo, bool shouldAnimate)
         {
-
             var lobbyContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0, 120), lobbyListContainer.transform);
             lobbyContainer.GetComponent<Image>().enabled = true;
             _lobbyInfoRowsList.Add(lobbyContainer);

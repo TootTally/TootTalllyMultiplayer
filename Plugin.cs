@@ -77,7 +77,5 @@ namespace TootTallyMultiplayer
         public ConfigEntry<string> SavedLobbyTitle { get; set; }
         public ConfigEntry<string> SavedLobbyDesc { get; set; }
         public ConfigEntry<int> SavedLobbyMaxPlayer { get; set; }
-
-
     }
 }
