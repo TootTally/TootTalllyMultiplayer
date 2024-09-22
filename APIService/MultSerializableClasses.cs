@@ -74,11 +74,11 @@ namespace TootTallyMultiplayer.APIService
             public int team;
             public string username;
             public string state;
+            public string mods;
         }
 
         public enum MultiplayerTeamState
         {
-            None = -1,
             Red = 0,
             Blue = 1,
         }

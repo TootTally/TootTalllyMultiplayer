@@ -26,7 +26,7 @@ namespace TootTallyMultiplayer
             textRank = container.Find("Rank").GetComponent<TMP_Text>();
 
             teamChanger = transform.GetChild(0).gameObject;
-            var teamCount = Enum.GetNames(typeof(MultiplayerTeamState)).Length - 1; // todo remove -1 when grist sets default team
+            var teamCount = Enum.GetNames(typeof(MultiplayerTeamState)).Length;
             teamChanger.GetComponent<Button>().onClick.AddListener(() =>
             {
                 if (TootTallyUser.userInfo.id == hostId)
@@ -46,8 +46,6 @@ namespace TootTallyMultiplayer
         {
             switch (team)
             {
-                case MultiplayerTeamState.None:
-                    UpdateTeamColor(new Color(1, 1, 1), ""); break;
                 case MultiplayerTeamState.Red:
                     UpdateTeamColor(new Color(1, 0, 0), "R"); break;
                 case MultiplayerTeamState.Blue:

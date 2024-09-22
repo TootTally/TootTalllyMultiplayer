@@ -2,6 +2,7 @@
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.TootTallyNotifs;
+using TootTallyGameModifiers;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,7 +23,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.InputPrompts
         public LobbySettingsInputPrompt(Transform canvasTransform, MultiplayerController controller)
         {
             this.controller = controller;
-            gameObject = MultiplayerGameObjectFactory.GetBorderedVerticalBox(new Vector2(890, 490), 5, canvasTransform);
+            gameObject = GameModifierFactory.GetBorderedVerticalBox(new Vector2(890, 490), 5, canvasTransform);
             _container = gameObject.transform.GetChild(0).gameObject;
             _container.GetComponent<Image>().color = new Color(.1f, .1f, .1f, .85f);
             var containerLayout = _container.GetComponent<VerticalLayoutGroup>();
@@ -33,10 +34,10 @@ namespace TootTallyMultiplayer.MultiplayerCore.InputPrompts
             var promptRect = gameObject.GetComponent<RectTransform>();
             promptRect.anchorMin = promptRect.anchorMax = promptRect.pivot = Vector2.one / 2f;
 
-            _topContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0, 360), _container.transform);
+            _topContainer = GameModifierFactory.GetHorizontalBox(new Vector2(0, 360), _container.transform);
 
             //Lobby Settings
-            _lobbySettingsContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(545, 0), _topContainer.transform);
+            _lobbySettingsContainer = GameModifierFactory.GetVerticalBox(new Vector2(545, 0), _topContainer.transform);
             var lobbyLayout = _lobbySettingsContainer.GetComponent<VerticalLayoutGroup>();
             lobbyLayout.childAlignment = TextAnchor.UpperLeft;
             lobbyLayout.spacing = 10f;
@@ -47,7 +48,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.InputPrompts
             lobbySettingsText.rectTransform.sizeDelta = new Vector2(545, 70);
             lobbySettingsText.alignment = TMPro.TextAlignmentOptions.MidlineLeft;
 
-            var nameHBox = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0, 55), _lobbySettingsContainer.transform);
+            var nameHBox = GameModifierFactory.GetHorizontalBox(new Vector2(0, 55), _lobbySettingsContainer.transform);
             var hlayout = nameHBox.GetComponent<HorizontalLayoutGroup>();
             hlayout.spacing = 8f;
             hlayout.childAlignment = TextAnchor.MiddleLeft;
@@ -74,7 +75,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.InputPrompts
             _maxPlayerInput = MultiplayerGameObjectFactory.CreateInputField(maxCountHBox.transform, "MaxPlayerInputField", new Vector2(350, 30), 24, Plugin.Instance.SavedLobbyMaxPlayer.Value.ToString(), false);
 
             //Other Settings
-            _otherSettingsContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(245, 0), _topContainer.transform);
+            _otherSettingsContainer = GameModifierFactory.GetVerticalBox(new Vector2(245, 0), _topContainer.transform);
             var otherLayout = _otherSettingsContainer.GetComponent<VerticalLayoutGroup>();
             otherLayout.childAlignment = TextAnchor.UpperLeft;
             otherLayout.childForceExpandWidth = otherLayout.childControlWidth = false;
@@ -93,7 +94,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.InputPrompts
             _freemodButton = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "FreemodToggle", new Vector2(60, 60), "freemod");
 
             //Buttons Container
-            _bottomContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0, 90), _container.transform);
+            _bottomContainer = GameModifierFactory.GetHorizontalBox(new Vector2(0, 90), _container.transform);
             var buttonsLayout = _bottomContainer.GetComponent<HorizontalLayoutGroup>();
             buttonsLayout.spacing = 40f;
             buttonsLayout.childControlHeight = buttonsLayout.childForceExpandHeight = false;
@@ -105,7 +106,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.InputPrompts
         public void OnSettingsPromptConfirm()
         {
             if (!MultiplayerCreatePanel.ValidateInput(_nameInput.text, _descInput.text, _passwordInput.text, _maxPlayerInput.text)) return;
-            TootTallyNotifManager.DisplayNotif($"Sending new lobby info... {_teamsButton.isOn}");
+            TootTallyNotifManager.DisplayNotif($"Sending new lobby info...");
             var lobbyInfo = new SocketSetLobbyInfo()
             {
                 name = _nameInput.text,

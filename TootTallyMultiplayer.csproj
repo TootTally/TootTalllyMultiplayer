@@ -27,7 +27,6 @@
     <PackageReference Include="websocket-sharp-customheaders" Version="1.0.2.31869" />
     <Assets Include="Assets\*.*" />
     <Music Include="Music\*.*" />
-    <multiplayerassetbundle Include="multiplayerassetbundle" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
@@ -62,7 +61,6 @@
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer" />
     <Copy SourceFiles="@(Assets)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer\Assets" />
     <Copy SourceFiles="@(Music)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer\Music" />
-    <Copy SourceFiles="@(multiplayerassetbundle)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer" />
   </Target>
 
   <Target Name="ThunderstoreZip" AfterTargets="Build">
@@ -76,7 +74,6 @@
     <Copy SourceFiles="@(Assets)" DestinationFolder="$(OutDir)thunderstore/plugins/Assets" />
     <MakeDir Directories="$(OutDir)thunderstore/plugins/Downloads" />
     <Copy SourceFiles="@(Music)" DestinationFolder="$(OutDir)thunderstore/plugins/Music" />
-    <Copy SourceFiles="@(multiplayerassetbundle)" DestinationFolder="$(OutDir)thunderstore/plugins" />
     <ZipDirectory DestinationFile="$(SolutionDir)$(ProjectName).zip" SourceDirectory="$(OutDir)thunderstore" />
   </Target>
 </Project>

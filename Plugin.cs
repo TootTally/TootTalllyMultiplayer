@@ -17,8 +17,6 @@ namespace TootTallyMultiplayer
     public class Plugin : BaseUnityPlugin, ITootTallyModule
     {
         public static Plugin Instance;
-
-        private const string CONFIG_NAME = "Multiplayer.cfg";
         private Harmony _harmony;
         public bool IsConfigInitialized { get; set; }
 
@@ -55,13 +53,7 @@ namespace TootTallyMultiplayer
             SavedLobbyTitle = Config.Bind("General", nameof(SavedLobbyTitle), "", "Last lobby creation name used.");
             SavedLobbyDesc = Config.Bind("General", nameof(SavedLobbyDesc), "Welcome to my lobby!", "Last lobby creation description used.");
             SavedLobbyMaxPlayer = Config.Bind("General", nameof(SavedLobbyMaxPlayer), 16, "Last lobby creation lobby max player used.");
-
-            string bundlePath = Path.Combine(Path.GetDirectoryName(Plugin.Instance.Info.Location), "multiplayerassetbundle");
-            AssetBundleManager.LoadAssets(bundlePath);
-
-            string assetsPath = Path.Combine(Path.GetDirectoryName(Plugin.Instance.Info.Location), "Assets");
-            AssetManager.LoadAssets(assetsPath);
-
+            AssetManager.LoadAssets(Path.Combine(Path.GetDirectoryName(Instance.Info.Location), "Assets"));
             _harmony.PatchAll(typeof(MultiplayerManager));
             LogInfo($"Module loaded!");
         }

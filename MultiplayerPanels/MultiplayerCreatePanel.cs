@@ -1,8 +1,8 @@
-﻿using SuperSystems.UnityTools;
-using TMPro;
+﻿using TMPro;
 using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.TootTallyNotifs;
+using TootTallyGameModifiers;
 using TootTallyMultiplayer.APIService;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,7 +20,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public MultiplayerCreatePanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "CreateLayout")
         {
             panel.transform.localPosition = new Vector2(0, 2000);
-            _centerContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(500, 0), center.transform);
+            _centerContainer = GameModifierFactory.GetVerticalBox(new Vector2(500, 0), center.transform);
             var centerLayout = _centerContainer.GetComponent<VerticalLayoutGroup>();
             centerLayout.spacing = 40;
             centerLayout.childAlignment = TextAnchor.UpperCenter;
@@ -29,7 +29,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             titleText.enableAutoSizing = true;
             var defaultLobbyName = Plugin.Instance.SavedLobbyTitle.Value == "" ? $"{TootTallyUser.userInfo.username}'s Lobby" : Plugin.Instance.SavedLobbyTitle.Value;
 
-            var nameHBox = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0, 55), _centerContainer.transform);
+            var nameHBox = GameModifierFactory.GetHorizontalBox(new Vector2(0, 55), _centerContainer.transform);
             var hlayout = nameHBox.GetComponent<HorizontalLayoutGroup>();
             hlayout.spacing = 8f;
             hlayout.childAlignment = TextAnchor.MiddleLeft;
@@ -56,7 +56,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _lobbyMaxPlayer = MultiplayerGameObjectFactory.CreateInputField(maxCountHBox.transform, "LobbyMaxPlayerInputField", new Vector2(300, 30), 24, Plugin.Instance.SavedLobbyMaxPlayer.Value.ToString(), false);
 
             //Other Settings
-            var _otherSettingsContainer = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(245, 0), _centerContainer.transform);
+            var _otherSettingsContainer = GameModifierFactory.GetVerticalBox(new Vector2(245, 0), _centerContainer.transform);
             var otherLayout = _otherSettingsContainer.GetComponent<VerticalLayoutGroup>();
             otherLayout.childAlignment = TextAnchor.UpperLeft;
             otherLayout.childForceExpandWidth = otherLayout.childControlWidth = false;

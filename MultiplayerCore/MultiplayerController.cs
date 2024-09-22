@@ -20,6 +20,7 @@ using TootTallyMultiplayer.MultiplayerCore.PointScore;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using WebSocketSharp;
 using static Rewired.Controller;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
@@ -624,7 +625,13 @@ namespace TootTallyMultiplayer
         #region MultiConnectionRequests
         public void SendSongFinishedToLobby() => _multiConnection?.SendOptionInfo(OptionInfoType.SongFinished);
         public void SendQuitFlag() => _multiConnection?.SendOptionInfo(OptionInfoType.Quit);
-        public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers) => _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
+
+        public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers)
+        {
+            modifiers = _currentLobby.freemod ? "FM" : modifiers;
+            _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
+        }
+
         public void SendScoreDataToLobby(int score, int combo, int health, int tally)
         {
             _multiConnection?.SendUpdateScore(score, combo, health, tally);

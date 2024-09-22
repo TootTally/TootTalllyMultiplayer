@@ -4,6 +4,7 @@ using TMPro;
 using TootTallyCore;
 using TootTallyCore.Graphics;
 using TootTallyCore.Utils.Assets;
+using TootTallyGameModifiers;
 using TootTallyMultiplayer.MultiplayerCore.InputPrompts;
 using UnityEngine;
 using UnityEngine.UI;
@@ -32,7 +33,7 @@ namespace TootTallyMultiplayer
 
         private static void SetUserCardPrefab()
         {
-            _userCardPrefab = GameObject.Instantiate(GetBorderedHorizontalBox(new Vector2(700, 72), 3));
+            _userCardPrefab = GameObject.Instantiate(GameModifierFactory.GetBorderedHorizontalBox(new Vector2(700, 72), 3));
             var teamChanger = GameObjectFactory.CreateCustomButton(_userCardPrefab.transform, Vector2.zero, new Vector2(25, 65), "R", "TeamChanger");
             var container = _userCardPrefab.transform.GetChild(0).gameObject;
             var horizontalLayout = container.GetComponent<HorizontalLayoutGroup>();
@@ -54,7 +55,7 @@ namespace TootTallyMultiplayer
 
         private static void SetLiveScorePrefab()
         {
-            _liveScorePrefab = GetBorderedHorizontalBox(new Vector2(160, 28), 2);
+            _liveScorePrefab = GameModifierFactory.GetBorderedHorizontalBox(new Vector2(160, 28), 2);
 
             var group = _liveScorePrefab.AddComponent<CanvasGroup>();
             group.alpha = .75f;
@@ -76,7 +77,7 @@ namespace TootTallyMultiplayer
 
         private static void SetPointScorePrefab()
         {
-            _pointScorePrefab = GetBorderedHorizontalBox(new Vector2(200, 28), 2);
+            _pointScorePrefab = GameModifierFactory.GetBorderedHorizontalBox(new Vector2(200, 28), 2);
 
             var container = _pointScorePrefab.transform.GetChild(0).gameObject;
 
@@ -178,7 +179,7 @@ namespace TootTallyMultiplayer
 
         public static GameObject CreatePasswordInputPrompt(Transform canvasTransform, string titleText, Action<string> OnConfirm, Action OnCancel)
         {
-            var borderedBox = GetBorderedVerticalBox(new Vector2(520, 235), 4, canvasTransform);
+            var borderedBox = GameModifierFactory.GetBorderedVerticalBox(new Vector2(520, 235), 4, canvasTransform);
             var promptRect = borderedBox.GetComponent<RectTransform>();
             promptRect.anchorMin = promptRect.anchorMax = promptRect.pivot = Vector2.one / 2f;
 
@@ -192,7 +193,7 @@ namespace TootTallyMultiplayer
             title.fontStyle = FontStyles.Bold;
             title.rectTransform.sizeDelta = new Vector2(0, 32);
 
-            var inputHorizontalBox = GetHorizontalBox(new Vector2(0, 30), borderedBoxContainer.transform);
+            var inputHorizontalBox = GameModifierFactory.GetHorizontalBox(new Vector2(0, 30), borderedBoxContainer.transform);
             var hlayout = inputHorizontalBox.GetComponent<HorizontalLayoutGroup>();
             hlayout.spacing = 8f;
             hlayout.padding = new RectOffset(0, 0, 3, 0);
@@ -201,7 +202,7 @@ namespace TootTallyMultiplayer
             inputFieldLabel.alignment = TextAlignmentOptions.BottomRight;
             var inputField = CreateInputField(inputHorizontalBox.transform, "InputField", new Vector2(275, 30), 24, "", true);
 
-            var buttonHorizontalBox = GetHorizontalBox(new Vector2(0, 66), borderedBoxContainer.transform);
+            var buttonHorizontalBox = GameModifierFactory.GetHorizontalBox(new Vector2(0, 66), borderedBoxContainer.transform);
             var hLayout2 = buttonHorizontalBox.GetComponent<HorizontalLayoutGroup>();
             hLayout2.spacing = 100f;
             hLayout2.childControlHeight = hLayout2.childForceExpandHeight = false;
@@ -218,41 +219,25 @@ namespace TootTallyMultiplayer
             return lobbySettings;
         }
 
-        public static GameObject CreateQuickChatPopup(Transform canvasTransform, Action<QuickChat> OnBtnClickCallback, Action OnCloseBtnClick)
+        public static CustomPopup CreateQuickChatPopup(Transform buttonTransform, Transform popupTransform, Action<QuickChat> OnBtnClickCallback)
         {
-            var quickChatBox = GetBorderedVerticalBox(new Vector2(450, 700), 4, canvasTransform);
-            quickChatBox.transform.localScale = Vector2.zero;
-
-            var quickChatContainer = quickChatBox.transform.GetChild(0).gameObject;
-            quickChatContainer.GetComponent<Image>().color = Theme.colors.leaderboard.text.CompareRGB(Color.black) ? new Color(1,1,1,1) : new Color(0, 0, 0, 1);
-            
-
-            var chatBoxRect = quickChatBox.GetComponent<RectTransform>();
-            chatBoxRect.anchorMin = chatBoxRect.anchorMax = chatBoxRect.pivot = Vector2.one / 2f;
-
-            var title = GameObjectFactory.CreateSingleText(quickChatContainer.transform, "QuickChatTitle", "Quick Chat");
-            title.fontSize = 38;
-            title.fontStyle = FontStyles.Bold;
-            title.alignment = TextAlignmentOptions.Bottom;
-            title.rectTransform.sizeDelta = new Vector2(450, 60);
-
-            GameObjectFactory.CreateCustomButton(quickChatContainer.transform, Vector2.one * -5f, new Vector2(32, 32), AssetManager.GetSprite("Close64.png"), "CloseQuickChatButton", OnCloseBtnClick)
-                .gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            var customPopup = new CustomPopup("Quick Chat", buttonTransform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), popupTransform, new Vector2(450, 700), 38, new Vector2(32, 32));
+            var quickChatContainer = customPopup.popupBox.transform.GetChild(0).gameObject;
 
             var nullColor = new Color(0, 0, 0, 0);
             for (int height = 0; height < 3; height++)
             {
-                var hContainer = GetHorizontalBox(new Vector2(0, 205), quickChatContainer.transform);
+                var hContainer = GameModifierFactory.GetHorizontalBox(new Vector2(0, 205), quickChatContainer.transform);
                 hContainer.GetComponent<HorizontalLayoutGroup>().spacing = 20;
                 for (int width = 0; width < 2; width++)
                 {
-                    var buttonContainer = GetVerticalBox(new Vector2(190, 0), hContainer.transform);
+                    var buttonContainer = GameModifierFactory.GetVerticalBox(new Vector2(190, 0), hContainer.transform);
                     var buttonLayout = buttonContainer.GetComponent<VerticalLayoutGroup>();
                     buttonLayout.spacing = 1;
                     for (int i = 0; i < 4; i++)
                     {
                         var index = (height * 8) + (width * 4) + i;
-                        var quickChatOption = MultiplayerSystem.QuickChatToTextDic.ElementAt(index).Key;
+                        var quickChatOption = QuickChatToTextDic.ElementAt(index).Key;
                         var btnText = string.Concat(quickChatOption.ToString().Select(x => char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' ');
                         var btn = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(0, 36), btnText, $"QCButton{quickChatOption}", delegate { OnBtnClickCallback(quickChatOption); });
                         var colors = btn.button.colors;
@@ -262,7 +247,7 @@ namespace TootTallyMultiplayer
                 }
             }
 
-            return quickChatBox;
+            return customPopup;
         }
 
         public static Toggle CreateToggle(Transform canvasTransform, string name, Vector2 size, string text)
@@ -285,35 +270,6 @@ namespace TootTallyMultiplayer
             toggle.isOn = false;
 
             return toggle;
-        }
-
-        public static GameObject GetVerticalBox(Vector2 size, Transform parent = null)
-        {
-            var box = GameObject.Instantiate(AssetBundleManager.GetPrefab("verticalbox"), parent);
-            box.GetComponent<RectTransform>().sizeDelta = size;
-            return box;
-        }
-        public static GameObject GetHorizontalBox(Vector2 size, Transform parent = null)
-        {
-            var box = GameObject.Instantiate(AssetBundleManager.GetPrefab("horizontalbox"), parent);
-            box.GetComponent<RectTransform>().sizeDelta = size;
-            return box;
-        }
-
-        public static GameObject GetBorderedVerticalBox(Vector2 size, int bordersize, Transform parent = null)
-        {
-            var box = GameObject.Instantiate(AssetBundleManager.GetPrefab("borderedverticalbox"), parent);
-            box.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(bordersize, bordersize, bordersize, bordersize);
-            box.GetComponent<RectTransform>().sizeDelta = size + (Vector2.one * 2f * bordersize);
-            return box;
-        }
-
-        public static GameObject GetBorderedHorizontalBox(Vector2 size, int bordersize, Transform parent = null)
-        {
-            var box = GameObject.Instantiate(AssetBundleManager.GetPrefab("borderedhorizontalbox"), parent);
-            box.GetComponent<HorizontalLayoutGroup>().padding = new RectOffset(bordersize, bordersize, bordersize, bordersize);
-            box.GetComponent<RectTransform>().sizeDelta = size + (Vector2.one * 2f * bordersize);
-            return box;
         }
     }
 }
