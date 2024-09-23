@@ -29,7 +29,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private CustomPopup _quickChatPopup;
         private CustomPopup _modifiersPopup;
 
-        private Dictionary<GameModifiers.ModifierType, ModifierButton> _modifierButtonDict = new();
+        private Dictionary<GameModifiers.Metadata, ModifierButton> _modifierButtonDict = new();
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
         private CustomButton _selectSongButton, _startGameButton, _readyUpButton;
@@ -92,8 +92,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _modifiersPopup = GameModifierFactory.CreateModifiersPopup(buttonContainer.transform, Vector2.zero, new Vector2(64, 64), canvas.transform, new Vector2(350, 250), 38, new Vector2(32, 32));
             var hContainer = GameModifierFactory.CreatePopupContainer(_modifiersPopup, new Vector2(0, 130), 30, 5);
-            _modifierButtonDict.Add(GameModifiers.ModifierType.Hidden, new ModifierButton(hContainer.transform, GameModifiers.HIDDEN, false, new Vector2(64, 64), 6, 16, false));
-            _modifierButtonDict.Add(GameModifiers.ModifierType.Flashlight, new ModifierButton(hContainer.transform, GameModifiers.FLASHLIGHT, false, new Vector2(64, 64), 6, 16, false));
+            AddModifierButton(hContainer.transform, GameModifiers.HIDDEN);
+            AddModifierButton(hContainer.transform, GameModifiers.FLASHLIGHT);
 
             _hiddenUserCardSlider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _hiddenUserCardSlider.gameObject.SetActive(true);
@@ -231,6 +231,31 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             MultiplayerLogger.OnLogReceivedUpdate = UpdateLogText;
         }
 
+        private void AddModifierButton(Transform transform, GameModifiers.Metadata modifier)
+        {
+            var button = new ModifierButton(transform, modifier, false, new Vector2(64, 64), 6, 16, false, delegate { ToggleModifier(modifier); });
+            _modifierButtonDict.Add(modifier, button);
+        }
+
+        private void ToggleModifier(GameModifiers.Metadata modifier)
+        {
+            var mod = _modifierButtonDict[modifier];
+            if (!mod.canClickButtons) return;
+            mod.canClickButtons = false;
+            var card = _userCardsDict[TootTallyUser.userInfo.id];
+            var mods = GameModifierManager.GetModifierSet(card.user.mods);
+            if (mods.Contains(modifier))
+            {
+                mods.Remove(modifier);
+            }
+            else
+            {
+                mods.Add(modifier);
+            }
+            controller.SetModifiers(string.Join(",", mods.Select(i => i.Name)));
+            //controller.SetModifiers("HD");
+        }
+
         public void ResetData()
         {
             _userState = UserState.None;
@@ -253,7 +278,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private MultiplayerUserInfo _hostInfo;
         private List<MultiplayerUserInfo> _lastUsers;
-        public void DisplayAllUserInfo(List<MultiplayerUserInfo> users, MultiplayerLobbyInfo lobbyInfo)
+        public void UpdateLobbyInfo(List<MultiplayerUserInfo> users, MultiplayerLobbyInfo lobbyInfo)
         {
             if (_lastUsers != null)
             {
@@ -292,6 +317,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _titleText.text = lobbyInfo.title;
             _userCardsDict.Values.ToList().ForEach(item => item.teamChanger.SetActive(lobbyInfo.teams));
             _lobbySettingsInputPrompt.UpdateLobbyValues(lobbyInfo);
+            _modifiersPopup.openPopupButton.button.gameObject.SetActive(lobbyInfo.freemod);
         }
 
         public void UpdateScrolling(int userCount)
@@ -370,6 +396,22 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (IsHost && !controller.IsTimerStarted)
                 SetHostButtonText();
             UpdateScrolling(_userCardsDict.Count);
+            if (IsSelf(user.id))
+            {
+                GameModifierManager.LoadModifiersFromString(user.mods);
+                var mods = GameModifierManager.GetModifierSet(user.mods);
+                foreach (var modType in _modifierButtonDict.Keys)
+                {
+                    if (mods.Contains(modType))
+                    {
+                        _modifierButtonDict[modType].ToggleOn();
+                    }
+                    else
+                    {
+                        _modifierButtonDict[modType].ToggleOff();
+                    }
+                }
+            }
         }
 
         public void OnQuickChatReceived(int userID, QuickChat chat)

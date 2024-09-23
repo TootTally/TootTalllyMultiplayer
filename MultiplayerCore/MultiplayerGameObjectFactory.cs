@@ -33,7 +33,7 @@ namespace TootTallyMultiplayer
 
         private static void SetUserCardPrefab()
         {
-            _userCardPrefab = GameObject.Instantiate(GameModifierFactory.GetBorderedHorizontalBox(new Vector2(700, 72), 3));
+            _userCardPrefab = GameObject.Instantiate(GameModifierFactory.GetBorderedHorizontalBox(new Vector2(790, 72), 3));
             var teamChanger = GameObjectFactory.CreateCustomButton(_userCardPrefab.transform, Vector2.zero, new Vector2(25, 65), "R", "TeamChanger");
             var container = _userCardPrefab.transform.GetChild(0).gameObject;
             var horizontalLayout = container.GetComponent<HorizontalLayoutGroup>();
@@ -49,6 +49,12 @@ namespace TootTallyMultiplayer
 
             var textRank = GameObjectFactory.CreateSingleText(container.transform, $"Rank", $"", Vector2.one / 2f, new Vector2(190, 75), Theme.colors.leaderboard.text);
             textRank.alignment = TextAlignmentOptions.Right;
+
+            var modBox = GameModifierFactory.GetBorderedHorizontalBox(new Vector2(70, 72), 0, _userCardPrefab.transform);
+            var container2 = modBox.transform.GetChild(0).gameObject;
+            var textModifiers = GameObjectFactory.CreateSingleText(container2.transform, $"Modifiers", $"", Vector2.one / 2f, new Vector2(70, 75), Theme.colors.leaderboard.text);
+            textModifiers.alignment = TextAlignmentOptions.Center;
+
             teamChanger.transform.SetAsFirstSibling();
             GameObject.DontDestroyOnLoad(_userCardPrefab);
         }

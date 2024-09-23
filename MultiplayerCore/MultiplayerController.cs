@@ -218,7 +218,6 @@ namespace TootTallyMultiplayer
             RefreshAllLobbyInfo();
         }
 
-
         public void Update()
         {
             if (IsConnected && _multiConnection != null)
@@ -303,7 +302,7 @@ namespace TootTallyMultiplayer
             if (CurrentInstance != null)
             {
                 _currentUserState = (UserState)Enum.Parse(typeof(UserState), _currentLobby.players.Find(x => x.id == TootTallyUser.userInfo.id).state);
-                _multLobbyPanel.DisplayAllUserInfo(_currentLobby.players, lobbyInfo);
+                _multLobbyPanel.UpdateLobbyInfo(_currentLobby.players, lobbyInfo);
                 OnSongInfoReceived(_currentLobby.songInfo);
             }
         }
@@ -546,6 +545,8 @@ namespace TootTallyMultiplayer
 
         public void ChangeTeam(dynamic[] values) => _multiConnection.SendOptionInfo(OptionInfoType.ChangeTeam, values);
 
+        public void SetModifiers(string values) => _multiConnection.SendOptionInfo(OptionInfoType.SetModifiers, new dynamic[] { values });
+
         public void OnQuickChatReceived(int userID, QuickChat chat)
         {
             _multLobbyPanel?.OnQuickChatReceived(userID, chat);
@@ -575,6 +576,7 @@ namespace TootTallyMultiplayer
 
         public void OnOptionInfoReceived(SocketOptionInfo optionInfo)
         {
+            MultiplayerUserInfo user;
             switch (Enum.Parse(typeof(OptionInfoType), optionInfo.optionType))
             {
                 case OptionInfoType.StartGame:
@@ -612,8 +614,13 @@ namespace TootTallyMultiplayer
                     _multiLiveScoreController?.OnUserQuit((int)optionInfo.values[0]);
                     break;
                 case OptionInfoType.ChangeTeam:
-                    var user = GetUserFromLobby((int)optionInfo.values[1]);
+                    user = GetUserFromLobby((int)optionInfo.values[1]);
                     user.team = (int)optionInfo.values[0];
+                    _multLobbyPanel.UpdateUserInfo(user);
+                    break;
+                case OptionInfoType.SetModifiers:
+                    user = GetUserFromLobby((int)optionInfo.values[0]);
+                    user.mods = optionInfo.values[1];
                     _multLobbyPanel.UpdateUserInfo(user);
                     break;
             }

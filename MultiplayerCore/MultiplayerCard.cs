@@ -11,7 +11,7 @@ namespace TootTallyMultiplayer
     {
         public MultiplayerUserInfo user;
         public int hostId = 0;
-        public TMP_Text textName, textState, textRank;
+        public TMP_Text textName, textState, textRank, textModifiers;
         public GameObject teamChanger;
         public Image image;
         public Image containerImage;
@@ -24,15 +24,16 @@ namespace TootTallyMultiplayer
             textName = container.Find("Name").GetComponent<TMP_Text>();
             textState = container.Find("State").GetComponent<TMP_Text>();
             textRank = container.Find("Rank").GetComponent<TMP_Text>();
+            textModifiers = transform.GetChild(2).Find("Container/Modifiers").GetComponent<TMP_Text>();
 
             teamChanger = transform.GetChild(0).gameObject;
             var teamCount = Enum.GetNames(typeof(MultiplayerTeamState)).Length;
             teamChanger.GetComponent<Button>().onClick.AddListener(() =>
             {
                 if (TootTallyUser.userInfo.id == hostId)
-                    changeTeam(new dynamic[] { (user.team + 1) % 2, user.id });
+                    changeTeam(new dynamic[] { (user.team + 1) % teamCount, user.id });
                 else
-                    changeTeam(new dynamic[] { (user.team + 1) % 2 });
+                    changeTeam(new dynamic[] { (user.team + 1) % teamCount });
             });
 
             image = gameObject.GetComponent<Image>();
@@ -74,6 +75,17 @@ namespace TootTallyMultiplayer
             textName.text = user.username;
             textState.text = state ?? user.state;
             textRank.text = $"#{user.rank}";
+            if (string.IsNullOrEmpty(user.mods))
+            {
+                transform.GetChild(2).gameObject.SetActive(false);
+                transform.GetComponent<RectTransform>().sizeDelta = new Vector2(707, 72);
+            }
+            else
+            {
+                transform.GetChild(2).gameObject.SetActive(true);
+                transform.GetComponent<RectTransform>().sizeDelta = new Vector2(790, 72);
+                textModifiers.text = user.mods;
+            }
             UpdateTeamColor((MultiplayerTeamState)user.team);
         }
     }
