@@ -253,7 +253,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 mods.Add(modifier);
             }
             controller.SetModifiers(string.Join(",", mods.Select(i => i.Name)));
-            //controller.SetModifiers("HD");
         }
 
         public void ResetData()

@@ -20,7 +20,6 @@ using TootTallyMultiplayer.MultiplayerCore.PointScore;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using WebSocketSharp;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
 
