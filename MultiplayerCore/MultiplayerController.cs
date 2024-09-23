@@ -21,7 +21,6 @@ using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using WebSocketSharp;
-using static Rewired.Controller;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
 

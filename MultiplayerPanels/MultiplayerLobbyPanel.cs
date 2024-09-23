@@ -91,9 +91,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _quickChatPopup = MultiplayerGameObjectFactory.CreateQuickChatPopup(buttonContainer.transform, canvas.transform, OnSendQuickChatButtonClick);
 
             _modifiersPopup = GameModifierFactory.CreateModifiersPopup(buttonContainer.transform, Vector2.zero, new Vector2(64, 64), canvas.transform, new Vector2(350, 250), 38, new Vector2(32, 32));
-            var hContainer = GameModifierFactory.CreatePopupContainer(_modifiersPopup, new Vector2(0, 130), 30, 5); ;
-            _modifierButtonDict.Add(GameModifiers.ModifierType.Hidden, new ModifierButton(hContainer.transform, GameModifiers.HIDDEN, false, new Vector2(64, 64), 16, false));
-            _modifierButtonDict.Add(GameModifiers.ModifierType.Flashlight, new ModifierButton(hContainer.transform, GameModifiers.FLASHLIGHT, false, new Vector2(64, 64), 16, false));
+            var hContainer = GameModifierFactory.CreatePopupContainer(_modifiersPopup, new Vector2(0, 130), 30, 5);
+            _modifierButtonDict.Add(GameModifiers.ModifierType.Hidden, new ModifierButton(hContainer.transform, GameModifiers.HIDDEN, false, new Vector2(64, 64), 6, 16, false));
+            _modifierButtonDict.Add(GameModifiers.ModifierType.Flashlight, new ModifierButton(hContainer.transform, GameModifiers.FLASHLIGHT, false, new Vector2(64, 64), 6, 16, false));
 
             _hiddenUserCardSlider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _hiddenUserCardSlider.gameObject.SetActive(true);
