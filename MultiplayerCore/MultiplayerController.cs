@@ -56,6 +56,7 @@ namespace TootTallyMultiplayer
         public bool IsConnectionPending;
         public bool IsDownloadPending;
         public bool IsTimerStarted;
+        public bool IsFreemod => _currentLobby.freemod;
         public bool IsConnected => _multiConnection != null && _multiConnection.IsConnected;
         public bool IsAnybodyLoading => _currentLobby.players.Where(x => x.id != TootTallyUser.userInfo.id).Any(x => x.state == "Loading");
 
@@ -235,10 +236,10 @@ namespace TootTallyMultiplayer
         public void UpdateConnection()
         {
             IsConnectionPending = false;
-            LobbyCode = _multiConnection.GetServerID.Split('?')[0]; //Crop the password part of the lobby
-            TootTallyNotifManager.DisplayNotif("Connected to " + LobbyCode);
+            var lobbyCode = _multiConnection.GetServerID.Split('?')[0]; //Crop the password part of the lobby
+            TootTallyNotifManager.DisplayNotif("Connected to " + lobbyCode);
             MultiplayerLogger.ClearLogs();
-            MultiplayerLogger.ServerLog($"Connected to {LobbyCode}");
+            MultiplayerLogger.ServerLog($"Connected to {lobbyCode}");
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
             OnLobbyConnectionSuccess();
         }
