@@ -10,7 +10,7 @@ namespace TootTallyMultiplayer
     public class MultiplayerCard : MonoBehaviour
     {
         public MultiplayerUserInfo user;
-        public int hostId = 0;
+        public bool isHost = false;
         public TMP_Text textName, textState, textRank, textModifiers;
         public GameObject teamChanger;
         public Image image;
@@ -30,7 +30,7 @@ namespace TootTallyMultiplayer
             var teamCount = Enum.GetNames(typeof(MultiplayerTeamState)).Length;
             teamChanger.GetComponent<Button>().onClick.AddListener(() =>
             {
-                if (TootTallyUser.userInfo.id == hostId)
+                if (isHost)
                     changeTeam(new dynamic[] { (user.team + 1) % teamCount, user.id });
                 else
                     changeTeam(new dynamic[] { (user.team + 1) % teamCount });
@@ -67,9 +67,10 @@ namespace TootTallyMultiplayer
             teamChanger.gameObject.GetComponentInChildren<Text>().text = text;
         }
 
-        public void UpdateUserCard(MultiplayerUserInfo user, string state = null)
+        public void UpdateUserCard(MultiplayerUserInfo user, string state, bool isHost)
         {
             this.user = user;
+            this.isHost = isHost;
             image.color = _defaultColor;
             containerImage.color = _defaultContainerColor;
             textName.text = user.username;

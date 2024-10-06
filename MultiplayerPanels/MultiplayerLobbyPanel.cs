@@ -240,8 +240,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private void ToggleModifier(GameModifiers.Metadata modifier)
         {
             var mod = _modifierButtonDict[modifier];
-            if (!mod.canClickButtons) return;
-            mod.canClickButtons = false;
+            if (mod.onCooldown) return;
+            mod.onCooldown = true;
             var card = _userCardsDict[TootTallyUser.userInfo.id];
             var mods = GameModifierManager.GetModifierSet(card.user.mods);
             if (mods.Contains(modifier))
@@ -353,7 +353,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 OnUserStateChange(parsedState);
 
             var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform, controller.ChangeTeam);
-            userCard.hostId = _hostInfo.id;
             _userCardsDict.Add(user.id, userCard);
 
             var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.container, Vector2.zero, new Vector2(100, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
@@ -383,8 +382,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_userState == UserState.None && IsSelf(user.id))
                 OnUserStateChange(parsedState);
 
-            userCard.hostId = _hostInfo.id;
-            userCard.UpdateUserCard(user, displayedState);
+            userCard.UpdateUserCard(user, displayedState, IsHost);
             userCard.teamChanger.gameObject.GetComponent<Button>().interactable = IsSelf(user.id) || IsHost;
 
             _readyCount = _userCardsDict.Values.Where(x => x.user.state == "Ready" && !IsSelf(x.user.id)).Count() + 1;

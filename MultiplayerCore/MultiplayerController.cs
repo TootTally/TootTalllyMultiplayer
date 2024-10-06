@@ -344,7 +344,7 @@ namespace TootTallyMultiplayer
 
             savedSongInfo = songInfo;
             TootTallyGlobalVariables.gameSpeedMultiplier = songInfo.gameSpeed;
-            GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
+            if (songInfo.modifiers != "FM") GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
 
             float diffIndex = (int)((songInfo.gameSpeed - .5f) / .25f);
 
