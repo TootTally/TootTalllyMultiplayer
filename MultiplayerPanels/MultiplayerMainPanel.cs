@@ -5,6 +5,7 @@ using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyNotifs;
+using TootTallyGameModifiers;
 using TootTallyMultiplayer.APIService;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -148,8 +149,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void DisplayLobby(MultiplayerLobbyInfo lobbyInfo, bool shouldAnimate)
         {
-
-            var lobbyContainer = MultiplayerGameObjectFactory.GetHorizontalBox(new Vector2(0, 120), lobbyListContainer.transform);
+            var lobbyContainer = GameModifierFactory.GetHorizontalBox(new Vector2(0, 120), lobbyListContainer.transform);
             lobbyContainer.GetComponent<Image>().enabled = true;
             _lobbyInfoRowsList.Add(lobbyContainer);
             var button = lobbyContainer.AddComponent<EventTrigger>();
@@ -165,7 +165,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             button.triggers.Add(pointerClickEvent);
 
             button.triggers.Add(_pointerExitLobbyContainerEvent);
-            var test = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(lobbyInfo.hasPassword ? 1020 : 1084, 0), lobbyContainer.transform);
+            var test = GameModifierFactory.GetVerticalBox(new Vector2(lobbyInfo.hasPassword ? 1020 : 1084, 0), lobbyContainer.transform);
             var tLayout = test.GetComponent<VerticalLayoutGroup>();
             tLayout.childForceExpandHeight = tLayout.childControlHeight = true;
 
@@ -183,7 +183,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var lockedIcon = GameObjectFactory.CreateImageHolder(lobbyContainer.transform, Vector2.zero, Vector2.one * 64f, AssetManager.GetSprite("lock.png"), "LockedLobbyIcon");
             lockedIcon.SetActive(lobbyInfo.hasPassword);
 
-            var test2 = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(90, 0), lobbyContainer.transform);
+            var test2 = GameModifierFactory.GetVerticalBox(new Vector2(90, 0), lobbyContainer.transform);
             var t2Layout = test2.GetComponent<VerticalLayoutGroup>();
             t2Layout.childForceExpandHeight = t2Layout.childControlHeight = true;
 

@@ -1,9 +1,9 @@
-﻿using Mono.Cecil.Cil;
-using TMPro;
+﻿using TMPro;
 using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
+using TootTallyGameModifiers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -73,7 +73,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
             _nameText = GameObjectFactory.CreateSingleText(container, "Name", "Unknown");
             _nameText.rectTransform.sizeDelta = new Vector2(66, 0);
 
-            var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), container);
+            var vBox = GameModifierFactory.GetVerticalBox(new Vector2(60, 0), container);
             vBox.GetComponent<Image>().enabled = false;
             var vBoxLayout = vBox.GetComponent<VerticalLayoutGroup>();
             vBoxLayout.childForceExpandHeight = false;

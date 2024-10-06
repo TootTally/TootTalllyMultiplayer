@@ -2,6 +2,7 @@
 using TootTallyAccounts;
 using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
+using TootTallyGameModifiers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -55,7 +56,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.PointScore
             _percentText = GameObjectFactory.CreateSingleText(container, "Percent", "-%");
             _percentText.rectTransform.sizeDelta = new Vector2(30, 0);
 
-            var vBox = MultiplayerGameObjectFactory.GetVerticalBox(new Vector2(60, 0), container);
+            var vBox = GameModifierFactory.GetVerticalBox(new Vector2(60, 0), container);
             vBox.GetComponent<Image>().enabled = false;
             var vBoxLayout = vBox.GetComponent<VerticalLayoutGroup>();
             vBoxLayout.childForceExpandHeight = false;

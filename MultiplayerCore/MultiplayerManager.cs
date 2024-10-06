@@ -163,6 +163,7 @@ namespace TootTallyMultiplayer
         {
             GameObject mainCanvas = GameObject.Find("MainCanvas").gameObject;
             GameObject mainMenu = mainCanvas.transform.Find("MainMenu").gameObject;
+            MultiplayerGameObjectFactory.SetTogglePrefab(__instance);
 
             #region MultiplayerButton
             GameObject multiplayerButton = GameObject.Instantiate(__instance.btncontainers[(int)HomeScreenButtonIndexes.Collect], mainMenu.transform);
@@ -619,22 +620,31 @@ namespace TootTallyMultiplayer
         #region GameModifiers Patches
         [HarmonyPatch(typeof(GameModifierManager), nameof(GameModifierManager.Toggle))]
         [HarmonyPrefix]
-        public static bool PreventBrutalAndInstaFailToggles(GameModifiers.ModifierType modifierType)
+        public static bool PreventToggles(GameModifiers.ModifierType modifierType)
         {
-            if (IsPlayingMultiplayer || IsConnectedToMultiplayer || _isSceneActive)
+            if (!IsPlayingMultiplayer && !IsConnectedToMultiplayer && !_isSceneActive) return true;
+            if (modifierType == GameModifiers.ModifierType.Hidden && _multiController.IsFreemod)
             {
-                if (modifierType == GameModifiers.ModifierType.Brutal)
-                {
-                    TootTallyNotifManager.DisplayNotif("Cannot enable Brutal Mode in multiplayer.");
-                    return false;
-                }
-                else if (modifierType == GameModifiers.ModifierType.InstaFail)
-                {
-                    TootTallyNotifManager.DisplayNotif("Cannot enable InstaFail in multiplayer.");
-                    return false;
-                }
-
+                TootTallyNotifManager.DisplayNotif("Cannot enable Hidden with freemod.");
+                return false;
             }
+            if (modifierType == GameModifiers.ModifierType.Flashlight && _multiController.IsFreemod)
+            {
+                TootTallyNotifManager.DisplayNotif("Cannot enable Flashlight with freemod.");
+                return false;
+            }
+
+            if (modifierType == GameModifiers.ModifierType.Brutal)
+            {
+                TootTallyNotifManager.DisplayNotif("Cannot enable Brutal Mode in multiplayer.");
+                return false;
+            }
+            else if (modifierType == GameModifiers.ModifierType.InstaFail)
+            {
+                TootTallyNotifManager.DisplayNotif("Cannot enable InstaFail in multiplayer.");
+                return false;
+            }
+
             return true;
         }
         #endregion

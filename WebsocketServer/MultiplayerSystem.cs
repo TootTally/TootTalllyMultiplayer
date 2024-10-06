@@ -3,7 +3,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyWebsocketLibs;
 using WebSocketSharp;
@@ -49,16 +48,9 @@ namespace TootTallyMultiplayer
             SendSongHash(socketSetSongByHash);
         }
 
-        public void SendSetLobbyInfo(string name, string description, string password, int maxPlayer)
+        public void SendSetLobbyInfo(SocketSetLobbyInfo lobbyInfo)
         {
-            SocketSetLobbyInfo socketSetLobbyInfo = new SocketSetLobbyInfo()
-            {
-                name = name,
-                description = description,
-                password = password,
-                maxPlayer = maxPlayer
-            };
-            var json = JsonConvert.SerializeObject(socketSetLobbyInfo);
+            var json = JsonConvert.SerializeObject(lobbyInfo);
             SendToSocket(json);
         }
 
@@ -83,7 +75,7 @@ namespace TootTallyMultiplayer
             SendOptionInfo(OptionInfoType.UpdateUserState, new dynamic[] { state.ToString() });
 
         public void SendUpdateScore(int score, int combo, int health, int tally) =>
-            SendOptionInfo(OptionInfoType.UpdateScore, new dynamic[] { score, combo, health, tally});    
+            SendOptionInfo(OptionInfoType.UpdateScore, new dynamic[] { score, combo, health, tally});
 
         public void UpdateStacks()
         {
@@ -117,7 +109,6 @@ namespace TootTallyMultiplayer
 
         protected override void OnWebSocketOpen(object sender, EventArgs e)
         {
-            TootTallyNotifManager.DisplayNotif($"Connected to multiplayer server.");
             OnWebSocketOpenCallback?.Invoke();
             base.OnWebSocketOpen(sender, e);
         }
@@ -198,6 +189,8 @@ namespace TootTallyMultiplayer
             FinalScore,
             QuickChat,
             Quit,
+            ChangeTeam,
+            SetModifiers,
 
             //Host Commands
             GiveHost,
@@ -230,7 +223,10 @@ namespace TootTallyMultiplayer
             public string description;
             public string password;
             public int maxPlayer;
-            public string dataType => DataType.SetSong.ToString();
+            public bool autorotate;
+            public bool teams;
+            public bool freemod;
+            public string dataType => DataType.SetLobbyInfo.ToString();
         }
 
         public struct SocketOptionInfo : ISocketMessage
@@ -251,7 +247,6 @@ namespace TootTallyMultiplayer
             public MultiplayerSongInfo songInfo { get; set; }
             public string dataType => DataType.SongInfo.ToString();
         }
-
 
         public class SocketDataConverter : JsonConverter
         {
@@ -310,7 +305,7 @@ namespace TootTallyMultiplayer
             {QuickChat.Laugh, "Ahah!" },
             {QuickChat.Enjoy, "Im enjoying this lobby!" },
             {QuickChat.WantHost, "Can I have host?" },
-            {QuickChat.GiveHost, "Who want to be host?" }
+            {QuickChat.GiveHost, "Who wants to be host?" }
         };
     }
 }
