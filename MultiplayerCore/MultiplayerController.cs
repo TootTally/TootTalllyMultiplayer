@@ -576,7 +576,6 @@ namespace TootTallyMultiplayer
 
         public void OnOptionInfoReceived(SocketOptionInfo optionInfo)
         {
-            MultiplayerUserInfo user;
             switch (Enum.Parse(typeof(OptionInfoType), optionInfo.optionType))
             {
                 case OptionInfoType.StartGame:
@@ -614,14 +613,10 @@ namespace TootTallyMultiplayer
                     _multiLiveScoreController?.OnUserQuit((int)optionInfo.values[0]);
                     break;
                 case OptionInfoType.ChangeTeam:
-                    user = GetUserFromLobby((int)optionInfo.values[1]);
-                    user.team = (int)optionInfo.values[0];
-                    _multLobbyPanel.UpdateUserInfo(user);
+                    _multLobbyPanel.UpdateTeam((int)optionInfo.values[1], (int)optionInfo.values[0]);
                     break;
                 case OptionInfoType.SetModifiers:
-                    user = GetUserFromLobby((int)optionInfo.values[0]);
-                    user.mods = optionInfo.values[1];
-                    _multLobbyPanel.UpdateUserInfo(user);
+                    _multLobbyPanel.UpdateMods((int)optionInfo.values[0], optionInfo.values[1]);
                     break;
             }
         }

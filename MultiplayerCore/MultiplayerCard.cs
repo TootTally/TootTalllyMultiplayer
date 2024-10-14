@@ -1,6 +1,5 @@
 ﻿using System;
 using TMPro;
-using TootTallyAccounts;
 using UnityEngine;
 using UnityEngine.UI;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
@@ -43,9 +42,10 @@ namespace TootTallyMultiplayer
             _defaultContainerColor = containerImage.color;
         }
 
-        private void UpdateTeamColor(MultiplayerTeamState team)
+        public void UpdateTeamColor(int team)
         {
-            switch (team)
+            user.team = team;
+            switch ((MultiplayerTeamState)team)
             {
                 case MultiplayerTeamState.Red:
                     UpdateTeamColor(new Color(1, 0, 0), "R"); break;
@@ -76,7 +76,14 @@ namespace TootTallyMultiplayer
             textName.text = user.username;
             textState.text = state ?? user.state;
             textRank.text = $"#{user.rank}";
-            if (string.IsNullOrEmpty(user.mods))
+            UpdateMods(user.mods);
+            UpdateTeamColor(user.team);
+        }
+
+        public void UpdateMods(string mods)
+        {
+            user.mods = mods;
+            if (string.IsNullOrEmpty(mods))
             {
                 transform.GetChild(2).gameObject.SetActive(false);
                 transform.GetComponent<RectTransform>().sizeDelta = new Vector2(707, 72);
@@ -85,9 +92,8 @@ namespace TootTallyMultiplayer
             {
                 transform.GetChild(2).gameObject.SetActive(true);
                 transform.GetComponent<RectTransform>().sizeDelta = new Vector2(790, 72);
-                textModifiers.text = user.mods;
+                textModifiers.text = mods;
             }
-            UpdateTeamColor((MultiplayerTeamState)user.team);
         }
     }
 }

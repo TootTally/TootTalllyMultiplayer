@@ -393,13 +393,34 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (IsHost && !controller.IsTimerStarted)
                 SetHostButtonText();
             UpdateScrolling(_userCardsDict.Count);
-            if (IsSelf(user.id))
+            SetOwnMods(user.id, user.mods);
+        }
+
+        public void UpdateMods(int id, string mods)
+        {
+            if (!_userCardsDict.ContainsKey(id)) return;
+            var userCard = _userCardsDict[id];
+            userCard.UpdateMods(mods);
+            SetOwnMods(id, mods);
+        }
+
+        public void UpdateTeam(int id, int team)
+        {
+            if (!_userCardsDict.ContainsKey(id)) return;
+            var userCard = _userCardsDict[id];
+            userCard.UpdateTeamColor(team);
+            userCard.teamChanger.gameObject.GetComponent<Button>().interactable = IsSelf(id) || IsHost;
+        }
+
+        private void SetOwnMods(int id, string mods)
+        {
+            if (IsSelf(id))
             {
-                GameModifierManager.LoadModifiersFromString(user.mods);
-                var mods = GameModifierManager.GetModifierSet(user.mods);
+                GameModifierManager.LoadModifiersFromString(mods);
+                var modifiers = GameModifierManager.GetModifierSet(mods);
                 foreach (var modType in _modifierButtonDict.Keys)
                 {
-                    if (mods.Contains(modType))
+                    if (modifiers.Contains(modType))
                     {
                         _modifierButtonDict[modType].ToggleOn();
                     }
