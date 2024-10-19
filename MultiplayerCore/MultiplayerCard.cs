@@ -83,17 +83,7 @@ namespace TootTallyMultiplayer
         public void UpdateMods(string mods)
         {
             user.mods = mods;
-            if (string.IsNullOrEmpty(mods))
-            {
-                transform.GetChild(2).gameObject.SetActive(false);
-                transform.GetComponent<RectTransform>().sizeDelta = new Vector2(707, 72);
-            }
-            else
-            {
-                transform.GetChild(2).gameObject.SetActive(true);
-                transform.GetComponent<RectTransform>().sizeDelta = new Vector2(790, 72);
-                textModifiers.text = mods;
-            }
+            textModifiers.text = mods;
         }
     }
 }

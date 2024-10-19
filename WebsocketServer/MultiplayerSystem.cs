@@ -304,7 +304,7 @@ namespace TootTallyMultiplayer
 
             {QuickChat.Laugh, "Ahah!" },
             {QuickChat.Enjoy, "Im enjoying this lobby!" },
-            {QuickChat.WantHost, "Can I have host?" },
+            {QuickChat.WantHost, "I want to be host." },
             {QuickChat.GiveHost, "Who wants to be host?" }
         };
     }
