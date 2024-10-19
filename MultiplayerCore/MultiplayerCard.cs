@@ -9,16 +9,20 @@ namespace TootTallyMultiplayer
     public class MultiplayerCard : MonoBehaviour
     {
         public MultiplayerUserInfo user;
-        public bool isHost = false;
         public TMP_Text textName, textState, textRank, textModifiers;
         public GameObject teamChanger;
         public Image image;
         public Image containerImage;
         public Transform container;
+        private Button _teamChangerButton;
+        private Text _teamChangerText;
         private Color _defaultColor, _defaultContainerColor;
+        private MultiplayerController _controller;
+        public static readonly int TEAM_COUNT = Enum.GetNames(typeof(MultiplayerTeamState)).Length;
 
-        public void Init(Action<dynamic[]> changeTeam)
+        public void Init(MultiplayerController controller)
         {
+            _controller = controller;
             container = transform.GetChild(1);
             textName = container.Find("Name").GetComponent<TMP_Text>();
             textState = container.Find("State").GetComponent<TMP_Text>();
@@ -26,13 +30,11 @@ namespace TootTallyMultiplayer
             textModifiers = transform.GetChild(2).Find("Container/Modifiers").GetComponent<TMP_Text>();
 
             teamChanger = transform.GetChild(0).gameObject;
-            var teamCount = Enum.GetNames(typeof(MultiplayerTeamState)).Length;
-            teamChanger.GetComponent<Button>().onClick.AddListener(() =>
+            _teamChangerText = teamChanger.gameObject.GetComponentInChildren<Text>();
+            _teamChangerButton = teamChanger.GetComponent<Button>();
+            _teamChangerButton.onClick.AddListener(() =>
             {
-                if (isHost)
-                    changeTeam(new dynamic[] { (user.team + 1) % teamCount, user.id });
-                else
-                    changeTeam(new dynamic[] { (user.team + 1) % teamCount });
+                controller.ChangeTeam(new dynamic[] { (user.team + 1) % TEAM_COUNT, user.id });
             });
 
             image = gameObject.GetComponent<Image>();
@@ -45,18 +47,20 @@ namespace TootTallyMultiplayer
         public void UpdateTeamColor(int team)
         {
             user.team = team;
-            switch ((MultiplayerTeamState)team)
+            switch (team)
             {
-                case MultiplayerTeamState.Red:
-                    UpdateTeamColor(new Color(1, 0, 0), "R"); break;
-                case MultiplayerTeamState.Blue:
-                    UpdateTeamColor(new Color(0, 0, 1), "B"); break;
+                case (int)MultiplayerTeamState.Red:
+                    UpdateTeamColor(new Color(1, 0, 0), "R");
+                    break;
+                case (int)MultiplayerTeamState.Blue:
+                    UpdateTeamColor(new Color(0, 0, 1), "B");
+                    break;
             }
         }
 
         private void UpdateTeamColor(Color mainColor, string text)
         {
-            teamChanger.gameObject.GetComponent<Button>().colors = new ColorBlock
+            _teamChangerButton.colors = new ColorBlock
             {
                 normalColor = mainColor,
                 highlightedColor = new Color(mainColor.r + 0.3f, mainColor.g + 0.3f, mainColor.b + 0.3f),
@@ -64,13 +68,12 @@ namespace TootTallyMultiplayer
                 disabledColor = mainColor,
                 colorMultiplier = 1,
             };
-            teamChanger.gameObject.GetComponentInChildren<Text>().text = text;
+            _teamChangerText.text = text;
         }
 
-        public void UpdateUserCard(MultiplayerUserInfo user, string state, bool isHost)
+        public void UpdateUserCard(MultiplayerUserInfo user, string state)
         {
             this.user = user;
-            this.isHost = isHost;
             image.color = _defaultColor;
             containerImage.color = _defaultContainerColor;
             textName.text = user.username;

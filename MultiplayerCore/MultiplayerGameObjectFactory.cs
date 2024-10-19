@@ -176,10 +176,10 @@ namespace TootTallyMultiplayer
             return pointScoreObject;
         }
 
-        public static MultiplayerCard CreateUserCard(Transform canvasTransform, Action<dynamic[]> changeTeam)
+        public static MultiplayerCard CreateUserCard(Transform canvasTransform, MultiplayerController controller)
         {
             var userCard = GameObject.Instantiate(_userCardPrefab, canvasTransform).AddComponent<MultiplayerCard>();
-            userCard.Init(changeTeam);
+            userCard.Init(controller);
             return userCard;
         }
 

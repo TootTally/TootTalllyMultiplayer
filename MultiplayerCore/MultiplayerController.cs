@@ -613,9 +613,11 @@ namespace TootTallyMultiplayer
                     _multiLiveScoreController?.OnUserQuit((int)optionInfo.values[0]);
                     break;
                 case OptionInfoType.ChangeTeam:
+                    //id - teamID
                     _multLobbyPanel.UpdateTeam((int)optionInfo.values[1], (int)optionInfo.values[0]);
                     break;
                 case OptionInfoType.SetModifiers:
+                    //id - mods
                     _multLobbyPanel.UpdateMods((int)optionInfo.values[0], optionInfo.values[1]);
                     break;
             }

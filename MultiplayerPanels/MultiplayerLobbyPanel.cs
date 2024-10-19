@@ -352,7 +352,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_userState == UserState.None && IsSelf(user.id))
                 OnUserStateChange(parsedState);
 
-            var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform, controller.ChangeTeam);
+            var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform, controller);
             _userCardsDict.Add(user.id, userCard);
 
             var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.container, Vector2.zero, new Vector2(100, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
@@ -382,7 +382,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_userState == UserState.None && IsSelf(user.id))
                 OnUserStateChange(parsedState);
 
-            userCard.UpdateUserCard(user, displayedState, IsHost);
+            userCard.UpdateUserCard(user, displayedState);
             userCard.teamChanger.gameObject.GetComponent<Button>().interactable = IsSelf(user.id) || IsHost;
 
             _readyCount = _userCardsDict.Values.Where(x => x.user.state == "Ready" && !IsSelf(x.user.id)).Count() + 1;
