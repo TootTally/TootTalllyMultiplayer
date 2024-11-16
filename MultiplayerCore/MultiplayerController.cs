@@ -20,7 +20,6 @@ using TootTallyMultiplayer.MultiplayerCore.PointScore;
 using TootTallyMultiplayer.MultiplayerPanels;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static Rewired.Controller;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
 
@@ -57,11 +56,13 @@ namespace TootTallyMultiplayer
         public bool IsConnectionPending;
         public bool IsDownloadPending;
         public bool IsTimerStarted;
+        public bool IsFreemod => _currentLobby.freemod;
         public bool IsConnected => _multiConnection != null && _multiConnection.IsConnected;
         public bool IsAnybodyLoading => _currentLobby.players.Where(x => x.id != TootTallyUser.userInfo.id).Any(x => x.state == "Loading");
 
         public bool IsRequestPending => _multCreatePanel.IsRequestPending || IsConnectionPending;
         public bool IsDevMode => TootTallyUser.userInfo.dev || TootTallyUser.userInfo.moderator;
+        public string LobbyCode;
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -217,7 +218,6 @@ namespace TootTallyMultiplayer
             RefreshAllLobbyInfo();
         }
 
-
         public void Update()
         {
             if (IsConnected && _multiConnection != null)
@@ -236,10 +236,10 @@ namespace TootTallyMultiplayer
         public void UpdateConnection()
         {
             IsConnectionPending = false;
-            var serverName = _multiConnection.GetServerID.Split('?')[0]; //Crop the password part of the lobby
-            TootTallyNotifManager.DisplayNotif("Connected to " + serverName);
+            var lobbyCode = _multiConnection.GetServerID.Split('?')[0]; //Crop the password part of the lobby
+            TootTallyNotifManager.DisplayNotif("Connected to " + lobbyCode);
             MultiplayerLogger.ClearLogs();
-            MultiplayerLogger.ServerLog($"Connected to {serverName}");
+            MultiplayerLogger.ServerLog($"Connected to {lobbyCode}");
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.Lobby);
             OnLobbyConnectionSuccess();
         }
@@ -302,8 +302,7 @@ namespace TootTallyMultiplayer
             if (CurrentInstance != null)
             {
                 _currentUserState = (UserState)Enum.Parse(typeof(UserState), _currentLobby.players.Find(x => x.id == TootTallyUser.userInfo.id).state);
-                _multLobbyPanel.DisplayAllUserInfo(_currentLobby.players);
-                _multLobbyPanel.OnLobbyInfoReceived(lobbyInfo.title, lobbyInfo.players.Count, lobbyInfo.maxPlayerCount);
+                _multLobbyPanel.UpdateLobbyInfo(_currentLobby.players, lobbyInfo);
                 OnSongInfoReceived(_currentLobby.songInfo);
             }
         }
@@ -345,7 +344,7 @@ namespace TootTallyMultiplayer
 
             savedSongInfo = songInfo;
             TootTallyGlobalVariables.gameSpeedMultiplier = songInfo.gameSpeed;
-            GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
+            if (songInfo.modifiers != "FM") GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
 
             float diffIndex = (int)((songInfo.gameSpeed - .5f) / .25f);
 
@@ -543,12 +542,17 @@ namespace TootTallyMultiplayer
 
         public void SendQuickChat(QuickChat chat) => _multiConnection.SendOptionInfo(OptionInfoType.QuickChat, new dynamic[] { (int)chat });
         public void SendQuickChat(int chatId) => _multiConnection.SendOptionInfo(OptionInfoType.QuickChat, new dynamic[] { chatId });
+
+        public void ChangeTeam(dynamic[] values) => _multiConnection.SendOptionInfo(OptionInfoType.ChangeTeam, values);
+
+        public void SetModifiers(string values) => _multiConnection.SendOptionInfo(OptionInfoType.SetModifiers, new dynamic[] { values });
+
         public void OnQuickChatReceived(int userID, QuickChat chat)
         {
             _multLobbyPanel?.OnQuickChatReceived(userID, chat);
         }
 
-        public void SendSetLobbySettings(string name, string description, string password, int maxPlayer) => _multiConnection.SendSetLobbyInfo(name, description, password, maxPlayer);
+        public void SendSetLobbySettings(SocketSetLobbyInfo lobbyInfo) => _multiConnection.SendSetLobbyInfo(lobbyInfo);
 
         public void OpenSongLink()
         {
@@ -581,7 +585,7 @@ namespace TootTallyMultiplayer
                 case OptionInfoType.AbortGame:
                     AbortTimer(); break;
                 case OptionInfoType.KickFromLobby:
-                    if (TootTallyAccounts.TootTallyUser.userInfo.id == (int)optionInfo.values[0])
+                    if (TootTallyUser.userInfo.id == (int)optionInfo.values[0])
                         DisconnectFromLobby();
                     break;
                 case OptionInfoType.QuickChat:
@@ -608,7 +612,14 @@ namespace TootTallyMultiplayer
                     //id
                     _multiLiveScoreController?.OnUserQuit((int)optionInfo.values[0]);
                     break;
-
+                case OptionInfoType.ChangeTeam:
+                    //id - teamID
+                    _multLobbyPanel.UpdateTeam((int)optionInfo.values[1], (int)optionInfo.values[0]);
+                    break;
+                case OptionInfoType.SetModifiers:
+                    //id - mods
+                    _multLobbyPanel.UpdateMods((int)optionInfo.values[0], optionInfo.values[1]);
+                    break;
             }
         }
 
@@ -617,7 +628,13 @@ namespace TootTallyMultiplayer
         #region MultiConnectionRequests
         public void SendSongFinishedToLobby() => _multiConnection?.SendOptionInfo(OptionInfoType.SongFinished);
         public void SendQuitFlag() => _multiConnection?.SendOptionInfo(OptionInfoType.Quit);
-        public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers) => _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
+
+        public void SendSongHashToLobby(string songHash, float gamespeed, string modifiers)
+        {
+            modifiers = _currentLobby.freemod ? "FM" : modifiers;
+            _multiConnection?.SendSongHash(songHash, gamespeed, modifiers);
+        }
+
         public void SendScoreDataToLobby(int score, int combo, int health, int tally)
         {
             _multiConnection?.SendUpdateScore(score, combo, health, tally);

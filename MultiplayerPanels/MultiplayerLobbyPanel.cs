@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using TMPro;
 using TootTallyAccounts;
@@ -9,6 +8,7 @@ using TootTallyCore.Graphics;
 using TootTallyCore.Graphics.Animations;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyNotifs;
+using TootTallyGameModifiers;
 using TootTallyLeaderboard;
 using TootTallyMultiplayer.MultiplayerCore;
 using TootTallyMultiplayer.MultiplayerCore.InputPrompts;
@@ -26,10 +26,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject titleContainer, songDescContainer, buttonContainer;
         public GameObject songInfoContainer, songInfoTop, songInfoBottom;
 
-        private GameObject _quickChatPopup;
-        private TootTallyAnimation _quickChatAnimation;
-        private bool _isQuickChatPopupEnabled;
+        private CustomPopup _quickChatPopup;
+        private CustomPopup _modifiersPopup;
 
+        private Dictionary<GameModifiers.Metadata, ModifierButton> _modifierButtonDict = new();
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
         private CustomButton _selectSongButton, _startGameButton, _readyUpButton;
@@ -65,7 +65,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private float _lastLobbyContainerPosY;
         private Vector3 _lobbyContainerScrollingDistance;
 
-        private bool _canPressButton, _canDoQuickChat;
+        private bool _canPressButton, _canDoQuickChat = true;
 
         private UserState _userState;
 
@@ -88,12 +88,16 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             songDescContainer = rightPanelContainer.transform.GetChild(2).gameObject;
             buttonContainer = rightPanelContainer.transform.GetChild(3).gameObject;
 
-            _quickChatPopup = MultiplayerGameObjectFactory.CreateQuickChatPopup(canvas.transform, OnSendQuickChatButtonClick, QuickChatOnCloseAnimation);
-            _quickChatPopup.name = "QuickChat";
-            _canDoQuickChat = true;
-            _isQuickChatPopupEnabled = false;
+            _quickChatPopup = MultiplayerGameObjectFactory.CreateQuickChatPopup(buttonContainer.transform, canvas.transform, OnSendQuickChatButtonClick);
 
-            GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), "QuickChatButton", OnQuickChatOpenButtonClick);
+            _modifiersPopup = GameModifierFactory.CreateModifiersPopup(buttonContainer.transform, Vector2.zero, new Vector2(64, 64), canvas.transform, new Vector2(350, 250), 38, new Vector2(32, 32));
+            var hContainer = GameModifierFactory.CreatePopupContainer(_modifiersPopup, new Vector2(0, 130));
+            hContainer.GetComponent<GridLayoutGroup>().cellSize = Vector2.one * 64f;
+            AddModifierButton(hContainer.transform, GameModifiers.HIDDEN);
+            AddModifierButton(hContainer.transform, GameModifiers.FLASHLIGHT);
+            AddModifierButton(hContainer.transform, GameModifiers.EASY_MODE);
+            AddModifierButton(hContainer.transform, GameModifiers.STRICT_MODE);
+            AddModifierButton(hContainer.transform, GameModifiers.HIDDEN_CURSOR);
 
             _hiddenUserCardSlider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _hiddenUserCardSlider.gameObject.SetActive(true);
@@ -103,7 +107,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _userCardsDict = new Dictionary<int, MultiplayerCard>();
 
-            _lobbySettingsInputPrompt = MultiplayerGameObjectFactory.CreateLobbySettingsInputPrompt(canvas.transform, OnSettingsPromptConfirm);
+            _lobbySettingsInputPrompt = MultiplayerGameObjectFactory.CreateLobbySettingsInputPrompt(canvas.transform, controller);
             _lobbySettingsInputPrompt.gameObject.SetActive(false);
             _lobbySettingButton = GameObjectFactory.CreateClickableImageHolder(headerRight.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("motherfuckinglobbysettingsicon256.png"), "LobbySettingButton", _lobbySettingsInputPrompt.Show).gameObject;
             _lobbySettingButton.gameObject.SetActive(false);
@@ -112,7 +116,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             GameObjectFactory.CreateClickableImageHolder(headerLeft.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("gtfo.png"), "LobbyBackButton", OnBackButtonClick);
 
             //Menu when clicking on user pfp
-            _dropdownMenu = MultiplayerGameObjectFactory.GetBorderedVerticalBox(new Vector2(300, 180), 5, panel.transform);
+            _dropdownMenu = GameModifierFactory.GetBorderedVerticalBox(new Vector2(300, 180), 5, panel.transform);
             _dropdownMenu.GetComponent<Image>().enabled = false;
             _dropdownMenu.SetActive(false);
             _lobbyContainerScrollingDistance = Vector3.zero;
@@ -231,12 +235,37 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             MultiplayerLogger.OnLogReceivedUpdate = UpdateLogText;
         }
 
+        private void AddModifierButton(Transform transform, GameModifiers.Metadata modifier)
+        {
+            var button = new ModifierButton(transform, modifier, false, new Vector2(64, 64), 6, 16, false, delegate { ToggleModifier(modifier); });
+            _modifierButtonDict.Add(modifier, button);
+        }
+
+        private void ToggleModifier(GameModifiers.Metadata modifier)
+        {
+            var mod = _modifierButtonDict[modifier];
+            if (mod.onCooldown) return;
+            mod.onCooldown = true;
+            var card = _userCardsDict[TootTallyUser.userInfo.id];
+            var mods = GameModifierManager.GetModifierSet(card.user.mods);
+            if (mods.Contains(modifier))
+            {
+                mods.Remove(modifier);
+            }
+            else
+            {
+                mods.Add(modifier);
+            }
+            controller.SetModifiers(string.Join(",", mods.Select(i => i.Name)));
+        }
+
         public void ResetData()
         {
             _userState = UserState.None;
             DisableButton(.8f);
             _lobbySettingsInputPrompt.Hide(false);
-            _quickChatPopup.SetActive(false);
+            _quickChatPopup.popupBox.SetActive(false);
+            _modifiersPopup.popupBox.SetActive(false);
         }
 
         private void SetTextsParameters(params TMP_Text[] texts)
@@ -252,7 +281,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private MultiplayerUserInfo _hostInfo;
         private List<MultiplayerUserInfo> _lastUsers;
-        public void DisplayAllUserInfo(List<MultiplayerUserInfo> users)
+        public void UpdateLobbyInfo(List<MultiplayerUserInfo> users, MultiplayerLobbyInfo lobbyInfo)
         {
             if (_lastUsers != null)
             {
@@ -281,11 +310,17 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
             _readyUpButton.gameObject.SetActive(!IsHost);
 
+            _maxPlayerCount = lobbyInfo.maxPlayerCount;
             _maxPlayerText.text = $"{users.Count}/{_maxPlayerCount}";
 
             users.ForEach(DisplayUserInfo);
             UpdateScrolling(_userCardsDict.Count);
             _lastUsers = users;
+
+            _titleText.text = lobbyInfo.title;
+            _userCardsDict.Values.ToList().ForEach(item => item.teamChanger.SetActive(lobbyInfo.teams));
+            _lobbySettingsInputPrompt.UpdateLobbyValues(lobbyInfo);
+            _modifiersPopup.openPopupButton.button.gameObject.SetActive(lobbyInfo.freemod);
         }
 
         public void UpdateScrolling(int userCount)
@@ -321,7 +356,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_userState == UserState.None && IsSelf(user.id))
                 OnUserStateChange(parsedState);
 
-            var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform);
+            var userCard = MultiplayerGameObjectFactory.CreateUserCard(lobbyUserContainer.transform, controller);
             _userCardsDict.Add(user.id, userCard);
 
             var imageHolder = GameObjectFactory.CreateClickableImageHolder(userCard.container, Vector2.zero, new Vector2(100, 64), AssetManager.GetSprite("icon.png"), $"PFP", () => OnUserPFPClick(user));
@@ -351,17 +386,54 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (_userState == UserState.None && IsSelf(user.id))
                 OnUserStateChange(parsedState);
 
-            userCard.UpdateUserInfo(user, displayedState);
+            userCard.UpdateUserCard(user, displayedState);
+            userCard.teamChanger.gameObject.GetComponent<Button>().interactable = IsSelf(user.id) || IsHost;
 
             _readyCount = _userCardsDict.Values.Where(x => x.user.state == "Ready" && !IsSelf(x.user.id)).Count() + 1;
 
             var color = UserStateToColor(userState);
             GameObjectFactory.TintImage(userCard.container.GetComponent<Image>(), color, .2f);
             userCard.image.color = color;
-
             if (IsHost && !controller.IsTimerStarted)
                 SetHostButtonText();
             UpdateScrolling(_userCardsDict.Count);
+            SetOwnMods(user.id, user.mods);
+        }
+
+        public void UpdateMods(int id, string mods)
+        {
+            if (!_userCardsDict.ContainsKey(id)) return;
+            var userCard = _userCardsDict[id];
+            userCard.UpdateMods(mods);
+            SetOwnMods(id, mods);
+        }
+
+        public void UpdateTeam(int id, int team)
+        {
+            if (!_userCardsDict.ContainsKey(id)) return;
+            var userCard = _userCardsDict[id];
+            userCard.UpdateTeamColor(team);
+            userCard.teamChanger.gameObject.GetComponent<Button>().interactable = IsSelf(id) || IsHost;
+        }
+
+        private void SetOwnMods(int id, string mods)
+        {
+            if (IsSelf(id))
+            {
+                GameModifierManager.LoadModifiersFromString(mods);
+                var modifiers = GameModifierManager.GetModifierSet(mods);
+                foreach (var modType in _modifierButtonDict.Keys)
+                {
+                    if (modifiers.Contains(modType))
+                    {
+                        _modifierButtonDict[modType].ToggleOn();
+                    }
+                    else
+                    {
+                        _modifierButtonDict[modType].ToggleOff();
+                    }
+                }
+            }
         }
 
         public void OnQuickChatReceived(int userID, QuickChat chat)
@@ -376,30 +448,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnSendQuickChatButtonClick(QuickChat chat)
         {
-            if (!_isQuickChatPopupEnabled || !_canDoQuickChat) return; //Prevent user from sending QuickChat while panel is closing
-            //QuickChatOnCloseAnimation();
+            if (!_quickChatPopup.isPopupEnabled || !_canDoQuickChat) return; //Prevent user from sending QuickChat while panel is closing
             DisableQuickChat(2f);
             controller.SendQuickChat(chat);
-        }
-
-        public void QuickChatOnCloseAnimation()
-        {
-            _isQuickChatPopupEnabled = false;
-            _quickChatAnimation?.Dispose();
-            _quickChatAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_quickChatPopup, Vector2.zero, .5f, new SecondDegreeDynamicsAnimation(3.5f, 1f, 1.1f), delegate
-            {
-                _quickChatPopup.gameObject.SetActive(false);
-                _quickChatAnimation = null;
-            });
-        }
-
-        public void QuickChatOnOpenAnimation()
-        {
-            _isQuickChatPopupEnabled = true;
-            _quickChatAnimation?.Dispose();
-            _quickChatPopup.transform.localScale = Vector2.zero;
-            _quickChatPopup.SetActive(true);
-            _quickChatAnimation = TootTallyAnimationManager.AddNewScaleAnimation(_quickChatPopup, Vector2.one, .6f, new SecondDegreeDynamicsAnimation(2.75f, 1f, 1.1f));
         }
 
         private float _posYJumpValue = 83f;
@@ -458,15 +509,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, showAllOptions ? 240 : 60);
         }
 
-        private void OnQuickChatOpenButtonClick()
-        {
-            _isQuickChatPopupEnabled = !_isQuickChatPopupEnabled;
-            if (_isQuickChatPopupEnabled)
-                QuickChatOnOpenAnimation();
-            else
-                QuickChatOnCloseAnimation();
-        }
-
         private bool IsSelf(int userID) => TootTallyUser.userInfo.id == userID;
 
         public void ClearAllUserRows()
@@ -506,15 +548,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _startGameButton.textHolder.text = $"{_readyCount}/{maxCount} Force Start";
         }
 
-        public void OnSettingsPromptConfirm(string name, string desc, string password, string maxPlayer)
-        {
-            if (!MultiplayerCreatePanel.ValidateInput(name, desc, password, maxPlayer)) return;
-
-            controller.SendSetLobbySettings(name, desc, password, int.Parse(maxPlayer));
-            TootTallyNotifManager.DisplayNotif("Sending new lobby info...");
-            _lobbySettingsInputPrompt.Hide();
-        }
-
         public void OnBackButtonClick()
         {
             if (controller.IsTransitioning) return;
@@ -528,7 +561,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             if (!_canPressButton) return;
 
-            QuickChatOnCloseAnimation();
+            _quickChatPopup.OnCloseAnimation();
+            _modifiersPopup.OnCloseAnimation();
             _lobbySettingsInputPrompt.Hide(false);
             controller.TransitionToSongSelection();
         }
@@ -583,13 +617,6 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _userState = UserState.None;
             controller.GiveHostUser(_dropdownUserInfo.id);
             controller.RefreshCurrentLobbyInfo();
-        }
-
-        public void OnLobbyInfoReceived(string title, int playerCount, int maxPlayer)
-        {
-            _titleText.text = title;
-            _maxPlayerCount = maxPlayer;
-            _maxPlayerText.text = $"{playerCount}/{maxPlayer}";
         }
 
         public void OnSongInfoChanged(string songName, float gamespeed, string modifiers, float difficulty)
