@@ -28,6 +28,7 @@ namespace TootTallyMultiplayer
             textState = container.Find("State").GetComponent<TMP_Text>();
             textRank = container.Find("Rank").GetComponent<TMP_Text>();
             textModifiers = transform.GetChild(2).Find("Container/Modifiers").GetComponent<TMP_Text>();
+            textModifiers.enableAutoSizing = true;
 
             teamChanger = transform.GetChild(0).gameObject;
             _teamChangerText = teamChanger.gameObject.GetComponentInChildren<Text>();
