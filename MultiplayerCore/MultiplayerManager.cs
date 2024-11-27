@@ -86,7 +86,7 @@ namespace TootTallyMultiplayer
             MultiplayerGameObjectFactory.Initialize();
             MultiAudioController.InitMusic();
 
-            if (!MultiAudioController.IsMusicLoaded)
+            if (!MultiAudioController.IsDefaultMusicLoaded)
                 MultiAudioController.LoadMusic("MultiplayerMusic.mp3", () => MultiAudioController.PlayMusicSoft());
             else if (MultiAudioController.IsPaused)
                 MultiAudioController.ResumeMusicSoft();

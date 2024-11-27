@@ -18,6 +18,7 @@ using TootTallyMultiplayer.APIService;
 using TootTallyMultiplayer.MultiplayerCore;
 using TootTallyMultiplayer.MultiplayerCore.PointScore;
 using TootTallyMultiplayer.MultiplayerPanels;
+using TrombLoader.CustomTracks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
@@ -431,6 +432,11 @@ namespace TootTallyMultiplayer
         public void SelectSongFromTrackref(string trackref)
         {
             var track = TrackLookup.tryLookup(trackref);
+            if (track != null && track.Value is CustomTrack ct && File.Exists(Path.Combine(ct.folderPath, "song.ogg")))
+                PlayClipPlaybackFromTrack(ct);
+            else
+                PlayDefaultSong();
+
             savedTrackData = TrackLookup.toTrackData(track.Value);
             UpdateLobbySongDetails();
             GlobalVariables.levelselect_index = savedTrackData.trackindex;
@@ -441,6 +447,23 @@ namespace TootTallyMultiplayer
             _savedTrackRef = null;
             Plugin.LogInfo("Selected: " + savedTrackData.trackref);
         }
+
+        public void PlayClipPlaybackFromTrack(CustomTrack ct)
+        {
+            MultiAudioController.PauseMusicSoft(.3f, () =>
+            MultiAudioController.LoadClip(Path.Combine(ct.folderPath, "song.ogg"), () =>
+            MultiAudioController.PlayMusicSoft()));
+        }
+
+        public void PlayDefaultSong()
+        {
+            MultiAudioController.PauseMusicSoft(.3f, () =>
+            {
+                MultiAudioController.SetSongToDefault();
+                MultiAudioController.PlayMusicSoft();
+            });
+        }
+
 
         public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers, float difficulty) =>
                 _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers, difficulty);
