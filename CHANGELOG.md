@@ -1,5 +1,10 @@
 #### Changelog:
 
+`v1.0.6` -> `v1.0.8`
+```diff
++ Added audio playback when song is selected
+```
+
 `v1.0.5` -> `v1.0.6`
 ```diff
 + Teams and freemod

@@ -1,15 +1,16 @@
 {
     "name": "TootTallyMultiplayer",
-    "version_number": "1.0.6",
+    "version_number": "1.0.8",
     "website_url": "https://github.com/TootTally/TootTalllyMultiplayer",
     "description": "Multiplayer plugin for Trombone Champ.",
-    "dependencies": [
-        "TootTally-TootTallySpectator-1.0.7",
-        "TootTally-TootTallyWebsocketLibs-1.0.1",
-        "TootTally-TootTallyLeaderboard-1.1.0",
-        "TootTally-TootTallyGameModifiers-1.1.7",
-        "TromboneChamps-TrombLoader-2.2.3",
-        "TromboneChamps-BaboonAPI-2.7.1",
-        "BepInEx-BepInExPack_TromboneChamp-5.4.21"
-    ]
+  "dependencies": [
+    "TootTally-TootTallySpectator-1.0.7",
+    "TootTally-TootTallyWebsocketLibs-1.0.1",
+    "TootTally-TootTallyLeaderboard-1.1.8",
+    "TootTally-TootTallyGameModifiers-1.2.5",
+    "TootTally-TootTallyCore-1.2.5",
+    "TromboneChamps-TrombLoader-2.2.3",
+    "TromboneChamps-BaboonAPI-2.7.1",
+    "BepInEx-BepInExPack_TromboneChamp-5.4.21"
+  ]
 }
