@@ -3,6 +3,7 @@
 `v1.0.6` -> `v1.0.9`
 ```diff
 + Added audio playback when song is selected
++ Added Mute button
 ```
 
 `v1.0.5` -> `v1.0.6`
