@@ -21,6 +21,7 @@ using TootTallyMultiplayer.MultiplayerPanels;
 using TrombLoader.CustomTracks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
 using static TootTallyMultiplayer.MultiplayerSystem;
 
@@ -45,6 +46,8 @@ namespace TootTallyMultiplayer
         private static string _savedDownloadLink, _savedTrackRef;
         private string _searchFilter;
 
+        private GameObject _muteButton;
+        private Sprite _mutedBtnSprite, _unmutedBtnSprite;
         private MultiplayerMainPanel _multMainPanel;
         private MultiplayerLobbyPanel _multLobbyPanel;
         private MultiplayerCreatePanel _multCreatePanel;
@@ -65,6 +68,7 @@ namespace TootTallyMultiplayer
         public bool IsDevMode => TootTallyUser.userInfo.dev || TootTallyUser.userInfo.moderator;
         public string LobbyCode;
 
+
         public MultiplayerController(PlaytestAnims __instance)
         {
             CurrentInstance = __instance;
@@ -74,6 +78,11 @@ namespace TootTallyMultiplayer
             Transform panelTransform = canvasWindow.transform.Find("Panel");
 
             var canvas = GameObject.Instantiate(AssetBundleManager.GetPrefab("multiplayercanvas"));
+            _mutedBtnSprite = AssetManager.GetSprite("MuteBtnOff.png");
+            _unmutedBtnSprite = AssetManager.GetSprite("MuteBtnOn.png");
+            _muteButton = GameObjectFactory.CreateClickableImageHolder(canvas.transform, Vector2.zero, Vector2.one * 64, GetCurrentMuteSprite(), "MuteButton", OnToggleMuteButtonClick);
+            var muteRect = _muteButton.GetComponent<RectTransform>();
+            muteRect.anchorMax = muteRect.anchorMin = muteRect.pivot = new Vector2(.99f,0);
 
             try
             {
@@ -124,9 +133,22 @@ namespace TootTallyMultiplayer
             });
         }
 
+        public void OnToggleMuteButtonClick()
+        {
+            Plugin.Instance.MuteMusic.Value = !Plugin.Instance.MuteMusic.Value;
+            if (Plugin.Instance.MuteMusic.Value)
+                MultiAudioController.PauseMusicHard();
+            else
+                MultiAudioController.PlayMusicHard();
+            _muteButton.GetComponent<Image>().sprite = GetCurrentMuteSprite();
+        }
+
+        public Sprite GetCurrentMuteSprite() => Plugin.Instance.MuteMusic.Value ? _mutedBtnSprite : _unmutedBtnSprite;
+
         public void OnGameControllerStartSetup()
         {
             _multiLiveScoreController = GameObject.Find("GameplayCanvas/UIHolder").AddComponent<MultiplayerLiveScoreController>();
+            MultiAudioController.PauseMusicSoft(); //Shouldnt be required for some reasons
             MultiplayerPointScoreController.ClearSavedScores();
         }
 
@@ -273,6 +295,10 @@ namespace TootTallyMultiplayer
         public void HidePanel() => _currentActivePanel.panel.SetActive(false);
 
         public void ShowPanel() => _currentActivePanel.panel.SetActive(true);
+
+        public void ShowMute() => _muteButton?.SetActive(true);
+
+        public void HideMute() => _muteButton?.SetActive(false);
 
         public void RefreshAllLobbyInfo()
         {
@@ -594,6 +620,7 @@ namespace TootTallyMultiplayer
 
         public void TransitionToSongSelection()
         {
+            HideMute();
             MultiplayerManager.UpdateMultiplayerState(MultiplayerState.SelectSong);
         }
 

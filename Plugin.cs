@@ -50,6 +50,7 @@ namespace TootTallyMultiplayer
         {
             Config.SaveOnConfigSet = true;
             ShowLiveScore = Config.Bind("Gameplay", nameof(ShowLiveScore), true, "Show the live score while playing in multiplayer.");
+            MuteMusic = Config.Bind("General", nameof(MuteMusic), false, "Mute the multiplayer menu music and song preview");
             SavedLobbyTitle = Config.Bind("General", nameof(SavedLobbyTitle), "", "Last lobby creation name used.");
             SavedLobbyDesc = Config.Bind("General", nameof(SavedLobbyDesc), "Welcome to my lobby!", "Last lobby creation description used.");
             SavedLobbyMaxPlayer = Config.Bind("General", nameof(SavedLobbyMaxPlayer), 16, "Last lobby creation lobby max player used.");
@@ -65,6 +66,7 @@ namespace TootTallyMultiplayer
         }
 
         public ConfigEntry<bool> ModuleConfigEnabled { get; set; }
+        public ConfigEntry<bool> MuteMusic { get; set; }
         public ConfigEntry<bool> ShowLiveScore { get; set; }
         public ConfigEntry<string> SavedLobbyTitle { get; set; }
         public ConfigEntry<string> SavedLobbyDesc { get; set; }

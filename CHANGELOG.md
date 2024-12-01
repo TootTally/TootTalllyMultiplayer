@@ -1,6 +1,6 @@
 #### Changelog:
 
-`v1.0.6` -> `v1.0.8`
+`v1.0.6` -> `v1.0.9`
 ```diff
 + Added audio playback when song is selected
 ```

@@ -416,6 +416,7 @@ namespace TootTallyMultiplayer
             LeanTween.scaleY(__instance.fader, 9.75f, 0.25f).setEaseInQuart().setOnComplete(new Action(delegate
             {
                 _multiController.ShowPanel();
+                _multiController.ShowMute();
                 SceneManager.UnloadSceneAsync(LEVELSELECT_SCENE_NAME);
                 MultiAudioController.ResumeMusicSoft();
                 _currentInstance.startBGAnims();
@@ -435,6 +436,14 @@ namespace TootTallyMultiplayer
         [HarmonyPrefix]
         public static bool PreventUnhoverPlayLeanTweenWhenTransitioning(LevelSelectController __instance) => IsConnectedToMultiplayer && !__instance.back_clicked;
         #endregion
+
+        [HarmonyPatch(typeof(LoadController), nameof(LoadController.Start))]
+        [HarmonyPostfix]
+        public static void StopMusicForWhateverFuckingReasons() 
+        {
+            if (IsConnectedToMultiplayer)
+                MultiAudioController.StopMusicHard();
+        }
 
         #region PointScene Patches
         [HarmonyPatch(typeof(PointSceneController), nameof(PointSceneController.Start))]

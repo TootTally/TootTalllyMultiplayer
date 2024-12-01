@@ -2,6 +2,7 @@
 using System.IO;
 using TootTallyMultiplayer.APIService;
 using UnityEngine;
+using UnityEngine.Analytics;
 
 namespace TootTallyMultiplayer.MultiplayerCore
 {
@@ -16,7 +17,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
         public static bool IsPlaying => _audioSource.isPlaying;
         public static bool IsPaused;
         public static bool IsDefaultMusicLoaded;
-
+        public static bool IsMuted => Plugin.Instance.MuteMusic.Value;
 
         public static void InitMusic()
         {
@@ -57,15 +58,28 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         public static void PlayMusicSoft(float time = .3f)
         {
+            if (IsMuted) return;
+
             _audioSource.Play();
             LeanTween.value(0, _volume, time).setOnUpdate(v => _audioSource.volume = v);
         }
 
         public static void ResumeMusicSoft(float time = .3f)
         {
+            if (IsMuted) return;
+
             IsPaused = false;
             _audioSource.UnPause();
             LeanTween.value(0, _volume, time).setOnUpdate(v => _audioSource.volume = v);
+        }
+
+        public static void StopMusicHard() => _audioSource?.Stop();
+        public static void PauseMusicHard() => _audioSource?.Pause();
+        public static void PlayMusicHard()
+        {
+            if (IsMuted) return;
+            _audioSource.volume = _volume;
+            _audioSource?.Play();
         }
 
         public static void StopMusicSoft(float time = .3f, Action OnComplete = null)
@@ -78,7 +92,14 @@ namespace TootTallyMultiplayer.MultiplayerCore
             }).setOnUpdate(v => _audioSource.volume = v);
         }
 
-        public static void PauseMusicSoft(float time = .3f, Action OnComplete = null)
+        public static void PauseMusicSoft(float time = .3f)
+        {
+            IsPaused = true;
+            var currentVolume = _audioSource.volume;
+            LeanTween.value(currentVolume, 0, time).setOnComplete(_audioSource.Pause).setOnUpdate(v => _audioSource.volume = v);
+        }
+
+        public static void PauseMusicSoft(float time, Action OnComplete)
         {
             IsPaused = true;
             var currentVolume = _audioSource.volume;
