@@ -75,6 +75,7 @@ namespace TootTallyMultiplayer.APIService
             public string username;
             public string state;
             public string mods;
+            public bool isHost;
         }
 
         public enum MultiplayerTeamState

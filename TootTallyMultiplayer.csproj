@@ -57,6 +57,10 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="TootTallyMultiplayer.csproj.user" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer" />
     <Copy SourceFiles="@(Assets)" DestinationFolder="$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyMultiplayer\Assets" />
@@ -65,7 +69,7 @@
 
   <Target Name="ThunderstoreZip" AfterTargets="Build">
     <Delete Files="$(OutDir)thunderstore" />
-    <Delete Files="$(SolutionDir)$(ProjectName).zip" />
+    <Delete Files="$(ProjectDir)$(ProjectName).zip" />
     <Copy SourceFiles="CHANGELOG.md" DestinationFolder="$(OutDir)thunderstore" />
     <Copy SourceFiles="icon.png" DestinationFolder="$(OutDir)thunderstore" />
     <Copy SourceFiles="manifest.json" DestinationFolder="$(OutDir)thunderstore" />
@@ -74,6 +78,6 @@
     <Copy SourceFiles="@(Assets)" DestinationFolder="$(OutDir)thunderstore/plugins/Assets" />
     <MakeDir Directories="$(OutDir)thunderstore/plugins/Downloads" />
     <Copy SourceFiles="@(Music)" DestinationFolder="$(OutDir)thunderstore/plugins/Music" />
-    <ZipDirectory DestinationFile="$(SolutionDir)$(ProjectName).zip" SourceDirectory="$(OutDir)thunderstore" />
+    <ZipDirectory DestinationFile="$(ProjectDir)$(ProjectName).zip" SourceDirectory="$(OutDir)thunderstore" />
   </Target>
 </Project>
