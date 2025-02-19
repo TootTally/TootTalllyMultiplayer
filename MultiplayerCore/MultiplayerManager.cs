@@ -455,6 +455,7 @@ namespace TootTallyMultiplayer
                 _currentPointSceneInstance = __instance;
                 _multiController.SendSongFinishedToLobby();
                 _multiController.InitializePointScore();
+                _multiController.SendUserState(MultSerializableClasses.UserState.ViewingScore);
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.PointScene);
                 __instance.btn_retry_obj.SetActive(false);
                 __instance.btn_nav_cards.SetActive(false);
@@ -721,8 +722,6 @@ namespace TootTallyMultiplayer
                     _multiController.OnSongQuit();
                     break;
                 case MultiplayerController.MultiplayerState.PointScene:
-                    // TODO: Should these be here? I feel like these are better placed somewhere else.
-                    _multiController.SendUserState(MultSerializableClasses.UserState.ViewingScore);
                     break;
             }
         }
