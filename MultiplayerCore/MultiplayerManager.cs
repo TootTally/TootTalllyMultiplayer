@@ -723,7 +723,6 @@ namespace TootTallyMultiplayer
                 case MultiplayerController.MultiplayerState.PointScene:
                     // TODO: Should these be here? I feel like these are better placed somewhere else.
                     _multiController.SendUserState(MultSerializableClasses.UserState.ViewingScore);
-                    StartRecursiveRefresh();
                     break;
             }
         }
