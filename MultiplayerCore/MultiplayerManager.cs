@@ -720,6 +720,11 @@ namespace TootTallyMultiplayer
                         _multiController.SendQuitFlag();
                     _multiController.OnSongQuit();
                     break;
+                case MultiplayerController.MultiplayerState.PointScene:
+                    // TODO: Should these be here? I feel like these are better placed somewhere else.
+                    _multiController.SendUserState(MultSerializableClasses.UserState.ViewingScore);
+                    StartRecursiveRefresh();
+                    break;
             }
         }
 
@@ -748,12 +753,14 @@ namespace TootTallyMultiplayer
 
         public static void StartRecursiveRefresh()
         {
+            if (_isRecursiveRefreshRunning) return;
             _isRecursiveRefreshRunning = true;
             _currentInstance.StartCoroutine(RecursiveLobbyRefresh());
         }
 
         public static void StopRecursiveRefresh()
         {
+            if (!_isRecursiveRefreshRunning) return;
             _isRecursiveRefreshRunning = false;
             _currentInstance.StopCoroutine(RecursiveLobbyRefresh());
         }

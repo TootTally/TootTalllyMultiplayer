@@ -95,6 +95,7 @@ namespace TootTallyMultiplayer.APIService
             Playing,
             Host,
             Spectating,
+            ViewingScore,
         }
     }
 }
