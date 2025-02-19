@@ -303,7 +303,7 @@ namespace TootTallyMultiplayer
             {QuickChat.Rematch, "Rematch!" },
 
             {QuickChat.Laugh, "Ahah!" },
-            {QuickChat.Enjoy, "Im enjoying this lobby!" },
+            {QuickChat.Enjoy, "I'm enjoying this lobby!" },
             {QuickChat.WantHost, "I want to be host." },
             {QuickChat.GiveHost, "Who wants to be host?" }
         };
