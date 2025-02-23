@@ -103,6 +103,8 @@ namespace TootTallyMultiplayer
                                                  _state == MultiplayerController.MultiplayerState.Quitting))
             {
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
+                // Force reset to NotReady since it could be stuck in Viewing Score
+                _multiController.SendUserState(MultSerializableClasses.UserState.NotReady);
                 _multiController.UpdateLobbySongDetails();
             }
             else
