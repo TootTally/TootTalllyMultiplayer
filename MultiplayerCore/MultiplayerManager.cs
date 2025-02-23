@@ -104,6 +104,8 @@ namespace TootTallyMultiplayer
             {
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
                 // Force reset to NotReady since it could be stuck in Viewing Score
+                // TODO: Fix bug here where if the user doesn't have the song, it's still
+                //       set as not ready. -gristCollector
                 _multiController.SendUserState(MultSerializableClasses.UserState.NotReady);
                 _multiController.UpdateLobbySongDetails();
             }
