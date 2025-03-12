@@ -2,6 +2,7 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using TootTallyAccounts;
 using TootTallyCore;
 using TootTallyCore.Graphics;
@@ -601,18 +602,8 @@ namespace TootTallyMultiplayer
         public static bool OnGamePause(PauseCanvasController __instance)
         {
             if (!IsPlayingMultiplayer) return true;
-            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Quitting);
-            var gameController = __instance.gc;
-            gameController.paused = true;
-            gameController.quitting = true;
-            gameController.sfxrefs.backfromfreeplay.Play();
-            gameController.pausecanvas.SetActive(false);
-            gameController.curtainc.closeCurtain(false);
-            LeanTween.alphaCanvas(__instance.curtaincontroller.fullfadeblack, 1f, 0.5f).setDelay(0.6f).setEaseInOutQuint().setOnComplete(() =>
-            {
-                __instance.curtaincontroller.unloadAssets();
-                SceneManager.LoadScene(PLAYTEST_SCENE_NAME);
-            });
+            
+            ExitToLobby(__instance.gc, __instance.curtaincontroller);
 
             return false;
         }
@@ -670,6 +661,31 @@ namespace TootTallyMultiplayer
         {
             if (!AllowExit) return;
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
+        }
+
+        public static void ExitToLobby(GameController gameController = null, CurtainController curtainController = null)
+        {
+            if (gameController == null)
+            {
+                gameController = GameObject.Find("GameController").GetComponent<GameController>();
+            }
+
+            if (curtainController == null)
+            {
+                curtainController = GameObject.Find("CurtainController").GetComponent<CurtainController>();
+            }
+            
+            UpdateMultiplayerState(MultiplayerController.MultiplayerState.Quitting);
+            gameController.paused = true;
+            gameController.quitting = true;
+            gameController.sfxrefs.backfromfreeplay.Play();
+            gameController.pausecanvas.SetActive(false);
+            gameController.curtainc.closeCurtain(false);
+            LeanTween.alphaCanvas(curtainController.fullfadeblack, 1f, 0.5f).setDelay(0.6f).setEaseInOutQuint().setOnComplete(() =>
+            {
+                curtainController.unloadAssets();
+                SceneManager.LoadScene(PLAYTEST_SCENE_NAME);
+            });
         }
 
         public static void UpdateMultiplayerStateIfChanged(MultiplayerController.MultiplayerState newState)

@@ -241,6 +241,12 @@ namespace TootTallyMultiplayer
             RefreshAllLobbyInfo();
         }
 
+        public void ExitToLobby()
+        {
+            if (_multiConnection.IsConnected && MultiplayerManager.IsPlayingMultiplayer)
+                MultiplayerManager.ExitToLobby();
+        }
+
         public void Update()
         {
             if (IsConnected && _multiConnection != null)
@@ -633,7 +639,7 @@ namespace TootTallyMultiplayer
                 case OptionInfoType.StartTimer:
                     StartTimer((float)optionInfo.values[0]); break;
                 case OptionInfoType.AbortGame:
-                    AbortTimer(); break;
+                    AbortTimer(); ExitToLobby(); break;
                 case OptionInfoType.KickFromLobby:
                     if (TootTallyUser.userInfo.id == (int)optionInfo.values[0])
                         DisconnectFromLobby();
