@@ -4,7 +4,7 @@
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>TootTallyMultiplayer</AssemblyName>
     <Description>TootTally Multiplayer Module</Description>
-    <Version>1.0.9</Version>
+    <Version>1.0.10</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <TromboneChampDir>E:\SteamLibrary\steamapps\common\TromboneChamp</TromboneChampDir>
@@ -22,7 +22,7 @@
     <PackageReference Include="UnityEngine.Modules" Version="2019.4.40" IncludeAssets="compile" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="TromboneChamp.GameLibs" Version="1.25.0" />
-    <PackageReference Include="TromboneChamp.BaboonAPI" Version="2.7.3" />
+    <PackageReference Include="TromboneChamp.BaboonAPI" Version="2.8.1" />
     <PackageReference Include="TromboneChamp.TrombLoader" Version="2.0.0-rc.1" />
     <PackageReference Include="websocket-sharp-customheaders" Version="1.0.2.31869" />
     <Assets Include="Assets\*.*" />

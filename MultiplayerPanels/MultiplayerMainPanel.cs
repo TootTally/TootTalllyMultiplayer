@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using TMPro;
 using TootTallyCore.Graphics;
@@ -20,7 +21,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public GameObject searchPanel, searchLeft, searchCenter, searchRight;
         private GameObject _currentInputPrompt;
         private List<GameObject> _lobbyInfoRowsList;
-        private Dictionary<string, int> _savedCodeToPing;
+        private ConcurrentDictionary<string, int> _savedCodeToPing;
         private string _lastSelectedLobbyID;
 
         private Slider _slider;
@@ -52,7 +53,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             lobbyInfoContainer = center.transform.Find("Right/InfoContainer").gameObject;
 
             _lobbyInfoRowsList = new List<GameObject>();
-            _savedCodeToPing = new Dictionary<string, int>();
+            _savedCodeToPing = new ConcurrentDictionary<string, int>();
 
             GameObjectFactory.CreateClickableImageHolder(headerLeft.transform, Vector2.zero, new Vector2(72, 72), AssetManager.GetSprite("gtfo.png"), "LobbyBackButton", MultiplayerManager.ExitMultiplayer);
 
@@ -208,7 +209,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             else
                 Plugin.Instance.StartCoroutine(SendPing("68.183.206.69", ping =>
                 {
-                    _savedCodeToPing.Add(lobbyInfo.id, ping);
+                    if (!_savedCodeToPing.TryAdd(lobbyInfo.id, ping))
+                        Plugin.LogInfo($"Server ID {lobbyInfo.id} was already pinged.");
                     t4.text = $"{ping}ms";
                 }));
         }

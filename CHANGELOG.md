@@ -1,5 +1,10 @@
 #### Changelog:
 
+`v1.0.9` -> `v1.0.10`
+```diff
++ Fix for TC 1.25
+```
+
 `v1.0.6` -> `v1.0.9`
 ```diff
 + Added audio playback when song is selected

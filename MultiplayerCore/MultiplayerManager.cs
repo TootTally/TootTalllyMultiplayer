@@ -407,6 +407,7 @@ namespace TootTallyMultiplayer
         {
             _multiController.SendUserState(MultSerializableClasses.UserState.Ready);
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
+            __instance.clipPlayer.cancelCrossfades();
             __instance.back_clicked = true;
             __instance.bgmus.Stop();
             __instance.doSfx(__instance.sfx_click);
