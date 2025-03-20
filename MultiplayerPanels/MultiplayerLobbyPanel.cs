@@ -55,6 +55,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private LobbySettingsInputPrompt _lobbySettingsInputPrompt;
 
         public bool IsHost;
+        public bool IsGameRunning => _userCardsDict != null && _userCardsDict.Values.Any(x => x.user.state == "Playing");
 
         private int _maxPlayerCount;
         private int _readyCount;
@@ -542,7 +543,9 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         {
             var maxCount = _userCardsDict.Values.Select(x => x.user).Where(x => x.state != "Spectating").Count();
             if (IsHost)
-                if (_readyCount == maxCount)
+                if (IsGameRunning)
+                    _startGameButton.textHolder.text = "Abort Game";
+                else if (_readyCount == maxCount)
                     _startGameButton.textHolder.text = "Start Game";
                 else
                     _startGameButton.textHolder.text = $"{_readyCount}/{maxCount} Force Start";
@@ -599,7 +602,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnTimerStart()
         {
             DisableButton();
-            if (IsHost) _startGameButton.textHolder.text = "Abort Game";
+            if (IsHost) _startGameButton.textHolder.text = "Abort Timer";
         }
 
         public void OnTimerAbort()

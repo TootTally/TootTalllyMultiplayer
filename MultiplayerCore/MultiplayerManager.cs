@@ -48,6 +48,7 @@ namespace TootTallyMultiplayer
         private static bool _isLevelSelectInit, _attemptedInitLevelSelect;
 
         private static bool _isRecursiveRefreshRunning;
+        private static bool _isForceExit;
         public static bool IsConnectedToMultiplayer => _multiController != null && _multiController.IsConnected;
         public static bool IsPlayingMultiplayer => _multiController != null && _state == MultiplayerController.MultiplayerState.Playing;
 
@@ -116,6 +117,7 @@ namespace TootTallyMultiplayer
         public static void Update()
         {
             if (!_isSceneActive) return;
+
 
             if (Input.GetKeyDown(KeyCode.Escape) && CanPressEscape())
             {
@@ -440,7 +442,7 @@ namespace TootTallyMultiplayer
 
         [HarmonyPatch(typeof(LoadController), nameof(LoadController.Start))]
         [HarmonyPostfix]
-        public static void StopMusicForWhateverFuckingReasons() 
+        public static void StopMusicForWhateverFuckingReasons()
         {
             if (IsConnectedToMultiplayer)
                 MultiAudioController.StopMusicHard();
@@ -567,6 +569,8 @@ namespace TootTallyMultiplayer
                 else
                     _syncTimeoutTimer += Time.deltaTime;
             }
+            else if (IsPlayingMultiplayer && _isForceExit)
+                __instance.pausecontroller.showPausePanel();
 
             if (IsPlayingMultiplayer)
                 __instance.restarttimer = 0.01f;
@@ -595,6 +599,7 @@ namespace TootTallyMultiplayer
         public static bool OnGamePause(PauseCanvasController __instance)
         {
             if (!IsPlayingMultiplayer) return true;
+            _isForceExit = false;
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.Quitting);
             var gameController = __instance.gc;
             gameController.paused = true;
@@ -610,6 +615,7 @@ namespace TootTallyMultiplayer
 
             return false;
         }
+
 
         #endregion
 
@@ -664,6 +670,12 @@ namespace TootTallyMultiplayer
         {
             if (!AllowExit) return;
             UpdateMultiplayerState(MultiplayerController.MultiplayerState.ExitScene);
+        }
+
+        public static void AbortGame()
+        {
+            if (IsConnectedToMultiplayer && IsPlayingMultiplayer && _state == MultiplayerController.MultiplayerState.Playing)
+                _isForceExit = true;
         }
 
         public static void UpdateMultiplayerStateIfChanged(MultiplayerController.MultiplayerState newState)

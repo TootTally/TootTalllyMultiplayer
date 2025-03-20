@@ -1,5 +1,10 @@
 #### Changelog:
 
+`v1.0.10` -> `v1.0.11`
+```diff
++ Added AbortGame option
+```
+
 `v1.0.9` -> `v1.0.10`
 ```diff
 + Fix for TC 1.25

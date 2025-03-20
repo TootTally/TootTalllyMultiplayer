@@ -197,6 +197,7 @@ namespace TootTallyMultiplayer
             KickFromLobby,
             StartTimer,
             StartGame,
+            AbortTimer,
             AbortGame,
 
             //Lobby Updates

@@ -3,6 +3,7 @@ using BepInEx;
 using Microsoft.FSharp.Core;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using TootTallyAccounts;
@@ -508,6 +509,8 @@ namespace TootTallyMultiplayer
         public void StartLobbyGame()
         {
             if (IsTimerStarted)
+                _multiConnection.SendOptionInfo(OptionInfoType.AbortTimer);
+            else if (_multLobbyPanel.IsGameRunning)
                 _multiConnection.SendOptionInfo(OptionInfoType.AbortGame);
             else
                 _multiConnection.SendOptionInfo(OptionInfoType.StartTimer, new dynamic[] { 5 });
@@ -540,7 +543,13 @@ namespace TootTallyMultiplayer
         public void AbortTimer()
         {
             StopTimer();
-            MultiplayerLogger.ServerLog($"Song start aborted.");
+            MultiplayerLogger.ServerLog($"Start timer aborted.");
+        }
+
+        public void AbortGame()
+        {
+            MultiplayerManager.AbortGame();
+            MultiplayerLogger.ServerLog("Song has been aborted.");
         }
 
         public void StopTimer()
@@ -633,6 +642,8 @@ namespace TootTallyMultiplayer
                 case OptionInfoType.StartTimer:
                     StartTimer((float)optionInfo.values[0]); break;
                 case OptionInfoType.AbortGame:
+                    AbortGame(); break;
+                case OptionInfoType.AbortTimer:
                     AbortTimer(); break;
                 case OptionInfoType.KickFromLobby:
                     if (TootTallyUser.userInfo.id == (int)optionInfo.values[0])
