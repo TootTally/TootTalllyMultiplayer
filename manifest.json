@@ -6,11 +6,11 @@
   "dependencies": [
     "TootTally-TootTallySpectator-1.0.7",
     "TootTally-TootTallyWebsocketLibs-1.0.1",
-    "TootTally-TootTallyLeaderboard-1.1.8",
+    "TootTally-TootTallyLeaderboard-1.1.9",
     "TootTally-TootTallyGameModifiers-1.2.7",
-    "TootTally-TootTallyCore-1.2.7",
+    "TootTally-TootTallyCore-1.2.9",
     "TromboneChamps-TrombLoader-2.2.3",
-    "TromboneChamps-BaboonAPI-2.7.1",
+    "TromboneChamps-BaboonAPI-2.8.1",
     "BepInEx-BepInExPack_TromboneChamp-5.4.21"
   ]
 }
