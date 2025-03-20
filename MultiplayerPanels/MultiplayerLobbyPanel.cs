@@ -296,7 +296,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             }
 
             ClearAllUserRows();
-            var currentHost = users.First();
+            MultiplayerUserInfo currentHost = users.Find(x => x.isHost);
             if (_hostInfo.id == 0 || _hostInfo.id != currentHost.id)
             {
                 if (_hostInfo.id != 0)
