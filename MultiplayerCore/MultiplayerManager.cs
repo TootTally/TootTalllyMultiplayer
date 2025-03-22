@@ -562,6 +562,8 @@ namespace TootTallyMultiplayer
         [HarmonyPostfix]
         private static void OnMultiplayerUpdateWaitForSync(GameController __instance)
         {
+            if (__instance.freeplay) return;
+
             if (_isSyncing)
             {
                 if (IsPlayingMultiplayer && (!_multiController.IsAnybodyLoading || _syncTimeoutTimer > 10f))
@@ -569,11 +571,30 @@ namespace TootTallyMultiplayer
                 else
                     _syncTimeoutTimer += Time.deltaTime;
             }
-            else if (IsPlayingMultiplayer && _isForceExit)
-                __instance.pausecontroller.showPausePanel();
+            else if (IsPlayingMultiplayer && _isForceExit && !__instance.quitting)
+                OnExitBaseGame(__instance);
 
             if (IsPlayingMultiplayer)
                 __instance.restarttimer = 0.01f;
+        }
+
+        private static void OnExitBaseGame(GameController __instance)
+        {
+            if (Cursor.lockState == CursorLockMode.Locked)
+                Cursor.lockState = CursorLockMode.Confined;
+            __instance.notebuttonpressed = false;
+            if (__instance.musictrack_status != GameController.track_status.ended)
+                __instance.musictrack.Pause();
+            __instance.custombg_video?.Pause();
+            __instance.sfxrefs.backfromfreeplay.Play();
+            __instance.puppet_humanc.shaking = false;
+            __instance.puppet_humanc.stopParticleEffects();
+            __instance.puppet_humanc.playCameraRotationTween(false);
+            __instance.paused = true;
+            __instance.quitting = true;
+            __instance.pausecanvas.SetActive(true);
+            __instance.pausecontroller.showPausePanel();
+            Cursor.visible = true;
         }
 
         [HarmonyPatch(typeof(GameController), nameof(GameController.startSong))]
