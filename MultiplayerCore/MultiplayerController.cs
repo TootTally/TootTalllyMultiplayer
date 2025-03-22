@@ -235,11 +235,11 @@ namespace TootTallyMultiplayer
             }
             else
                 _multMainPanel.OnLobbyDisconnectError();
-            StopTimer();
             _currentLobby.code = "";
             IsConnectionPending = false;
             if (MultiplayerManager.State == MultiplayerState.Lobby)
             {
+                StopTimer();
                 MultiplayerManager.UpdateMultiplayerStateIfChanged(MultiplayerState.Home);
                 MoveToMain();
                 RefreshAllLobbyInfo();

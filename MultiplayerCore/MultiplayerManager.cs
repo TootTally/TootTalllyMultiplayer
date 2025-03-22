@@ -100,7 +100,7 @@ namespace TootTallyMultiplayer
             _isSceneActive = true;
             AllowExit = false;
 
-            if (_multiController.IsConnected && State == MultiplayerController.MultiplayerState.SelectSong || State == MultiplayerController.MultiplayerState.PointScene || State == MultiplayerController.MultiplayerState.Quitting)
+            if (_multiController.IsConnected && (State == MultiplayerController.MultiplayerState.SelectSong || State == MultiplayerController.MultiplayerState.PointScene || State == MultiplayerController.MultiplayerState.Quitting))
             {
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Lobby);
                 _multiController.UpdateLobbySongDetails();
