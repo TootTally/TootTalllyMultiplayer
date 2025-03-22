@@ -33,7 +33,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private Dictionary<int, MultiplayerCard> _userCardsDict;
 
         private CustomButton _selectSongButton, _startGameButton, _readyUpButton;
-        private CustomButton _profileButton, _giveHostButton, _kickButton, _reportButton;
+        private CustomButton _profileButton, _giveHostButton, _kickButton, _banButton;
 
         private GameObject _lobbySettingButton;
 
@@ -135,7 +135,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _profileButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Profile", "DropdownProfile", OnProfileButtonClick);
             _giveHostButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Give Host", "DropdownGiveHost", OnGiveHostButtonClick);
             _kickButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Kick", "DropdownKick", OnKickUserButtonClick);
-            _reportButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Report", "DropdownReport", OnReportButtonClick);
+            _banButton = GameObjectFactory.CreateCustomButton(_dropdownMenuContainer.transform, Vector2.zero, new Vector2(295, 60), "Ban", "DropdownBan", OnBanButtonClick);
 
             //TITLE
             _titleText = GameObjectFactory.CreateSingleText(headerCenter.transform, "TitleText", "-");
@@ -506,7 +506,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             var showAllOptions = (IsHost && !isSelf) || controller.IsDevMode;
             _kickButton.gameObject.SetActive(showAllOptions);
             _giveHostButton.gameObject.SetActive(showAllOptions);
-            _reportButton.gameObject.SetActive(showAllOptions);
+            _banButton.gameObject.SetActive(showAllOptions);
             _dropdownMenu.GetComponent<RectTransform>().sizeDelta = new Vector2(300, showAllOptions ? 240 : 60);
         }
 
@@ -579,6 +579,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnKickUserButtonClick()
         {
             HideDropdown();
+            Plugin.LogInfo($"Attempting to kick {_dropdownUserInfo.username} (ID:{_dropdownUserInfo.id})");
             controller.KickUserFromLobby(_dropdownUserInfo.id);
             controller.RefreshCurrentLobbyInfo();
         }
@@ -588,9 +589,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             controller.OpenSongLink();
         }
 
-        public void OnReportButtonClick()
+        public void OnBanButtonClick()
         {
-            TootTallyNotifManager.DisplayNotif("Report not implemented yet.");
+            HideDropdown();
+            Plugin.LogInfo($"Attempting to ban {_dropdownUserInfo.username} (ID:{_dropdownUserInfo.id})");
+            controller.BanUserFromLobby(_dropdownUserInfo.id);
+            controller.RefreshCurrentLobbyInfo();
         }
 
         public void OnProfileButtonClick()

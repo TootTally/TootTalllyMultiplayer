@@ -83,7 +83,7 @@ namespace TootTallyMultiplayer
             _unmutedBtnSprite = AssetManager.GetSprite("MuteBtnOn.png");
             _muteButton = GameObjectFactory.CreateClickableImageHolder(canvas.transform, Vector2.zero, Vector2.one * 64, GetCurrentMuteSprite(), "MuteButton", OnToggleMuteButtonClick);
             var muteRect = _muteButton.GetComponent<RectTransform>();
-            muteRect.anchorMax = muteRect.anchorMin = muteRect.pivot = new Vector2(.99f,0);
+            muteRect.anchorMax = muteRect.anchorMin = muteRect.pivot = new Vector2(.99f, 0);
 
             try
             {
@@ -230,16 +230,20 @@ namespace TootTallyMultiplayer
             if (_multiConnection.IsConnected)
             {
                 _multiConnection.Disconnect();
-                _multLobbyPanel.ResetData();
+                if (MultiplayerManager.State == MultiplayerController.MultiplayerState.Lobby)
+                    _multLobbyPanel.ResetData();
             }
             else
                 _multMainPanel.OnLobbyDisconnectError();
             StopTimer();
             _currentLobby.code = "";
             IsConnectionPending = false;
-            MultiplayerManager.UpdateMultiplayerStateIfChanged(MultiplayerState.Home);
-            MoveToMain();
-            RefreshAllLobbyInfo();
+            if (MultiplayerManager.State == MultiplayerState.Lobby)
+            {
+                MultiplayerManager.UpdateMultiplayerStateIfChanged(MultiplayerState.Home);
+                MoveToMain();
+                RefreshAllLobbyInfo();
+            }
         }
 
         public void Update()
@@ -307,12 +311,18 @@ namespace TootTallyMultiplayer
             IsUpdating = true;
             Plugin.Instance.StartCoroutine(MultiplayerAPIService.GetLobbyList(lobbyList =>
             {
-                _multMainPanel.ClearAllLobby();
-                var idList = _lobbyInfoList.Select(x => x.id);
-                _newLobbyCodeList = lobbyList.Select(x => x.id).Where(x => !idList.Contains(x)).ToList();
+                if (lobbyList == null)
+                    _multMainPanel.ShowServerDownText();
+                else
+                {
+                    _multMainPanel.ClearAllLobby();
+                    var idList = _lobbyInfoList.Select(x => x.id);
+                    _newLobbyCodeList = lobbyList.Select(x => x.id).Where(x => !idList.Contains(x)).ToList();
 
-                _lobbyInfoList = lobbyList;
-                UpdateLobbyInfo();
+                    _lobbyInfoList = lobbyList;
+                    UpdateLobbyInfo();
+                }
+                
                 IsUpdating = false;
                 _multMainPanel.ShowRefreshLobbyButton();
             }));
@@ -591,6 +601,7 @@ namespace TootTallyMultiplayer
         }
 
         public void KickUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.KickFromLobby, new dynamic[] { userID });
+        public void BanUserFromLobby(int userID) => _multiConnection.SendOptionInfo(OptionInfoType.BanFromLobby, new dynamic[] { userID });
 
         public void GiveHostUser(int userID)
         {

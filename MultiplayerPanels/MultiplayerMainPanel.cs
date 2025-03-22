@@ -127,9 +127,17 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _noLobbyText.gameObject.SetActive(false);
         }
 
+        public void ShowServerDownText()
+        {
+            _noLobbyText.gameObject.SetActive(true);
+            _noLobbyText.text = "Server is currently under maintenance.\nTry again later.";
+            ClearLobbyDetailsText();
+        }
+
         public void ShowNoLobbyText()
         {
             _noLobbyText.gameObject.SetActive(true);
+            _noLobbyText.text = "No lobby found.\nTry creating your own lobby!";
             ClearLobbyDetailsText();
 
         }

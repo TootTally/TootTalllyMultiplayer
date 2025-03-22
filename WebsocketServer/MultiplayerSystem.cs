@@ -172,8 +172,8 @@ namespace TootTallyMultiplayer
             //Emotions - Demands
             Laugh,
             Enjoy,
-            WantHost,
-            GiveHost
+            WhoHost,
+            MeHost
         }
 
         public enum OptionInfoType
@@ -195,6 +195,7 @@ namespace TootTallyMultiplayer
             //Host Commands
             GiveHost,
             KickFromLobby,
+            BanFromLobby,
             StartTimer,
             StartGame,
             AbortTimer,
@@ -305,8 +306,8 @@ namespace TootTallyMultiplayer
 
             {QuickChat.Laugh, "Ahah!" },
             {QuickChat.Enjoy, "Im enjoying this lobby!" },
-            {QuickChat.WantHost, "I want to be host." },
-            {QuickChat.GiveHost, "Who wants to be host?" }
+            {QuickChat.MeHost, "I want to be host." },
+            {QuickChat.WhoHost, "Who wants to be host?" }
         };
     }
 }
