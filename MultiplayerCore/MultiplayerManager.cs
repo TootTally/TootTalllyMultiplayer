@@ -602,11 +602,11 @@ namespace TootTallyMultiplayer
         [HarmonyPrefix]
         private static bool OnMultiplayerWaitForSync()
         {
+            _multiController.OnGameControllerStartSongSendReadyState();
             if (IsPlayingMultiplayer && _multiController.IsAnybodyLoading && _syncTimeoutTimer < 10f)
             {
                 _isSyncing = true;
                 _syncTimeoutTimer = 0;
-                _multiController.OnGameControllerStartSongSendReadyState();
                 TootTallyNotifManager.DisplayNotif("Waiting for all players to load...");
                 return false;
             }

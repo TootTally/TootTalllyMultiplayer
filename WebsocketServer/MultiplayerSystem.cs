@@ -113,7 +113,7 @@ namespace TootTallyMultiplayer
             base.OnWebSocketOpen(sender, e);
         }
 
-        protected override void OnWebSocketClose(object sender, EventArgs e)
+        protected override void OnWebSocketClose(object sender, CloseEventArgs e)
         {
             OnWebSocketCloseCallback?.Invoke();
             base.OnWebSocketClose(sender, e);

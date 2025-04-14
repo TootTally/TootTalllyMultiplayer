@@ -3,6 +3,7 @@
 `v1.0.10` -> `v1.0.11`
 ```diff
 + Added AbortGame option
++ Fixed a bug where players would get stuck in Loading state if they were playing multiplayer alone
 ```
 
 `v1.0.9` -> `v1.0.10`

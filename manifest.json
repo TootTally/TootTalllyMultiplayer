@@ -5,7 +5,7 @@
     "description": "Multiplayer plugin for Trombone Champ.",
   "dependencies": [
     "TootTally-TootTallySpectator-1.0.7",
-    "TootTally-TootTallyWebsocketLibs-1.0.1",
+    "TootTally-TootTallyWebsocketLibs-1.0.3",
     "TootTally-TootTallyLeaderboard-1.1.9",
     "TootTally-TootTallyGameModifiers-1.2.7",
     "TootTally-TootTallyCore-1.2.9",
