@@ -445,9 +445,21 @@ namespace TootTallyMultiplayer
                             FileHelper.ExtractZipToDirectory(source, destination);
 
                             FileHelper.DeleteFile(downloadDir, fileName);
-                            TootTallyCore.Plugin.Instance.ReloadTracks();
-                            SelectSongFromTrackref(_savedTrackRef);
-                            SendUserState(UserState.NotReady);
+                            TootTallyCore.Plugin.Instance.reloadManager.ReloadAll(
+                                new ProgressCallbacks
+                                {
+                                    onComplete = () => 
+                                    {
+                                        SelectSongFromTrackref(_savedTrackRef);
+                                        SendUserState(UserState.NotReady); 
+                                    },
+                                    onError = (error) =>
+                                    {
+                                        Plugin.LogError(error.StackTrace);
+                                        TootTallyNotifManager.DisplayNotif("Download failed. Unexpected error occured.");
+                                    },
+                                }
+                            );
                         }
                         catch (Exception)
                         {
