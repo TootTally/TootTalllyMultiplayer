@@ -1,6 +1,6 @@
 #### Changelog:
 
-`v1.0.10` -> `v1.0.11`
+`v1.0.10` -> `v1.0.12`
 ```diff
 + Added AbortGame option
 + Fixed a bug where players would get stuck in Loading state if they were playing multiplayer alone
