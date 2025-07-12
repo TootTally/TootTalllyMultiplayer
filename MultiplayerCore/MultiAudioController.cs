@@ -38,6 +38,12 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
             Plugin.Instance.StartCoroutine(MultiplayerAPIService.TryLoadingAudioClipLocal(fileName, clip =>
             {
+                if (clip == null)
+                {
+                    IsDefaultMusicLoaded = false;
+                    Plugin.LogError($"Music {fileName} couldn't be loaded.");
+                    return;
+                }
                 IsDefaultMusicLoaded = true;
                 _audioSource.clip = clip;
                 _defaultAudio = clip;
@@ -58,7 +64,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         public static void PlayMusicSoft(float time = .3f)
         {
-            if (IsMuted) return;
+            if (IsMuted || _audioSource.clip == null) return;
 
             _audioSource.Play();
             LeanTween.value(0, _volume, time).setOnUpdate(v => _audioSource.volume = v);
@@ -66,7 +72,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         public static void ResumeMusicSoft(float time = .3f)
         {
-            if (IsMuted) return;
+            if (IsMuted || _audioSource.clip == null) return;
 
             IsPaused = false;
             _audioSource.UnPause();
@@ -77,7 +83,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
         public static void PauseMusicHard() => _audioSource?.Pause();
         public static void PlayMusicHard()
         {
-            if (IsMuted) return;
+            if (IsMuted || _audioSource.clip == null) return;
             _audioSource.volume = _volume;
             _audioSource?.Play();
         }
@@ -118,7 +124,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         public static void SetSongToDefault()
         {
-            if (_audioSource.clip != _defaultAudio)
+            if (_audioSource.clip != _defaultAudio && _defaultAudio != null)
                 _audioSource.clip = _defaultAudio;
         }
 

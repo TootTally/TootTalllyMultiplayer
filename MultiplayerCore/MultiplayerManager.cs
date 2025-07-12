@@ -602,8 +602,10 @@ namespace TootTallyMultiplayer
         [HarmonyPrefix]
         private static bool OnMultiplayerWaitForSync()
         {
+            if (!IsPlayingMultiplayer) return true;
+
             _multiController.OnGameControllerStartSongSendReadyState();
-            if (IsPlayingMultiplayer && _multiController.IsAnybodyLoading && _syncTimeoutTimer < 10f)
+            if (_multiController.IsAnybodyLoading && _syncTimeoutTimer < 10f)
             {
                 _isSyncing = true;
                 _syncTimeoutTimer = 0;
