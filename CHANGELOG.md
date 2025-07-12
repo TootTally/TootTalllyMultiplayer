@@ -1,5 +1,10 @@
 #### Changelog:
 
+`v1.0.12` -> `v1.0.13`
+```diff
++ CJK fonts now showing up in lobby title
+```
+
 `v1.0.10` -> `v1.0.12`
 ```diff
 + Added AbortGame option
