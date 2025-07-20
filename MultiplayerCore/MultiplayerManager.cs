@@ -457,7 +457,10 @@ namespace TootTallyMultiplayer
             if (State == MultiplayerController.MultiplayerState.Playing)
             {
                 _currentPointSceneInstance = __instance;
-                _multiController.SendSongFinishedToLobby();
+                if (TootTallyGlobalVariables.isTournamentHosting)
+                    _multiController.SendQuitFlag();
+                else
+                    _multiController.SendSongFinishedToLobby();
                 _multiController.InitializePointScore();
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.PointScene);
                 __instance.btn_retry_obj.SetActive(false);
