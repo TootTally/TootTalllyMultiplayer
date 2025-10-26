@@ -158,8 +158,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _songNameText = GameObjectFactory.CreateSingleText(titleContainer.transform, "SongNameText", "-");
             _songNameText.rectTransform.sizeDelta = new Vector2(0, 60);
             _songNameText.enableAutoSizing = true;
-            _songNameText.fontSizeMax = 60;
-            _songNameText.fontSizeMin = 48;
+            _songNameText.fontSizeMax = 48;
+            _songNameText.fontSizeMin = 32;
             _songNameText.overflowMode = TextOverflowModes.Ellipsis;
             _songNameText.fontStyle = TMPro.FontStyles.Bold;
             var titleTextTrigger = _songNameText.gameObject.AddComponent<EventTrigger>();
