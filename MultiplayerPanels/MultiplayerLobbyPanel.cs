@@ -99,6 +99,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             AddModifierButton(hContainer.transform, GameModifiers.EASY_MODE);
             AddModifierButton(hContainer.transform, GameModifiers.STRICT_MODE);
             AddModifierButton(hContainer.transform, GameModifiers.HIDDEN_CURSOR);
+            AddModifierButton(hContainer.transform, GameModifiers.MIRROR_MODE);
+            AddModifierButton(hContainer.transform, GameModifiers.NO_BREATHING);
 
             _hiddenUserCardSlider = new GameObject("ContainerSlider", typeof(Slider)).GetComponent<Slider>();
             _hiddenUserCardSlider.gameObject.SetActive(true);
