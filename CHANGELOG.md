@@ -1,5 +1,10 @@
 #### Changelog:
 
+`v1.0.13` -> `v1.0.14`
+```diff
++ Added MR and NB to FreeMods
+```
+
 `v1.0.12` -> `v1.0.13`
 ```diff
 + CJK fonts now showing up in lobby title
