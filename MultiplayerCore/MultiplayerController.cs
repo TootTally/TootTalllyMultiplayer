@@ -427,7 +427,6 @@ namespace TootTallyMultiplayer
                 savedSongInfo = songInfo;
                 return;
             }
-
             var optionalTrack = TrackLookup.tryLookup(songInfo.trackRef);
             _hasSong = songInfo.trackRef != "" && OptionModule.IsSome(optionalTrack);
             if (_hasSong)
@@ -445,6 +444,7 @@ namespace TootTallyMultiplayer
                 SendUserState(UserState.NoSong);
                 _multLobbyPanel.SetNullTrackDataDetails(_savedDownloadLink != null);
             }
+            savedSongInfo = songInfo;
         }
 
         public void DownloadSavedChart(ProgressBar bar)
