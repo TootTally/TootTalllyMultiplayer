@@ -225,33 +225,61 @@ namespace TootTallyMultiplayer
             return lobbySettings;
         }
 
+        private const int ROW_COUNT = 3;
+        private const int COLUMN_COUNT = 3;
+        private const int GROUP_COUNT = 4;
+
         public static CustomPopup CreateQuickChatPopup(Transform buttonTransform, Transform popupTransform, Action<QuickChat> OnBtnClickCallback)
         {
-            var customPopup = new CustomPopup("Quick Chat", buttonTransform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), popupTransform, new Vector2(450, 700), 38, new Vector2(32, 32));
+            var customPopup = new CustomPopup("Quick Chat", buttonTransform, Vector2.zero, new Vector2(64, 64), AssetManager.GetSprite("Bubble.png"), popupTransform, new Vector2(720, 700), 38, new Vector2(32, 32));
             var quickChatContainer = customPopup.popupBox.transform.GetChild(0).gameObject;
+            quickChatContainer.GetComponent<VerticalLayoutGroup>().spacing = 0;
 
-            var nullColor = new Color(0, 0, 0, 0);
-            for (int height = 0; height < 3; height++)
+            var normalColor = new Color(.5f, .5f, .5f, .35f);
+            var hoverColor = new Color(.6f, .6f, .6f, .5f);
+            for (int height = 0; height < ROW_COUNT; height++)
             {
                 var hContainer = GameModifierFactory.GetHorizontalBox(new Vector2(0, 205), quickChatContainer.transform);
                 hContainer.GetComponent<HorizontalLayoutGroup>().spacing = 20;
-                for (int width = 0; width < 2; width++)
+                for (int width = 0; width < COLUMN_COUNT; width++)
                 {
                     var buttonContainer = GameModifierFactory.GetVerticalBox(new Vector2(190, 0), hContainer.transform);
                     var buttonLayout = buttonContainer.GetComponent<VerticalLayoutGroup>();
-                    buttonLayout.spacing = 1;
-                    for (int i = 0; i < 4; i++)
+                    buttonLayout.spacing = 2;
+                    for (int i = 0; i < GROUP_COUNT; i++)
                     {
-                        var index = (height * 8) + (width * 4) + i;
-                        var quickChatOption = QuickChatToTextDic.ElementAt(index).Key;
-                        var btnText = string.Concat(quickChatOption.ToString().Select(x => char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' ');
-                        var btn = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(0, 36), btnText, $"QCButton{quickChatOption}", delegate { OnBtnClickCallback(quickChatOption); });
+                        var index = (height * GROUP_COUNT * ROW_COUNT) + (width * GROUP_COUNT) + i;
+                        var quickChat = QuickChatToTextDic.ElementAt(index);
+                        var quickChatKey = quickChat.Key;
+                        var btnText = string.Concat(quickChatKey.ToString().Select(x => char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' ');
+                        var btn = GameObjectFactory.CreateCustomButton(buttonContainer.transform, Vector2.zero, new Vector2(0, 36), btnText, $"QCButton{quickChatKey}", delegate { OnBtnClickCallback(quickChatKey); });
+                        btn.textHolder.fontSize = 16;
                         var colors = btn.button.colors;
-                        colors.normalColor = nullColor;
+                        colors.normalColor = normalColor;
+                        colors.highlightedColor = hoverColor;
                         btn.button.colors = colors;
+                        var bubble = btn.gameObject.AddComponent<BubblePopupHandler>();
+                        bubble.Initialize(customPopup.popupBox.transform, GameObjectFactory.CreateBubble(Vector2.zero, $"{btn.name}Bubble", $"{quickChat.Value}", Vector2.zero, 6, true), false);
                     }
                 }
             }
+
+            var hbtn = GameObjectFactory.CreateCustomButton(quickChatContainer.transform, Vector2.zero, Vector2.one * 5f, "", $"QCButtonH", delegate { OnBtnClickCallback(QuickChat.LetsBone); });
+            hbtn.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            var hbtn2 = GameObjectFactory.CreateCustomButton(quickChatContainer.transform, Vector2.zero, Vector2.one * 5f, "", $"QCButtonH2", delegate { OnBtnClickCallback(QuickChat.TiltControl); });
+            hbtn2.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+
+            var hcolors = hbtn.button.colors;
+            hcolors.normalColor = new Color(0,0,0,0);
+            hcolors.highlightedColor = new Color(.5f, .5f, .5f, .5f);
+            hbtn.button.colors = hbtn2.button.colors = hcolors;
+
+            var hrect = hbtn.GetComponent<RectTransform>();
+            var h2rect = hbtn2.GetComponent<RectTransform>();
+            hrect.pivot = h2rect.pivot = Vector2.one * .5f;
+
+            hrect.anchorMin = hrect.anchorMax = new Vector2(.2f, .95f);
+            h2rect.anchorMin = h2rect.anchorMax = new Vector2(.8f, .95f);
 
             return customPopup;
         }

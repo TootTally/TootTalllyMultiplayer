@@ -58,6 +58,7 @@ namespace TootTallyMultiplayer
         [HarmonyPrefix]
         public static bool OnStartPrefixLoadLevelSelectIfNotInit(PlaytestAnims __instance)
         {
+            TootTallyGlobalVariables.isPlayingMultiplayer = true;
             GlobalVariables.scene_destination = LEVELSELECT_SCENE_NAME;
             if (SpectatingManager.IsSpectating) SpectatingManager.StopAllSpectator();
 
@@ -84,7 +85,6 @@ namespace TootTallyMultiplayer
             __instance.logo_trect.gameObject.SetActive(false);
             __instance.logo_crect.gameObject.SetActive(false);
 
-            GameModifierManager.ClearAllModifiers();
             MultiplayerGameObjectFactory.Initialize();
             MultiAudioController.InitMusic();
 
@@ -107,6 +107,7 @@ namespace TootTallyMultiplayer
             }
             else
             {
+                GameModifierManager.ClearAllModifiers();
                 PreviousState = MultiplayerController.MultiplayerState.None;
                 UpdateMultiplayerState(MultiplayerController.MultiplayerState.Home);
                 StartRecursiveRefresh();
@@ -122,10 +123,11 @@ namespace TootTallyMultiplayer
 
             if (Input.GetKeyDown(KeyCode.Escape) && CanPressEscape())
             {
+
                 if (State == MultiplayerController.MultiplayerState.Home)
                     ExitMultiplayer();
                 else if (State == MultiplayerController.MultiplayerState.Lobby)
-                    _multiController.DisconnectFromLobby();
+                    _multiController.OnPressEscape();
                 else
                 {
                     _multiController.ReturnToLastPanel();
@@ -164,6 +166,7 @@ namespace TootTallyMultiplayer
         [HarmonyPostfix]
         public static void OnHomeControllerStartPostFixAddMultiplayerButton(HomeController __instance)
         {
+            TootTallyGlobalVariables.isPlayingMultiplayer = false;
             GameObject mainCanvas = GameObject.Find("MainCanvas").gameObject;
             GameObject mainMenu = mainCanvas.transform.Find("MainMenu").gameObject;
             MultiplayerGameObjectFactory.SetTogglePrefab(__instance);
@@ -656,38 +659,6 @@ namespace TootTallyMultiplayer
                 TootTallyNotifManager.DisplayNotif("Cannot spectate someone while in multiplayer.");
                 return false;
             }
-            return true;
-        }
-        #endregion
-
-        #region GameModifiers Patches
-        [HarmonyPatch(typeof(GameModifierManager), nameof(GameModifierManager.Toggle))]
-        [HarmonyPrefix]
-        public static bool PreventToggles(GameModifiers.ModifierType modifierType)
-        {
-            if (!IsPlayingMultiplayer && !IsConnectedToMultiplayer && !_isSceneActive) return true;
-            if (modifierType == GameModifiers.ModifierType.Hidden && _multiController.IsFreemod)
-            {
-                TootTallyNotifManager.DisplayNotif("Cannot enable Hidden with freemod.");
-                return false;
-            }
-            if (modifierType == GameModifiers.ModifierType.Flashlight && _multiController.IsFreemod)
-            {
-                TootTallyNotifManager.DisplayNotif("Cannot enable Flashlight with freemod.");
-                return false;
-            }
-
-            if (modifierType == GameModifiers.ModifierType.Brutal)
-            {
-                TootTallyNotifManager.DisplayNotif("Cannot enable Brutal Mode in multiplayer.");
-                return false;
-            }
-            else if (modifierType == GameModifiers.ModifierType.InstaFail)
-            {
-                TootTallyNotifManager.DisplayNotif("Cannot enable InstaFail in multiplayer.");
-                return false;
-            }
-
             return true;
         }
         #endregion

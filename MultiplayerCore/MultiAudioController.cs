@@ -17,6 +17,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
         public static bool IsPlaying => _audioSource.isPlaying;
         public static bool IsPaused;
         public static bool IsDefaultMusicLoaded;
+        public static bool IsPlayingDefault => IsDefaultMusicLoaded && _audioSource.isPlaying && _audioSource.clip == _defaultAudio;
         public static bool IsMuted => Plugin.Instance.MuteMusic.Value;
 
         public static void InitMusic()

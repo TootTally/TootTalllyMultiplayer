@@ -59,6 +59,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private int _maxPlayerCount;
         private int _readyCount;
+        private bool _isFreeMod;
         private float _previousUserCount;
 
         private float _savedGameSpeed;
@@ -67,6 +68,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private Vector3 _lobbyContainerScrollingDistance;
 
         private bool _canPressButton, _canDoQuickChat = true;
+        public bool IsQuickChatOpened => _quickChatPopup.isPopupEnabled;
 
         private UserState _userState;
 
@@ -269,6 +271,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _lobbySettingsInputPrompt.Hide(false);
             _quickChatPopup.popupBox.SetActive(false);
             _modifiersPopup.popupBox.SetActive(false);
+            SetNullTrackDataDetails(false);
         }
 
         private void SetTextsParameters(params TMP_Text[] texts)
@@ -297,7 +300,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     MultiplayerLogger.ServerLog($"{u.username} left the lobby.");
                 });
             }
-
+            _isFreeMod = lobbyInfo.freemod;
             ClearAllUserRows();
             MultiplayerUserInfo currentHost = users.Find(x => x.isHost);
             if (_hostInfo.id == 0 || _hostInfo.id != currentHost.id)
@@ -392,7 +395,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             userCard.UpdateUserCard(user, displayedState);
             userCard.teamChanger.gameObject.GetComponent<Button>().interactable = IsSelf(user.id) || IsHost;
 
-            _readyCount = _userCardsDict.Values.Where(x => x.user.state == "Ready" && !IsSelf(x.user.id)).Count() + 1;
+            _readyCount = _userCardsDict.Values.Where(x => (x.user.state == "Ready" || x.user.state == "Spectating") && !IsSelf(x.user.id)).Count() + 1;
 
             var color = UserStateToColor(userState);
             GameObjectFactory.TintImage(userCard.container.GetComponent<Image>(), color, .2f);
@@ -400,7 +403,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (IsHost && !controller.IsTimerStarted)
                 SetHostButtonText();
             UpdateScrolling(_userCardsDict.Count);
-            SetOwnMods(user.id, user.mods);
+            if (IsSelf(user.id) && _isFreeMod)
+                SetOwnMods(user.mods);
         }
 
         public void UpdateMods(int id, string mods)
@@ -408,7 +412,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (!_userCardsDict.ContainsKey(id)) return;
             var userCard = _userCardsDict[id];
             userCard.UpdateMods(mods);
-            SetOwnMods(id, mods);
+            if (IsSelf(id) && _isFreeMod)
+                SetOwnMods(mods);
         }
 
         public void UpdateTeam(int id, int team)
@@ -419,23 +424,16 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             userCard.teamChanger.gameObject.GetComponent<Button>().interactable = IsSelf(id) || IsHost;
         }
 
-        private void SetOwnMods(int id, string mods)
+        private void SetOwnMods(string mods)
         {
-            if (IsSelf(id))
+            GameModifierManager.LoadModifiersFromString(mods);
+            var modifiers = GameModifierManager.GetModifierSet(mods);
+            foreach (var modType in _modifierButtonDict.Keys)
             {
-                GameModifierManager.LoadModifiersFromString(mods);
-                var modifiers = GameModifierManager.GetModifierSet(mods);
-                foreach (var modType in _modifierButtonDict.Keys)
-                {
-                    if (modifiers.Contains(modType))
-                    {
-                        _modifierButtonDict[modType].ToggleOn();
-                    }
-                    else
-                    {
-                        _modifierButtonDict[modType].ToggleOff();
-                    }
-                }
+                if (modifiers.Contains(modType))
+                    _modifierButtonDict[modType].ToggleOn();
+                else
+                    _modifierButtonDict[modType].ToggleOff();
             }
         }
 
@@ -451,7 +449,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void OnSendQuickChatButtonClick(QuickChat chat)
         {
-            if (!_quickChatPopup.isPopupEnabled || !_canDoQuickChat) return; //Prevent user from sending QuickChat while panel is closing
+            if (!IsQuickChatOpened || !_canDoQuickChat) return; //Prevent user from sending QuickChat while panel is closing
             DisableQuickChat(2f);
             controller.SendQuickChat(chat);
         }
@@ -480,6 +478,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 UserState.NotReady => new Color(.95f, .95f, .2f, 1),
                 UserState.Ready => new Color(.2f, .95f, .2f, 1),
                 UserState.Host => new Color(.95f, .2f, .95f, 1),
+                UserState.Spectating => new Color(0, 0, .95f, 1),
                 _ => new Color(.95f, .95f, .95f, 1),
             };
 
@@ -547,7 +546,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             if (IsHost)
                 if (IsGameRunning)
                     _startGameButton.textHolder.text = "Abort Game";
-                else if (_readyCount == maxCount)
+                else if (_readyCount >= maxCount)
                     _startGameButton.textHolder.text = "Start Game";
                 else
                     _startGameButton.textHolder.text = $"{_readyCount}/{maxCount} Force Start";
@@ -643,6 +642,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         public void SetTrackDataDetails(SingleTrackData trackData)
         {
+            _isDownloadable = false;
             _songArtistText.text = $"{trackData.artist}";
             _songDescText.text = $"{trackData.desc}";
             _bpmText.text = $" <b>{trackData.tempo * _savedGameSpeed}</b>";
@@ -664,6 +664,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _isDownloadable = isDownloadable;
             _readyUpButton.gameObject.SetActive(isDownloadable);
             _startGameButton.gameObject.SetActive(false);
+            _songNameText.text = $"-";
             _songArtistText.text = $"-";
             _songDescText.text = $"-";
             _bpmText.text = $" -";
@@ -687,8 +688,14 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     _readyUpButton.gameObject.SetActive(!IsHost);
                     _readyUpButton.textHolder.text = "Not Ready";
                     break;
+                case UserState.Spectating:
+                    _readyUpButton.gameObject.SetActive(!controller.IsDownloadPending && _isDownloadable && !IsHost);
+                    _readyUpButton.textHolder.text = "Download Song";
+                    break;
             }
         }
+
+        public void CloseQuickChat() => _quickChatPopup.OnCloseAnimation();
 
         private void DisableButton(float delay)
         {

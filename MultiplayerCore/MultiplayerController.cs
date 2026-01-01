@@ -67,6 +67,7 @@ namespace TootTallyMultiplayer
 
         public bool IsRequestPending => _multCreatePanel.IsRequestPending || IsConnectionPending;
         public bool IsDevMode => TootTallyUser.userInfo.dev || TootTallyUser.userInfo.moderator;
+        public bool IsSpectating => TootTallyGlobalVariables.isTournamentHosting; //TEMP for now
         public string LobbyCode;
 
 
@@ -155,12 +156,14 @@ namespace TootTallyMultiplayer
 
         public void OnGameControllerStartSongSendReadyState()
         {
-            SendUserState(UserState.Playing);
+            if (!IsSpectating)
+                SendUserState(UserState.Playing);
         }
 
         public void OnSongQuit()
         {
-            _multiConnection.SendUserState(UserState.NotReady);
+            if (!IsSpectating)
+                _multiConnection.SendUserState(UserState.NotReady);
         }
 
         public void InitializePointScore()
@@ -239,11 +242,20 @@ namespace TootTallyMultiplayer
             IsConnectionPending = false;
             if (MultiplayerManager.State == MultiplayerState.Lobby)
             {
+                PlayDefaultSong();
                 StopTimer();
                 MultiplayerManager.UpdateMultiplayerStateIfChanged(MultiplayerState.Home);
                 MoveToMain();
                 RefreshAllLobbyInfo();
             }
+        }
+
+        public void OnPressEscape()
+        {
+            if (_multLobbyPanel.IsQuickChatOpened)
+                _multLobbyPanel.CloseQuickChat();
+            else
+                DisconnectFromLobby();
         }
 
         public void Update()
@@ -275,6 +287,7 @@ namespace TootTallyMultiplayer
         public void OnLobbyConnectionSuccess()
         {
             MoveToLobby();
+            if (TootTallyGlobalVariables.isTournamentHosting) SendUserState(UserState.Spectating);
         }
 
         public void MoveToCreate()
@@ -322,7 +335,7 @@ namespace TootTallyMultiplayer
                     _lobbyInfoList = lobbyList;
                     UpdateLobbyInfo();
                 }
-                
+
                 IsUpdating = false;
                 _multMainPanel.ShowRefreshLobbyButton();
             }));
@@ -377,39 +390,51 @@ namespace TootTallyMultiplayer
         public void OnSongInfoReceived(SocketSongInfo socketSongInfo) => OnSongInfoReceived(socketSongInfo.songInfo);
         public void OnSongInfoReceived(MultiplayerSongInfo songInfo)
         {
-            if ((savedSongInfo.trackRef == "" || savedSongInfo.trackRef != songInfo.trackRef) && songInfo.trackRef != "")
-                MultiplayerLogger.HostLog(_currentLobby.players[0].username, $"Song \"{songInfo.songName}\" was selected.");
-
-            savedSongInfo = songInfo;
-            TootTallyGlobalVariables.gameSpeedMultiplier = songInfo.gameSpeed;
-            if (songInfo.modifiers != "FM") GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
-
-            float diffIndex = (int)((songInfo.gameSpeed - .5f) / .25f);
-
-            float diff;
-
-            if (diffIndex != 6)
+            if (songInfo.trackRef == "")
             {
-                float diffMin = diffIndex * .25f + .5f;
-                float diffMax = (diffIndex + 1f) * .25f + .5f;
-
-                float by = (songInfo.gameSpeed - diffMin) / (diffMax - diffMin);
-
-                diff = EasingHelper.Lerp(songInfo.speed_diffs[(int)diffIndex], songInfo.speed_diffs[(int)diffIndex + 1], by);
+                savedSongInfo = songInfo;
+                _multLobbyPanel.SetNullTrackDataDetails(false);
+                PlayDefaultSong();
+                return;
             }
-            else
-                diff = songInfo.speed_diffs[(int)diffIndex];
+            else if (songInfo.trackRef != savedSongInfo.trackRef || songInfo.gameSpeed != savedSongInfo.gameSpeed || (songInfo.modifiers != "FM" && songInfo.modifiers != savedSongInfo.modifiers))
+            {
+                MultiplayerLogger.HostLog(_currentLobby.players[0].username,
+                    $"Song \"{songInfo.songName} [{songInfo.gameSpeed:0.00}x]\"{(songInfo.modifiers != "FM" && !songInfo.modifiers.Contains("None") ? $" with [{songInfo.modifiers}]":"")} was selected.");
+                TootTallyGlobalVariables.gameSpeedMultiplier = songInfo.gameSpeed;
 
-            UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
+                float diffIndex = (int)((songInfo.gameSpeed - .5f) / .25f);
+
+                float diff;
+
+                if (diffIndex != 6)
+                {
+                    float diffMin = diffIndex * .25f + .5f;
+                    float diffMax = (diffIndex + 1f) * .25f + .5f;
+
+                    float by = (songInfo.gameSpeed - diffMin) / (diffMax - diffMin);
+
+                    diff = EasingHelper.Lerp(songInfo.speed_diffs[(int)diffIndex], songInfo.speed_diffs[(int)diffIndex + 1], by);
+                }
+                else
+                    diff = songInfo.speed_diffs[(int)diffIndex];
+
+                if (songInfo.modifiers != "FM") GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
+                UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
+            }
+            if (songInfo.trackRef == savedSongInfo.trackRef)
+            {
+                savedSongInfo = songInfo;
+                return;
+            }
 
             var optionalTrack = TrackLookup.tryLookup(songInfo.trackRef);
             _hasSong = songInfo.trackRef != "" && OptionModule.IsSome(optionalTrack);
-
             if (_hasSong)
             {
                 SelectSongFromTrackref(optionalTrack.Value.trackref);
                 if (_currentUserState == UserState.NoSong)
-                    SendUserState(UserState.NotReady);
+                    SendUserState(IsSpectating ? UserState.Spectating : UserState.NotReady);
                 _savedDownloadLink = null;
                 _savedTrackRef = "";
             }
@@ -448,10 +473,10 @@ namespace TootTallyMultiplayer
                             TootTallyCore.Plugin.Instance.reloadManager.ReloadAll(
                                 new ProgressCallbacks
                                 {
-                                    onComplete = () => 
+                                    onComplete = () =>
                                     {
                                         SelectSongFromTrackref(_savedTrackRef);
-                                        SendUserState(UserState.NotReady); 
+                                        SendUserState(IsSpectating ? UserState.Spectating : UserState.NotReady);
                                     },
                                     onError = (error) =>
                                     {
@@ -506,11 +531,12 @@ namespace TootTallyMultiplayer
 
         public void PlayDefaultSong()
         {
-            MultiAudioController.PauseMusicSoft(.3f, () =>
-            {
-                MultiAudioController.SetSongToDefault();
-                MultiAudioController.PlayMusicSoft();
-            });
+            if (!MultiAudioController.IsPlayingDefault)
+                MultiAudioController.PauseMusicSoft(.3f, () =>
+                {
+                    MultiAudioController.SetSongToDefault();
+                    MultiAudioController.PlayMusicSoft();
+                });
         }
 
 

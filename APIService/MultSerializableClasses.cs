@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Steamworks;
+using System;
 using System.Collections.Generic;
 
 namespace TootTallyMultiplayer.APIService
@@ -44,6 +45,7 @@ namespace TootTallyMultiplayer.APIService
             public string state;
             public bool teams;
             public bool freemod;
+            public LobbyType lobbytype;
             public List<MultiplayerUserInfo> players;
             public MultiplayerSongInfo songInfo;
         }
@@ -95,6 +97,15 @@ namespace TootTallyMultiplayer.APIService
             Playing,
             Host,
             Spectating,
+        }
+
+        public enum LobbyType
+        {
+            Individual,
+            Team,
+            Rated,
+            BattleRoyal,
+            Casual
         }
     }
 }

@@ -139,11 +139,17 @@ namespace TootTallyMultiplayer
 
         public enum QuickChat
         {
-            //Introductions
+            //Greetings
             Hello,
             Welcome,
+            Thanks,
+            Sorry,
+
+            //Leavings
             Bye,
             Leave,
+            BeRightBack,
+            StartWithoutMe,
 
             //SelfState
             Wait,
@@ -153,13 +159,19 @@ namespace TootTallyMultiplayer
 
             //Opinions
             GoodChart,
-            BadChart,
+            ChangeSong,
+            Downloading,
+            NotWorking,
+
+            //Affirmation
             Yes,
             No,
+            Maybe,
+            Sure,
 
             //Requests
-            TooFast,
-            TooSlow,
+            SpeedUp,
+            SlowDown,
             TooHard,
             TooEasy,
 
@@ -173,7 +185,24 @@ namespace TootTallyMultiplayer
             Laugh,
             Enjoy,
             WhoHost,
-            MeHost
+            MeHost,
+
+            //Modifiers - Others
+            FreeMod,
+            NoMod,
+            LastSong,
+            Scared,
+
+            //Jokes
+            PlaceHolder3,
+            PlaceHolder4,
+            PlaceHolder5,
+            PlaceHolder6,
+
+
+            //Hidden
+            LetsBone = 999,
+            TiltControl = 1000,
         }
 
         public enum OptionInfoType
@@ -281,8 +310,13 @@ namespace TootTallyMultiplayer
         {
             {QuickChat.Hello, "Hello!" },
             {QuickChat.Welcome, "Welcome!" },
+            {QuickChat.Thanks, "Thanks!" },
+            {QuickChat.Sorry, "Sorry..." },
+
             {QuickChat.Bye, "Bye bye!" },
             {QuickChat.Leave, "I have to leave." },
+            {QuickChat.BeRightBack, "I will be right back." },
+            {QuickChat.StartWithoutMe, "You can start without me." },
 
             {QuickChat.Wait, "Wait for me." },
             {QuickChat.ImReady, "I'm ready!" },
@@ -290,12 +324,17 @@ namespace TootTallyMultiplayer
             {QuickChat.GoodLuck, "Good luck!" },
 
             {QuickChat.GoodChart, "I like this chart." },
-            {QuickChat.BadChart, "I don't like this chart." },
+            {QuickChat.ChangeSong, "Can we change the song?" },
+            {QuickChat.Downloading, "I'm downloading the song." },
+            {QuickChat.NotWorking, "The download is not working." },
+
             {QuickChat.Yes, "Yes." },
             {QuickChat.No, "No." },
+            {QuickChat.Maybe, "Maybe." },
+            {QuickChat.Sure, "Sure!" },
 
-            {QuickChat.TooFast, "I think the game speed is too fast." },
-            {QuickChat.TooSlow, "I think the game speed is too slow." },
+            {QuickChat.SpeedUp, "We should increase the game speed." },
+            {QuickChat.SlowDown, "We should lower the game speed." },
             {QuickChat.TooHard, "I think the song is too hard." },
             {QuickChat.TooEasy, "I think the song is too easy." },
 
@@ -307,7 +346,15 @@ namespace TootTallyMultiplayer
             {QuickChat.Laugh, "Ahah!" },
             {QuickChat.Enjoy, "Im enjoying this lobby!" },
             {QuickChat.MeHost, "I want to be host." },
-            {QuickChat.WhoHost, "Who wants to be host?" }
+            {QuickChat.WhoHost, "Who wants to be host?" },
+
+            {QuickChat.FreeMod, "I want to use modifiers." },
+            {QuickChat.NoMod, "I don't want to use modifiers." },
+            {QuickChat.LastSong, "This is my last song." },
+            {QuickChat.Scared, "I'm scared..." },
+
+            {QuickChat.LetsBone, "Let's bone again!" },
+            {QuickChat.TiltControl, "I'm using tilt controls." }
         };
     }
 }
