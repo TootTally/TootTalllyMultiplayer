@@ -1,5 +1,12 @@
 #### Changelog:
 
+`v1.0.14` -> `v1.0.15`
+```diff
++ Added a lot of quick chats
++ Fixes for audio preview in some edge cases
++ Fixes for tounament host
+```
+
 `v1.0.13` -> `v1.0.14`
 ```diff
 + Added MR and NB to FreeMods

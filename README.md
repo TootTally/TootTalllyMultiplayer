@@ -1,5 +1,5 @@
 # TootTally Multiplayer
-> Version: 1.0.14
+> Version: 1.0.15
 
 [TootTallyCore](https://toottally.com/)'s Multiplayer. For more info about how multiplayer works, refer to our [Steam Guide](https://steamcommunity.com/sharedfiles/filedetails/?id=3174770435)
 
