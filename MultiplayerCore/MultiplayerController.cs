@@ -400,7 +400,7 @@ namespace TootTallyMultiplayer
             else if (songInfo.trackRef != savedSongInfo.trackRef || songInfo.gameSpeed != savedSongInfo.gameSpeed || (songInfo.modifiers != "FM" && songInfo.modifiers != savedSongInfo.modifiers))
             {
                 MultiplayerLogger.HostLog(_currentLobby.players[0].username,
-                    $"Song \"{songInfo.songName} [{songInfo.gameSpeed:0.00}x]\"{(songInfo.modifiers != "FM" && !songInfo.modifiers.Contains("None") ? $" with [{songInfo.modifiers}]":"")} was selected.");
+                    $"Song \"{songInfo.songName} [{songInfo.gameSpeed:0.00}x]\"{(songInfo.modifiers != "FM" && !songInfo.modifiers.Contains("None") ? $" with [{songInfo.modifiers}]" : "")} was selected.");
                 TootTallyGlobalVariables.gameSpeedMultiplier = songInfo.gameSpeed;
 
                 float diffIndex = (int)((songInfo.gameSpeed - .5f) / .25f);
@@ -420,11 +420,12 @@ namespace TootTallyMultiplayer
                     diff = songInfo.speed_diffs[(int)diffIndex];
 
                 if (songInfo.modifiers != "FM") GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
-                UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
+                    UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
             }
             if (songInfo.trackRef == savedSongInfo.trackRef)
             {
                 savedSongInfo = songInfo;
+                UpdateLobbySongDetails();
                 return;
             }
             var optionalTrack = TrackLookup.tryLookup(songInfo.trackRef);
@@ -445,6 +446,7 @@ namespace TootTallyMultiplayer
                 _multLobbyPanel.SetNullTrackDataDetails(_savedDownloadLink != null);
             }
             savedSongInfo = songInfo;
+            UpdateLobbySongDetails();
         }
 
         public void DownloadSavedChart(ProgressBar bar)

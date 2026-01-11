@@ -1,5 +1,10 @@
 #### Changelog:
 
+`v1.0.15` -> `v1.0.16`
+```diff
++ Fixed song info not updating correctly
+```
+
 `v1.0.14` -> `v1.0.15`
 ```diff
 + Added a lot of quick chats
