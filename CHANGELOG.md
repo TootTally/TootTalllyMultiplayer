@@ -1,8 +1,9 @@
 #### Changelog:
 
-`v1.0.15` -> `v1.0.16`
+`v1.0.15` -> `v1.0.17`
 ```diff
 + Fixed song info not updating correctly
++ Fixed song not owned bug when starting a song
 ```
 
 `v1.0.14` -> `v1.0.15`

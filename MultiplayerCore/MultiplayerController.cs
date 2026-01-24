@@ -573,6 +573,9 @@ namespace TootTallyMultiplayer
 
         public void StartGame()
         {
+            var optionalTrack = TrackLookup.tryLookup(savedSongInfo.trackRef);
+            _hasSong = savedSongInfo.trackRef != "" && OptionModule.IsSome(optionalTrack);
+
             if (_hasSong && CurrentInstance != null && !IsTransitioning)
             {
                 TootTallyGlobalVariables.isPracticing = false; //Force practice mode off
