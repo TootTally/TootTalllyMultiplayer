@@ -305,7 +305,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             MultiplayerUserInfo currentHost = users.Find(x => x.isHost);
             if (_hostInfo.id == 0 || _hostInfo.id != currentHost.id)
             {
-                if (_hostInfo.id != 0)
+                if (_hostInfo.id != 0 && _hostInfo.username != "")
                     MultiplayerLogger.ServerLog($"Host was given to {currentHost.username}.");
                 _hostInfo = currentHost;
             }
@@ -450,7 +450,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnSendQuickChatButtonClick(QuickChat chat)
         {
             if (!IsQuickChatOpened || !_canDoQuickChat) return; //Prevent user from sending QuickChat while panel is closing
-            DisableQuickChat(2f);
+            DisableQuickChat(1f);
             controller.SendQuickChat(chat);
         }
 

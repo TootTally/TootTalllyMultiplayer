@@ -208,7 +208,8 @@ namespace TootTallyMultiplayer
                 Plugin.LogInfo("Entering Multiplayer...");
                 __instance.musobj.Stop();
                 __instance.quickFlash(2);
-                LeanTween.scale(__instance.fullcanvas, new Vector3(0.001f, 0.001f, 1f), 0.5f).setEaseInQuart();
+                //LeanTween.scale(__instance.fullcanvas, new Vector3(0.001f, 0.001f, 1f), 0.5f).setEaseInQuart();
+                TootTallyAnimationManager.AddNewTransformScaleAnimation(__instance.fullcanvas, Vector2.zero, .5f, new SecondDegreeDynamicsAnimation(1.95f, 1f, .05f));
                 __instance.screenfade.alpha = 0f;
                 LeanTween.alphaCanvas(__instance.screenfade, 1f, 0.45f).setDelay(0.25f).setOnComplete(new Action(LoadPlayTestScene));
                 //SceneManager.MoveGameObjectToScene(GameObject.Instantiate(multiplayerButton), scene);
@@ -420,7 +421,7 @@ namespace TootTallyMultiplayer
             __instance.fader.SetActive(true);
             __instance.fader.transform.localScale = new Vector3(9.9f, 0.001f, 1f);
             LeanTween.cancelAll();
-            LeanTween.scaleY(__instance.fader, 9.75f, 0.25f).setEaseInQuart().setOnComplete(new Action(delegate
+            /*LeanTween.scaleY(__instance.fader, 9.75f, 0.25f).setEaseInQuart().setOnComplete(new Action(delegate
             {
                 _multiController.ShowPanel();
                 _multiController.ShowMute();
@@ -431,7 +432,22 @@ namespace TootTallyMultiplayer
                 _currentInstance.fadepanel.gameObject.SetActive(true);
                 LeanTween.alphaCanvas(_currentInstance.fadepanel, 0f, 1f).setOnComplete(new Action(_currentInstance.hidefade));
                 _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
-            }));
+            }));*/
+            TootTallyAnimationManager.AddNewTransformScaleAnimation(__instance.fader, new Vector2(1f, 9.75f), .25f, new SecondDegreeDynamicsAnimation(1.25f, 1f, .05f), delegate
+            {
+                _multiController.ShowPanel();
+                _multiController.ShowMute();
+                SceneManager.UnloadSceneAsync(LEVELSELECT_SCENE_NAME);
+                MultiAudioController.ResumeMusicSoft();
+                _currentInstance.startBGAnims();
+                _currentInstance.fadepanel.alpha = 1f;
+                _currentInstance.fadepanel.gameObject.SetActive(true);
+                TootTallyAnimationManager.AddNewAlphaAnimation(_currentInstance.fadepanel.gameObject, 0f, 1f, new SecondDegreeDynamicsAnimation(1f, 1f, 1f), delegate
+                {
+                    _currentInstance.hidefade();
+                });
+                _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
+            });
         }
 
         //This is so dumb lmfao
@@ -708,8 +724,13 @@ namespace TootTallyMultiplayer
                     _currentInstance.fadepanel.alpha = 0f;
                     _currentInstance.fadepanel.gameObject.SetActive(true);
                     MultiAudioController.PauseMusicSoft();
-                    LeanTween.alphaCanvas(_currentInstance.fadepanel, 1f, .25f)
+                    /*LeanTween.alphaCanvas(_currentInstance.fadepanel, 1f, .25f)
                     .setOnComplete(() =>
+                    {
+                        SceneManager.LoadScene(LEVELSELECT_SCENE_NAME, LoadSceneMode.Additive);
+                        _multiController.HidePanel();
+                    });*/
+                    TootTallyAnimationManager.AddNewAlphaAnimation(_currentInstance.fadepanel.gameObject, 1f, .25f, new SecondDegreeDynamicsAnimation(1f, 1f, 1f), delegate
                     {
                         SceneManager.LoadScene(LEVELSELECT_SCENE_NAME, LoadSceneMode.Additive);
                         _multiController.HidePanel();
@@ -717,7 +738,7 @@ namespace TootTallyMultiplayer
                     _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
                     break;
                 case MultiplayerController.MultiplayerState.ExitScene:
-                    LeanTween.cancel(_currentInstance.fadepanel.gameObject);
+                    //LeanTween.cancel(_currentInstance.fadepanel.gameObject);
                     MultiAudioController.StopMusicSoft();
                     StopRecursiveRefresh();
                     _multiController.Dispose();
@@ -744,7 +765,8 @@ namespace TootTallyMultiplayer
 
             _currentInstance.sfx_ok.Play();
             _currentInstance.fadepanel.gameObject.SetActive(true);
-            LeanTween.alphaCanvas(_currentInstance.fadepanel, 1f, 0.4f).setOnComplete(new Action(_currentInstance.nextScene));
+            //LeanTween.alphaCanvas(_currentInstance.fadepanel, 1f, 0.4f).setOnComplete(new Action(_currentInstance.nextScene));
+            TootTallyAnimationManager.AddNewAlphaAnimation(_currentInstance.fadepanel.gameObject, 1f, .4f, new SecondDegreeDynamicsAnimation(1f, 1f, 1f), delegate { _currentInstance.nextScene(); });
         }
         #endregion
 

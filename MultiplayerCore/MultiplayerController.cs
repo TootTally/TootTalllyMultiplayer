@@ -234,7 +234,11 @@ namespace TootTallyMultiplayer
             {
                 _multiConnection.Disconnect();
                 if (MultiplayerManager.State == MultiplayerController.MultiplayerState.Lobby)
+                {
                     _multLobbyPanel.ResetData();
+                    savedSongInfo.trackRef = "";
+                    savedTrackData = null;
+                }
             }
             else
                 _multMainPanel.OnLobbyDisconnectError();
@@ -586,7 +590,8 @@ namespace TootTallyMultiplayer
                 CurrentInstance.sfx_ok.Play();
                 CurrentInstance.fadepanel.gameObject.SetActive(true);
                 MultiAudioController.PauseMusicSoft();
-                LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
+                //LeanTween.alphaCanvas(CurrentInstance.fadepanel, 1f, .65f).setOnComplete(new Action(LoadLoaderScene));
+                TootTallyAnimationManager.AddNewAlphaAnimation(CurrentInstance.fadepanel.gameObject, 1f, .65f, new SecondDegreeDynamicsAnimation(1f, 1f, 1f), delegate { LoadLoaderScene(); });
                 return;
             }
 
