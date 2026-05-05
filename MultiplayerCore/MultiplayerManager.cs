@@ -197,13 +197,13 @@ namespace TootTallyMultiplayer
             {
                 if (__instance.waitforclick != 0) return;
                 __instance.addWaitForClick();
-                __instance.playSfx(3);
+                
                 if (TootTallyUser.userInfo == null || TootTallyUser.userInfo.id == 0)
                 {
                     TootTallyNotifManager.DisplayError("Please login on TootTally to play online.");
                     return;
                 }
-
+                __instance.playSfx(3);
                 /*PopUpNotifManager.DisplayNotif("Multiplayer under maintenance...", GameTheme.themeColors.notification.errorText);
                 return;*/
 

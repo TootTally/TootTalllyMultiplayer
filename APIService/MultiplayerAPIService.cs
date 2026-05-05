@@ -77,6 +77,16 @@ namespace TootTallyMultiplayer.APIService
                 callback(DownloadHandlerAudioClip.GetContent(webRequest));
         }
 
+        public static IEnumerator<UnityWebRequestAsyncOperation> TryLoadingSound(string fileName, Action<AudioClip> callback)
+        {
+            string assetDir = Path.Combine(Path.GetDirectoryName(Plugin.Instance.Info.Location), "Music");
+            assetDir = Path.Combine(assetDir, fileName);
+            UnityWebRequest webRequest = UnityWebRequestMultimedia.GetAudioClip("file://" + assetDir, AudioType.WAV);
+            yield return webRequest.SendWebRequest();
+            if (!HasError(webRequest, assetDir))
+                callback(DownloadHandlerAudioClip.GetContent(webRequest));
+        }
+
         private static UnityWebRequest PostUploadRequest(string query, byte[] data, string contentType = "application/json")
         {
             DownloadHandler dlHandler = new DownloadHandlerBuffer();

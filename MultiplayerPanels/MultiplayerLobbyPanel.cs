@@ -294,10 +294,12 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             {
                 users.FindAll(x => !_lastUsers.Any(l => x.id == l.id)).ToList().ForEach(u =>
                 {
+                    MultiAudioController.PlayJoinSound();
                     MultiplayerLogger.ServerLog($"{u.username} joined the lobby.");
                 });
                 _lastUsers.FindAll(l => !users.Any(x => l.id == x.id)).ToList().ForEach(u =>
                 {
+                    MultiAudioController.PlayLeaveSound();
                     MultiplayerLogger.ServerLog($"{u.username} left the lobby.");
                 });
             }
