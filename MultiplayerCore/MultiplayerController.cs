@@ -1,6 +1,7 @@
 ﻿using BaboonAPI.Hooks.Tracks;
 using BepInEx;
 using Microsoft.FSharp.Core;
+using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
@@ -69,7 +70,8 @@ namespace TootTallyMultiplayer
         public bool IsDevMode => TootTallyUser.userInfo.dev || TootTallyUser.userInfo.moderator;
         public bool IsSpectating => TootTallyGlobalVariables.isTournamentHosting; //TEMP for now
         public string LobbyCode;
-
+        private TootTallyNotif _connectingNotif;
+        private LoadingIcon _connectingLoadingIcon;
 
         public MultiplayerController(PlaytestAnims __instance)
         {
@@ -205,8 +207,13 @@ namespace TootTallyMultiplayer
         {
             RefreshAllLobbyInfo();
             if (_multiConnection != null && _multiConnection.ConnectionPending) return;
-
+            _connectingNotif?.Dispose();
+            _connectingLoadingIcon?.Dispose();
             _multiConnection?.Disconnect();
+            _connectingNotif = TootTallyNotifManager.ManualNotif($"Connecting to {code}...", TootTallyCore.Theme.colors.notification.defaultText);
+            _connectingLoadingIcon = GameObjectFactory.CreateLoadingIcon(_connectingNotif.gameObject.transform, new Vector2(0, -42), Vector2.one * 64f, AssetManager.GetSprite("icon.png"), true, "ConnectingLoadingSwirly");
+            _connectingLoadingIcon.StartRecursiveAnimation();
+            _connectingLoadingIcon.Show();
             Plugin.LogInfo("Connecting to " + code);
             IsConnectionPending = true;
             if (forceEntry)
@@ -218,6 +225,8 @@ namespace TootTallyMultiplayer
             {
                 OnWebSocketOpenCallback = delegate
                 {
+                    _connectingLoadingIcon?.Dispose(); _connectingLoadingIcon = null;
+                    _connectingNotif?.Dispose(); _connectingNotif = null;
                     _multMainPanel.OnLobbyConnectSuccess();
                     _multiConnection.OnWebSocketCloseCallback = null;
                     _multiConnection.OnSocketSongInfoReceived = OnSongInfoReceived;
@@ -230,6 +239,8 @@ namespace TootTallyMultiplayer
 
         public void DisconnectFromLobby()
         {
+            _connectingLoadingIcon?.Dispose(); _connectingLoadingIcon = null;
+            _connectingNotif?.Dispose(); _connectingNotif = null;
             if (_multiConnection.IsConnected)
             {
                 _multiConnection.Disconnect();
@@ -403,7 +414,10 @@ namespace TootTallyMultiplayer
             }
             else if (songInfo.trackRef != savedSongInfo.trackRef || songInfo.gameSpeed != savedSongInfo.gameSpeed || (songInfo.modifiers != "FM" && songInfo.modifiers != savedSongInfo.modifiers))
             {
-                MultiplayerLogger.HostLog(_currentLobby.players[0].username,
+                MultiplayerUserInfo host = _currentLobby.players.FirstOrDefault(u => u.isHost);
+                if (host.Equals(default))
+                    host.username = "System";
+                MultiplayerLogger.HostLog(host.username,
                     $"Song \"{songInfo.songName} [{songInfo.gameSpeed:0.00}x]\"{(songInfo.modifiers != "FM" && !songInfo.modifiers.Contains("None") ? $" with [{songInfo.modifiers}]" : "")} was selected.");
                 TootTallyGlobalVariables.gameSpeedMultiplier = songInfo.gameSpeed;
 
@@ -424,7 +438,7 @@ namespace TootTallyMultiplayer
                     diff = songInfo.speed_diffs[(int)diffIndex];
 
                 if (songInfo.modifiers != "FM") GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
-                    UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
+                UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
             }
             if (songInfo.trackRef == savedSongInfo.trackRef)
             {

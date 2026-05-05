@@ -17,7 +17,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.InputPrompts
         public GameObject gameObject;
         private GameObject _container, _topContainer, _bottomContainer, _lobbySettingsContainer, _otherSettingsContainer;
         private TMP_InputField _nameInput, _descInput, _passwordInput, _maxPlayerInput;
-        private Toggle _autorotateButton, _freemodButton, _teamsButton;
+        private Toggle _autorotateButton, _autostartToggle, _freemodButton, _teamsButton;
 
         private TootTallyAnimation _lobbySettingsAnimation;
         public LobbySettingsInputPrompt(Transform canvasTransform, MultiplayerController controller)
@@ -90,6 +90,7 @@ namespace TootTallyMultiplayer.MultiplayerCore.InputPrompts
             ButtonsLayout.childControlHeight = ButtonsLayout.childForceExpandHeight = false;
 
             _autorotateButton = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "AutorotateToggle", new Vector2(60, 60), "autorotate");
+            _autostartToggle = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "AutostartToggle", new Vector2(60, 60), "autostart");
             _teamsButton = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "TeamsToggle", new Vector2(60, 60), "teams");
             _freemodButton = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "FreemodToggle", new Vector2(60, 60), "freemod");
 

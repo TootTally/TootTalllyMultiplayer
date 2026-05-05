@@ -1,9 +1,11 @@
 ﻿using TMPro;
 using TootTallyAccounts;
 using TootTallyCore.Graphics;
+using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyNotifs;
 using TootTallyGameModifiers;
 using TootTallyMultiplayer.APIService;
+using TootTallySettings;
 using UnityEngine;
 using UnityEngine.UI;
 using static TootTallyMultiplayer.APIService.MultSerializableClasses;
@@ -14,7 +16,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
     {
         private GameObject _centerContainer;
         private TMP_InputField _lobbyName, _lobbyDescription, _lobbyPassword, _lobbyMaxPlayer;
-        private Toggle _autoRotateToggle, _teamsToggle, _freemodToggle;
+        private Toggle _autoRotateToggle, _teamsToggle, _freemodToggle, _autoStartOnReady;
 
         public bool IsRequestPending;
         public MultiplayerCreatePanel(GameObject canvas, MultiplayerController controller) : base(canvas, controller, "CreateLayout")
@@ -62,6 +64,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             otherLayout.childForceExpandWidth = otherLayout.childControlWidth = false;
 
             _autoRotateToggle = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "AutorotateToggle", new Vector2(60, 60), "autorotate");
+            _autoStartOnReady = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "AutoStartWhenReady", new Vector2(60, 60), "autostart");
             _teamsToggle = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "TeamsToggle", new Vector2(60, 60), "teams");
             _freemodToggle = MultiplayerGameObjectFactory.CreateToggle(_otherSettingsContainer.transform, "FreemodToggle", new Vector2(60, 60), "freemod");
 
@@ -123,9 +126,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private void OnCreateButtonClick()
         {
             if (IsRequestPending || !ValidateInput(_lobbyName.text, _lobbyDescription.text, _lobbyPassword.text, _lobbyMaxPlayer.text) || controller.IsConnected || controller.IsConnectionPending) return;
-
             IsRequestPending = true;
-            TootTallyNotifManager.DisplayNotif("Creating lobby...");
+            var notif = TootTallyNotifManager.ManualNotif("Creating lobby...", TootTallyCore.Theme.colors.notification.defaultText);
+            var swirly = GameObjectFactory.CreateLoadingIcon(notif.gameObject.transform, new Vector2(0, -42), Vector2.one * 64f, AssetManager.GetSprite("icon.png"), true, "LobbyCreateLoadingSwirly");
+            swirly.StartRecursiveAnimation();
+            swirly.Show();
             var apiSubmission = new APICreateSubmission()
             {
                 name = _lobbyName.text,
@@ -133,6 +138,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 password = _lobbyPassword.text,
                 maxPlayer = int.Parse(_lobbyMaxPlayer.text),
                 autorotate = _autoRotateToggle.isOn,
+                autostart = _autoStartOnReady.isOn,
                 teams = _teamsToggle.isOn,
                 freemod = _freemodToggle.isOn,
                 version = PluginInfo.PLUGIN_VERSION
@@ -141,11 +147,14 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             {
                 if (serverCode != null)
                 {
+                    TootTallyNotifManager.DisplayNotif($"Lobby #{serverCode} created.");
                     Plugin.LogInfo(serverCode);
                     controller.ConnectToLobby(serverCode, _lobbyPassword.text);
                 }
                 else
                     TootTallyNotifManager.DisplayNotif("Lobby creation failed.");
+                swirly.Dispose();
+                notif.Dispose();
                 IsRequestPending = false;
             }));
         }

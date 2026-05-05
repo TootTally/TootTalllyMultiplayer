@@ -88,8 +88,8 @@ namespace TootTallyMultiplayer
             MultiplayerGameObjectFactory.Initialize();
             MultiAudioController.InitMusic();
 
-            if (!MultiAudioController.IsDefaultMusicLoaded)
-                MultiAudioController.LoadMusic("MultiplayerMusic.mp3", () => MultiAudioController.PlayMusicSoft());
+            if (!MultiAudioController.IsMusicLoaded)
+                MultiAudioController.LoadCurrentIndexMusic(() => MultiAudioController.PlayMusicSoft());
             else if (MultiAudioController.IsPaused)
                 MultiAudioController.ResumeMusicSoft();
             else
@@ -138,7 +138,10 @@ namespace TootTallyMultiplayer
                 MultiAudioController.ChangeVolume(-.01f);
             else if (Input.GetKeyDown(KeyCode.Equals) && State != MultiplayerController.MultiplayerState.Playing)
                 MultiAudioController.ChangeVolume(.01f);
-
+            else if (Input.GetKeyDown(KeyCode.RightArrow) && MultiAudioController.IsPlayingDefault)
+                MultiAudioController.NextSong(delegate { MultiAudioController.PlayMusicSoft(); });
+            else if (Input.GetKeyDown(KeyCode.LeftArrow) && MultiAudioController.IsPlayingDefault)
+                MultiAudioController.PreviousSong(delegate { MultiAudioController.PlayMusicSoft(); });
             _multiController?.Update();
         }
 

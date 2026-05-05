@@ -6,6 +6,7 @@ using System.IO;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyModules;
 using TootTallySettings;
+using static TootTallyMultiplayer.MultiplayerCore.MultiAudioController;
 
 namespace TootTallyMultiplayer
 {
@@ -54,6 +55,7 @@ namespace TootTallyMultiplayer
             SavedLobbyTitle = Config.Bind("General", nameof(SavedLobbyTitle), "", "Last lobby creation name used.");
             SavedLobbyDesc = Config.Bind("General", nameof(SavedLobbyDesc), "Welcome to my lobby!", "Last lobby creation description used.");
             SavedLobbyMaxPlayer = Config.Bind("General", nameof(SavedLobbyMaxPlayer), 16, "Last lobby creation lobby max player used.");
+            SavedMusicStyle = Config.Bind("Music", nameof(SavedMusicStyle), MusicStyle.Default, "Last selected multiplayer music style.");
             AssetManager.LoadAssets(Path.Combine(Path.GetDirectoryName(Instance.Info.Location), "Assets"));
             _harmony.PatchAll(typeof(MultiplayerManager));
             LogInfo($"Module loaded!");
@@ -71,5 +73,6 @@ namespace TootTallyMultiplayer
         public ConfigEntry<string> SavedLobbyTitle { get; set; }
         public ConfigEntry<string> SavedLobbyDesc { get; set; }
         public ConfigEntry<int> SavedLobbyMaxPlayer { get; set; }
+        public ConfigEntry<MusicStyle> SavedMusicStyle { get; set; }
     }
 }

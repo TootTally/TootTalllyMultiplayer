@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using TootTallyMultiplayer.APIService;
 using UnityEngine;
@@ -16,9 +18,16 @@ namespace TootTallyMultiplayer.MultiplayerCore
 
         public static bool IsPlaying => _audioSource.isPlaying;
         public static bool IsPaused;
-        public static bool IsDefaultMusicLoaded;
-        public static bool IsPlayingDefault => IsDefaultMusicLoaded && _audioSource.isPlaying && _audioSource.clip == _defaultAudio;
+        public static bool IsMusicLoaded;
+        public static bool IsPlayingDefault => IsMusicLoaded && _audioSource.isPlaying && _audioSource.clip == _defaultAudio;
+        public static bool IsTransitioning;
         public static bool IsMuted => Plugin.Instance.MuteMusic.Value;
+        private static string[] _musicFileNames =
+        {
+            "MultiplayerMusic.mp3",
+            "MultiplayerMusic2.mp3"
+        };
+        private static int _currentMusicIndex;
 
         public static void InitMusic()
         {
@@ -27,25 +36,57 @@ namespace TootTallyMultiplayer.MultiplayerCore
             _audioSource = Plugin.Instance.gameObject.AddComponent<AudioSource>();
             _audioSource.loop = true;
             _volume = GetMaxVolume;
-
+            _currentMusicIndex = Mathf.Clamp((int)Plugin.Instance.SavedMusicStyle.Value, 0, _musicFileNames.Length - 1);
             _isInitialized = true;
             IsPaused = false;
-            IsDefaultMusicLoaded = false;
+            IsMusicLoaded = false;
+            IsTransitioning = false;
         }
 
-        public static void LoadMusic(string fileName, Action OnLoadedCallback = null)
+        public static void NextSong(Action OnLoadedCallback = null)
         {
-            IsDefaultMusicLoaded = false;
+            if (IsMuted || IsTransitioning) return;
+            IsTransitioning = true;
+            _currentMusicIndex = ++_currentMusicIndex % Enum.GetNames(typeof(MusicStyle)).Length;
+            if (IsPlayingDefault)
+                StopMusicSoft(.3f, () => LoadMusic(_currentMusicIndex, OnLoadedCallback));
+            else
+                LoadMusic(_currentMusicIndex, OnLoadedCallback);
+        }
 
-            Plugin.Instance.StartCoroutine(MultiplayerAPIService.TryLoadingAudioClipLocal(fileName, clip =>
+        public static void PreviousSong(Action OnLoadedCallback = null)
+        {
+            if (IsMuted || IsTransitioning) return;
+            IsTransitioning = true;
+            _currentMusicIndex = --_currentMusicIndex % Enum.GetNames(typeof(MusicStyle)).Length;
+            if (IsPlayingDefault)
+                StopMusicSoft(.3f, () => LoadMusic(_currentMusicIndex, OnLoadedCallback));
+            else
+                LoadMusic(_currentMusicIndex, OnLoadedCallback);
+        }
+
+        public static void LoadCurrentIndexMusic(Action onLoadedCallback = null) => LoadMusic(_currentMusicIndex, onLoadedCallback);
+
+        public static void LoadMusic(int musicIndex, Action OnLoadedCallback = null)
+        {
+            if (musicIndex < 0 || musicIndex > _musicFileNames.Length - 1)
             {
+                Plugin.LogError($"Music Index inexpected value was {musicIndex}");
+                return;
+            }
+
+            IsMusicLoaded = false;
+            Plugin.Instance.StartCoroutine(MultiplayerAPIService.TryLoadingAudioClipLocal(_musicFileNames[musicIndex], clip =>
+            {
+                IsTransitioning = false;
                 if (clip == null)
                 {
-                    IsDefaultMusicLoaded = false;
-                    Plugin.LogError($"Music {fileName} couldn't be loaded.");
+                    IsMusicLoaded = false;
+                    Plugin.LogError($"Music {_musicFileNames[musicIndex]} couldn't be loaded.");
                     return;
                 }
-                IsDefaultMusicLoaded = true;
+                Plugin.Instance.SavedMusicStyle.Value = (MusicStyle)musicIndex;
+                IsMusicLoaded = true;
                 _audioSource.clip = clip;
                 _defaultAudio = clip;
                 _audioSource.volume = 0;
@@ -129,5 +170,10 @@ namespace TootTallyMultiplayer.MultiplayerCore
                 _audioSource.clip = _defaultAudio;
         }
 
+        public enum MusicStyle
+        {
+            Default,
+            Alternative,
+        }
     }
 }

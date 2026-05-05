@@ -207,6 +207,10 @@ namespace TootTallyMultiplayer
             inputFieldLabel.rectTransform.sizeDelta = new Vector2(115, 30);
             inputFieldLabel.alignment = TextAlignmentOptions.BottomRight;
             var inputField = CreateInputField(inputHorizontalBox.transform, "InputField", new Vector2(275, 30), 24, "", true);
+            var showPasswordButton = GameObjectFactory.CreateClickableImageHolder(inputField.transform, new Vector2(300, 0), Vector2.one * 64f, AssetManager.GetSprite("HD.png"), "ShowPasswordButton", delegate
+            {
+
+            });
 
             var buttonHorizontalBox = GameModifierFactory.GetHorizontalBox(new Vector2(0, 66), borderedBoxContainer.transform);
             var hLayout2 = buttonHorizontalBox.GetComponent<HorizontalLayoutGroup>();

@@ -60,6 +60,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         private int _maxPlayerCount;
         private int _readyCount;
         private bool _isFreeMod;
+        private bool _isAutoStartOnReady;
         private float _previousUserCount;
 
         private float _savedGameSpeed;
@@ -301,6 +302,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                 });
             }
             _isFreeMod = lobbyInfo.freemod;
+            _isAutoStartOnReady = lobbyInfo.autostart;
             ClearAllUserRows();
             MultiplayerUserInfo currentHost = users.Find(x => x.isHost);
             if (_hostInfo.id == 0 || _hostInfo.id != currentHost.id)
@@ -522,6 +524,11 @@ namespace TootTallyMultiplayer.MultiplayerPanels
         public void OnReadyButtonClick()
         {
             if (!_canPressButton) return;
+            if (_userState == UserState.Playing)
+            {
+                _userState = UserState.NotReady;
+                OnUserStateChange(_userState);
+            }
 
             switch (_userState)
             {
@@ -538,6 +545,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
                     DisableButton(.8f);
                     break;
             }
+
         }
 
         public void SetHostButtonText()

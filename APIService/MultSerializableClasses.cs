@@ -21,6 +21,7 @@ namespace TootTallyMultiplayer.APIService
             public int maxPlayer;
             public string version;
             public bool autorotate;
+            public bool autostart;
             public bool teams;
             public bool freemod;
         }
@@ -45,6 +46,7 @@ namespace TootTallyMultiplayer.APIService
             public string state;
             public bool teams;
             public bool freemod;
+            public bool autostart;
             public LobbyType lobbytype;
             public List<MultiplayerUserInfo> players;
             public MultiplayerSongInfo songInfo;
