@@ -212,7 +212,7 @@ namespace TootTallyMultiplayer
                 __instance.musobj.Stop();
                 __instance.quickFlash(2);
                 //LeanTween.scale(__instance.fullcanvas, new Vector3(0.001f, 0.001f, 1f), 0.5f).setEaseInQuart();
-                TootTallyAnimationManager.AddNewTransformScaleAnimation(__instance.fullcanvas, Vector2.zero, .5f, new SecondDegreeDynamicsAnimation(1.2f, .95f, -.35f));
+                TootTallyAnimationManager.AddNewTransformScaleAnimation(__instance.fullcanvas, Vector2.zero, .5f, new SecondDegreeDynamicsAnimation(2.5f, .95f, -.35f));
                 __instance.screenfade.alpha = 0f;
                 LeanTween.alphaCanvas(__instance.screenfade, 1f, 0.45f).setDelay(0.25f).setOnComplete(new Action(LoadPlayTestScene));
                 //SceneManager.MoveGameObjectToScene(GameObject.Instantiate(multiplayerButton), scene);
