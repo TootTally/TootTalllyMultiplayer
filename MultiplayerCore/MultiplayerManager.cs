@@ -212,7 +212,7 @@ namespace TootTallyMultiplayer
                 __instance.musobj.Stop();
                 __instance.quickFlash(2);
                 //LeanTween.scale(__instance.fullcanvas, new Vector3(0.001f, 0.001f, 1f), 0.5f).setEaseInQuart();
-                TootTallyAnimationManager.AddNewTransformScaleAnimation(__instance.fullcanvas, Vector2.zero, .5f, new SecondDegreeDynamicsAnimation(1.95f, 1f, .05f));
+                TootTallyAnimationManager.AddNewTransformScaleAnimation(__instance.fullcanvas, Vector2.zero, .5f, new SecondDegreeDynamicsAnimation(1.2f, .95f, -.35f));
                 __instance.screenfade.alpha = 0f;
                 LeanTween.alphaCanvas(__instance.screenfade, 1f, 0.45f).setDelay(0.25f).setOnComplete(new Action(LoadPlayTestScene));
                 //SceneManager.MoveGameObjectToScene(GameObject.Instantiate(multiplayerButton), scene);
@@ -436,7 +436,7 @@ namespace TootTallyMultiplayer
                 LeanTween.alphaCanvas(_currentInstance.fadepanel, 0f, 1f).setOnComplete(new Action(_currentInstance.hidefade));
                 _currentInstance.factpanel.anchoredPosition3D = new Vector3(0f, -600f, 0f);
             }));*/
-            TootTallyAnimationManager.AddNewTransformScaleAnimation(__instance.fader, new Vector2(1f, 9.75f), .25f, new SecondDegreeDynamicsAnimation(1.25f, 1f, .05f), delegate
+            TootTallyAnimationManager.AddNewTransformScaleAnimation(__instance.fader, new Vector2(9.9f, 9.75f), .25f, new SecondDegreeDynamicsAnimation(2.5f, 1f, .5f), delegate
             {
                 _multiController.ShowPanel();
                 _multiController.ShowMute();
