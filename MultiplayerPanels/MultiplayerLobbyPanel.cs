@@ -42,6 +42,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
 
         private TMP_Text _lobbyLogText;
 
+        private Image _ratedIcon;
+
         private ProgressBar _downloadProgressBar;
 
         private Slider _hiddenUserCardSlider, _scrollSpeedSlider;
@@ -190,7 +192,10 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _gameSpeedText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "GameSpeedText", " -");
             GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("stardiff64.png"), "RatingIcon");
             _ratingText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "RatingText", " -");
+            _ratedIcon = GameObjectFactory.CreateImageHolder(songInfoTop.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("rated64.png"), "RatedIcon").GetComponent<Image>();
+            _ratedIcon.enabled = false;
             _modifiersText = GameObjectFactory.CreateSingleText(songInfoTop.transform, "ModsText", "M ");
+            _modifiersText.margin = new Vector4(45, 0);
 
             //Bottom
             GameObjectFactory.CreateImageHolder(songInfoBottom.transform, Vector2.zero, Vector2.one * iconSize, AssetManager.GetSprite("time64.png"), "TimeIcon");
@@ -199,7 +204,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _bpmText = GameObjectFactory.CreateSingleText(songInfoBottom.transform, "BPMText", " -");
 
             _timeText.rectTransform.sizeDelta = _gameSpeedText.rectTransform.sizeDelta = _modifiersText.rectTransform.sizeDelta = _bpmText.rectTransform.sizeDelta = new Vector2(200, 0);
-            _ratingText.rectTransform.sizeDelta = new Vector2(170, 0);
+            _ratingText.rectTransform.sizeDelta = new Vector2(70, 0);
 
             BetterScrollSpeedSliderPatcher.SetSliderOption();
 
@@ -637,7 +642,7 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             controller.RefreshCurrentLobbyInfo();
         }
 
-        public void OnSongInfoChanged(string songName, float gamespeed, string modifiers, float difficulty)
+        public void OnSongInfoChanged(string songName, float gamespeed, string modifiers, float difficulty, bool isRated)
         {
             _savedGameSpeed = gamespeed;
 
@@ -645,21 +650,22 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _gameSpeedText.text = $" <b>{gamespeed:0.00}x</b>";
             _modifiersText.text = $"M <b>{modifiers}</b>";
             _ratingText.text = $" <b>{difficulty:0.00}</b>";
+            _ratedIcon.enabled = isRated;
             _startGameButton.gameObject.SetActive(IsHost && !controller.IsDownloadPending);
         }
 
-        public void OnSongInfoChanged(MultiplayerSongInfo songInfo) => OnSongInfoChanged(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, songInfo.difficulty);
+        public void OnSongInfoChanged(MultiplayerSongInfo songInfo) => OnSongInfoChanged(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, songInfo.difficulty, songInfo.isRated);
 
         public void SetTrackDataDetails(SingleTrackData trackData)
         {
             _isDownloadable = false;
             _songArtistText.text = $"{trackData.artist}";
             _songDescText.text = $"{trackData.desc}";
-            _bpmText.text = $" <b>{trackData.tempo * _savedGameSpeed}</b>";
-
+            
             if (_savedGameSpeed == 0)
                 _savedGameSpeed = 1;
-
+            
+            _bpmText.text = $" <b>{trackData.tempo * _savedGameSpeed}</b>";
             //What the fuck am I doing??
             var time = TimeSpan.FromSeconds(trackData.length / _savedGameSpeed);
             var stringTime = $"{(time.Hours != 0 ? (time.Hours + ":") : "")}{(time.Minutes != 0 ? time.Minutes : "0")}:{(time.Seconds != 0 ? time.Seconds : "00"):00}";
@@ -674,6 +680,8 @@ namespace TootTallyMultiplayer.MultiplayerPanels
             _isDownloadable = isDownloadable;
             _readyUpButton.gameObject.SetActive(isDownloadable);
             _startGameButton.gameObject.SetActive(false);
+            _ratedIcon.enabled = false;
+            _ratingText.text = $"-";
             _songNameText.text = $"-";
             _songArtistText.text = $"-";
             _songDescText.text = $"-";

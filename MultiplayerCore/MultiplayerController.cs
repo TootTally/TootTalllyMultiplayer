@@ -436,9 +436,10 @@ namespace TootTallyMultiplayer
                 }
                 else
                     diff = songInfo.speed_diffs[(int)diffIndex];
+                songInfo.difficulty = diff;
 
                 if (songInfo.modifiers != "FM") GameModifierManager.LoadModifiersFromString(songInfo.modifiers);
-                UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff);
+                UpdateLobbySongInfo(songInfo.songName, songInfo.gameSpeed, songInfo.modifiers, diff, songInfo.isRated);
             }
             if (songInfo.trackRef == savedSongInfo.trackRef)
             {
@@ -560,8 +561,8 @@ namespace TootTallyMultiplayer
         }
 
 
-        public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers, float difficulty) =>
-                _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers, difficulty);
+        public void UpdateLobbySongInfo(string songName, float gamespeed, string modifiers, float difficulty, bool isRated) =>
+                _multLobbyPanel?.OnSongInfoChanged(songName, gamespeed, modifiers, difficulty, isRated);
 
 
         public void UpdateLobbySongDetails()

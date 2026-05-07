@@ -66,6 +66,7 @@ namespace TootTallyMultiplayer.APIService
             public string songName;
             public string songShortName;
             public string trackRef;
+            public bool isRated;
             public float[] speed_diffs;
         }
 
