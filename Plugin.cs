@@ -3,6 +3,7 @@ using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System.IO;
+using UnityEngine;
 using TootTallyCore.Utils.Assets;
 using TootTallyCore.Utils.TootTallyModules;
 using TootTallySettings;
@@ -55,6 +56,7 @@ namespace TootTallyMultiplayer
             SavedLobbyTitle = Config.Bind("General", nameof(SavedLobbyTitle), "", "Last lobby creation name used.");
             SavedLobbyDesc = Config.Bind("General", nameof(SavedLobbyDesc), "Welcome to my lobby!", "Last lobby creation description used.");
             SavedLobbyMaxPlayer = Config.Bind("General", nameof(SavedLobbyMaxPlayer), 16, "Last lobby creation lobby max player used.");
+            ToggleLiveScoreKeybind = Config.Bind("General", "ToggleLiveScoreKeybind", KeyCode.Tab, "Keybind to toggle the live score display");
             SavedMusicStyle = Config.Bind("Music", nameof(SavedMusicStyle), MusicStyle.Default, "Last selected multiplayer music style.");
             AssetManager.LoadAssets(Path.Combine(Path.GetDirectoryName(Instance.Info.Location), "Assets"));
             _harmony.PatchAll(typeof(MultiplayerManager));
@@ -73,6 +75,7 @@ namespace TootTallyMultiplayer
         public ConfigEntry<string> SavedLobbyTitle { get; set; }
         public ConfigEntry<string> SavedLobbyDesc { get; set; }
         public ConfigEntry<int> SavedLobbyMaxPlayer { get; set; }
+        public static ConfigEntry<KeyCode> ToggleLiveScoreKeybind { get; set; }
         public ConfigEntry<MusicStyle> SavedMusicStyle { get; set; }
     }
 }

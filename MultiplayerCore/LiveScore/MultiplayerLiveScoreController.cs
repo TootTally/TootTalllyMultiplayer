@@ -11,12 +11,14 @@ namespace TootTallyMultiplayer.MultiplayerCore
         public static Dictionary<int, List<float[]>> idToSavedNoteDataDict;
         private bool _isInitialized;
         private float _timer;
+        private KeyCode _toggleLiveScoreKey;
 
         public void Awake()
         {
             _idToLiveScoreDict = new Dictionary<int, MultiplayerLiveScore>();
             idToSavedNoteDataDict ??= new Dictionary<int, List<float[]>>();
             idToSavedNoteDataDict.Clear();
+            _toggleLiveScoreKey = Plugin.ToggleLiveScoreKeybind.Value;
             _isInitialized = true;
         }
 
@@ -33,7 +35,7 @@ namespace TootTallyMultiplayer.MultiplayerCore
                     ordered.ElementAt(i).Value.SetPosition(i + 1, _idToLiveScoreDict.Count);
             }
 
-            if (Input.GetKeyDown(KeyCode.Tab))
+            if (Input.GetKeyDown(_toggleLiveScoreKey))
             {
                 Plugin.Instance.ShowLiveScore.Value = !Plugin.Instance.ShowLiveScore.Value;
                 foreach (var liveScore in _idToLiveScoreDict.Values)
