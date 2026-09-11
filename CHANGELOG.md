@@ -1,5 +1,11 @@
 #### Changelog:
 
+`v1.0.18` -> `v1.1.0`
+```diff
++ Small optimization for THost
++ Fixes for new DiffCalc
+```
+
 `v1.0.17` -> `v1.0.18`
 ```diff
 + Added Judgement and Accuracy to LiveScoreData
