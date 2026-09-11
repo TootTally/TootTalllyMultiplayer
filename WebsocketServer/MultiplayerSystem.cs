@@ -79,11 +79,11 @@ namespace TootTallyMultiplayer
 
         public void UpdateStacks()
         {
-            if (OnSocketSongInfoReceived != null && _receivedSongInfo.TryDequeue(out SocketSongInfo songInfo))
+            while(OnSocketSongInfoReceived != null && _receivedSongInfo.TryDequeue(out SocketSongInfo songInfo))
                 OnSocketSongInfoReceived.Invoke(songInfo);
-            if (OnSocketLobbyInfoReceived != null && _receivedLobbyInfo.TryDequeue(out SocketLobbyInfo lobbyInfo))
+            while(OnSocketLobbyInfoReceived != null && _receivedLobbyInfo.TryDequeue(out SocketLobbyInfo lobbyInfo))
                 OnSocketLobbyInfoReceived.Invoke(lobbyInfo);
-            if (OnSocketOptionReceived != null && _receivedSocketOptionInfo.TryDequeue(out SocketOptionInfo option))
+            while(OnSocketOptionReceived != null && _receivedSocketOptionInfo.TryDequeue(out SocketOptionInfo option))
                 OnSocketOptionReceived.Invoke(option);
         }
 

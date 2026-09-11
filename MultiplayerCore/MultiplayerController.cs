@@ -281,7 +281,7 @@ namespace TootTallyMultiplayer
                     UpdateConnection();
                 else
                 {
-                    _multiConnection.UpdateStacks();
+                    _multiConnection?.UpdateStacks();
                     if (IsTimerStarted)
                         UpdateTimer();
                 }
@@ -537,6 +537,7 @@ namespace TootTallyMultiplayer
             GlobalVariables.levelselect_index = savedTrackData.trackindex;
             GlobalVariables.chosen_track = savedTrackData.trackref;
             GlobalVariables.chosen_track_data = savedTrackData;
+            TootTallyDiffCalcLibs.Plugin.DiffCalcPatches.ProcessChartBackup();
             _hasSong = true;
             _savedDownloadLink = null;
             _savedTrackRef = null;

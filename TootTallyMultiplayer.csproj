@@ -55,6 +55,9 @@
     <Reference Include="TootTallyGameModifiers">
       <HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyGameModifiers\TootTallyGameModifiers.dll</HintPath>
     </Reference>
+	<Reference Include="TootTallyDiffCalcLibs">
+		<HintPath>$(TromboneTootDir)\BepInEx\plugins\TootTally-TootTallyDiffCalcLibs\TootTallyDiffCalcLibs.dll</HintPath>
+	</Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
